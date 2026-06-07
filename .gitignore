@@ -1,0 +1,30 @@
+# Segredos — nunca commitar (ver backend/.env.example e app/.env.example)
+.env
+*.env
+!*.env.example
+
+# Node / Expo / React Native (app/)
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+*.tsbuildinfo
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Python (backend/)
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
