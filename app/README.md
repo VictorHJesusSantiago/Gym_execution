@@ -44,7 +44,10 @@ que envolve instalar/buildar pacotes nativos — fazer com cautela e
 revisão de supply-chain):
 
 - Substituir `MockPoseDetector` por uma implementação real da interface
-  `PoseDetector` usando `expo-camera` + MediaPipe Pose / TensorFlow Lite.
+  `PoseDetector` usando `expo-camera` + MediaPipe Pose / TensorFlow Lite —
+  plano detalhado (bibliotecas, esqueleto de código, mapeamento de
+  keypoints, performance e cuidados de supply-chain) em
+  [MEDIAPIPE_INTEGRATION_PLAN.md](src/services/MEDIAPIPE_INTEGRATION_PLAN.md).
 - Substituir `getReferenceFrames` por consumo real da API do backend
   (vídeos de referência processados, cacheados localmente).
 
