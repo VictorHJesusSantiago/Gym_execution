@@ -22,6 +22,11 @@ class Settings(BaseSettings):
 
     media_storage_url: str = "https://storage.example.com"
 
+    rate_limit_enabled: bool = True
+    """Desligado nos testes (ver tests/conftest.py) — evita que a suíte
+    inteira esbarre no limite de /auth ao rodar dezenas de registros/logins
+    em sequência. Em produção fica sempre ligado (valor padrão)."""
+
     admin_api_key: str = "change-me-in-env"
     """Chave usada por processos internos (ex.: pipeline de ingestão de
     referências, ver backend/pipeline/publish_reference.py) para chamar

@@ -7,8 +7,15 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import get_db
+from app.core.rate_limit import limiter
 from app.main import app
 from app.models.base import Base
+
+# Desliga o rate limiting nos testes: a suíte registra/loga dezenas de
+# usuários em sequência (auth_headers é chamado em quase todo teste) e
+# esbarraria no limite de /auth (AUTH_RATE_LIMIT) sem isso — o limite em
+# si tem seu próprio teste em test_rate_limit.py com o limiter religado.
+limiter.enabled = False
 
 """
 Suite de testes da API (FastAPI TestClient + SQLite em memória).

@@ -9,12 +9,20 @@ import { LANDMARK_INDEX, Landmark, PoseFrame } from '../poseTypes';
 function makeFrame(timestampMs: number, overrides: Partial<Record<number, Landmark>> = {}): PoseFrame {
   const landmarks: Landmark[] = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, visibility: 1 }));
   for (const [index, landmark] of Object.entries(overrides)) {
-    landmarks[Number(index)] = landmark;
+    if (landmark) landmarks[Number(index)] = landmark;
   }
   return { timestampMs, landmarks };
 }
 
-/** Monta um frame com o cotovelo esquerdo num ângulo determinado (graus). */
+/**
+ * Monta um frame com o cotovelo esquerdo num ângulo articular determinado
+ * (graus). O ombro fica fixo acima do cotovelo (vetor cotovelo→ombro =
+ * (0, -0.5)); o pulso é posicionado girando esse vetor por `angleDegrees`,
+ * de forma que o ângulo entre cotovelo→ombro e cotovelo→pulso (o que
+ * `angleBetween`/`extractJointAngles` mede) seja exatamente `angleDegrees`
+ * — 0° = totalmente flexionado (pulso encosta no ombro), 180° = braço
+ * estendido (ombro/cotovelo/pulso colineares).
+ */
 function frameWithLeftElbowAngle(timestampMs: number, angleDegrees: number): PoseFrame {
   const radians = (angleDegrees * Math.PI) / 180;
   return makeFrame(timestampMs, {
@@ -22,7 +30,7 @@ function frameWithLeftElbowAngle(timestampMs: number, angleDegrees: number): Pos
     [LANDMARK_INDEX.leftElbow]: { x: 0.5, y: 0.5, visibility: 1 },
     [LANDMARK_INDEX.leftWrist]: {
       x: 0.5 + Math.sin(radians) * 0.5,
-      y: 0.5 + Math.cos(radians) * 0.5,
+      y: 0.5 - Math.cos(radians) * 0.5,
       visibility: 1,
     },
   });

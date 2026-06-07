@@ -127,8 +127,45 @@ de dados ([alembic/versions/0002_seed_exercise_catalog.py](alembic/versions/0002
 testada em [tests/test_exercise_catalog_seed.py](tests/test_exercise_catalog_seed.py)) —
 sem ele, uma instalação nova ficaria com `GET /exercises` vazio.
 
-O próximo passo de produto/escala que segue **deliberadamente como plano**
-(exigiria adicionar uma nova dependência, ex. `slowapi`, e medir o
-impacto antes de instalar) é **rate limiting** dos endpoints de
-autenticação/escrita — hoje mitigado apenas pela validação de payload e
-autenticação obrigatória.
+**Rate limiting** também está implementado: `/auth/register` e
+`/auth/login` são limitados a `AUTH_RATE_LIMIT` (10/minuto) por IP via
+`slowapi` (ver [core/rate_limit.py](app/core/rate_limit.py),
+[main.py](app/main.py) e [tests/test_rate_limit.py](tests/test_rate_limit.py)),
+retornando `429` com corpo JSON ao estourar — mitigação direta de força
+bruta/credential stuffing nos dois endpoints públicos (sem autenticação
+prévia) mais expostos a automação. Pode ser desligado via
+`RATE_LIMIT_ENABLED=false` (ex.: nos testes, que registram dezenas de
+usuários em sequência — ver `Settings.rate_limit_enabled` em `core/config.py`).
+
+## Ambiente de desenvolvimento (testado nesta máquina)
+
+Um `.venv` local foi criado e a suíte de testes roda de ponta a ponta
+(27 passam, 1 pulado — o de integração com Postgres real):
+
+```powershell
+cd backend
+python -m venv .venv
+./.venv/Scripts/pip install -r requirements.txt   # ver nota sobre psycopg2 abaixo
+$env:DATABASE_URL = "sqlite:///./test_run.db"     # evita exigir Postgres local p/ rodar os testes
+./.venv/Scripts/python -m pytest -q
+```
+
+Duas notas de compatibilidade encontradas ao instalar de verdade nesta
+máquina (Python 3.13/3.14, Windows, sem toolchain Postgres/Rust) — os
+pins em `requirements.txt` já refletem os ajustes:
+
+- **`pydantic`**: a versão originalmente fixada (2.7.4) não tem wheel
+  pré-compilada para Python 3.13/3.14 (só compila via Rust/PyO3, que não
+  suporta essas versões do Python ainda) — ajustada para `2.9.2`
+  (compatível com `fastapi==0.111.0`/`pydantic-settings==2.3.4`, com
+  wheel oficial para `cp313`/`cp314`).
+- **`bcrypt`**: fixado explicitamente em `4.0.1` — `passlib==1.7.4`
+  (2020) é incompatível com `bcrypt>=4.1` (que passou a levantar
+  `ValueError` em vez de truncar senhas longas no autoteste interno do
+  passlib, um problema conhecido do ecossistema).
+- **`psycopg2-binary`**: sem wheel pré-compilada para Python 3.13/3.14 e
+  sem `pg_config` (toolchain do Postgres) nesta máquina para compilar —
+  por isso os testes usam `DATABASE_URL=sqlite:///...` (a suíte já roda
+  inteiramente sobre SQLite via `tests/conftest.py`; a conexão real com
+  Postgres só é exercida no teste de integração opcional, ver
+  `INTEGRATION_TESTING_PLAN.md`).

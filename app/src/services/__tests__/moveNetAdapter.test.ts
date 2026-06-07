@@ -6,9 +6,13 @@ import { extractJointAngles } from '../poseScoring';
 function makeCocoKeypoints(
   overrides: Partial<Record<number, { x: number; y: number; score?: number }>> = {}
 ): { x: number; y: number; score?: number }[] {
-  const keypoints = Array.from({ length: 17 }, () => ({ x: 0.5, y: 0.5, score: 1 }));
+  const keypoints: { x: number; y: number; score?: number }[] = Array.from({ length: 17 }, () => ({
+    x: 0.5,
+    y: 0.5,
+    score: 1,
+  }));
   for (const [index, keypoint] of Object.entries(overrides)) {
-    keypoints[Number(index)] = keypoint;
+    if (keypoint) keypoints[Number(index)] = keypoint;
   }
   return keypoints;
 }
