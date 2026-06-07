@@ -1,4 +1,4 @@
-import { PoseDetector, PoseFrame, LANDMARK_INDEX } from './poseTypes';
+import { PoseDetector, PoseFrame } from './poseTypes';
 
 /**
  * Detector simulado: gera landmarks com pequena variação aleatória,
@@ -21,17 +21,12 @@ export class MockPoseDetector implements PoseDetector {
   async detect(timestampMs: number): Promise<PoseFrame | null> {
     if (!this.loaded) return null;
 
-    const totalLandmarks = 33;
+    const totalLandmarks = 33; // padrão MediaPipe Pose — cobre todos os índices em LANDMARK_INDEX
     const landmarks = Array.from({ length: totalLandmarks }, (_, index) => ({
       x: 0.5 + Math.sin(timestampMs / 500 + index) * 0.05,
       y: 0.5 + Math.cos(timestampMs / 500 + index) * 0.05,
       visibility: 0.9,
     }));
-
-    // Garante que as articulações usadas no scoring existam mesmo com índice alto
-    Object.values(LANDMARK_INDEX).forEach((index) => {
-      landmarks[index] = landmarks[index] ?? { x: 0.5, y: 0.5, visibility: 0.9 };
-    });
 
     return { timestampMs, landmarks };
   }

@@ -10,7 +10,8 @@ app/
 ├── App.tsx                      # entrada do app
 ├── app.json                     # configuração do Expo
 ├── babel.config.js
-├── package.json                 # dependências (versões fixadas)
+├── tsconfig.json
+├── package.json                 # dependências (versões fixadas) + config do Jest (preset jest-expo)
 └── src/
     ├── navigation/AppNavigator.tsx
     ├── screens/

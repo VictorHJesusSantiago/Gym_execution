@@ -1,4 +1,4 @@
-import { PoseFrame, LANDMARK_INDEX } from './poseTypes';
+import { PoseFrame } from './poseTypes';
 
 /**
  * Fonte das sequências de pose de referência por exercício.
@@ -18,9 +18,6 @@ export function getReferenceFrames(_exerciseId: string): PoseFrame[] {
       y: 0.5 + Math.cos(t * Math.PI * 2 + index) * 0.05,
       visibility: 1,
     }));
-    Object.values(LANDMARK_INDEX).forEach((index) => {
-      landmarks[index] = landmarks[index] ?? { x: 0.5, y: 0.5, visibility: 1 };
-    });
     return { timestampMs: i * 100, landmarks };
   });
 }

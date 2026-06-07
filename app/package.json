@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "expo": "~51.0.0",
+    "expo-status-bar": "~1.12.0",
     "react": "18.2.0",
     "react-native": "0.74.0",
     "@react-navigation/native": "^6.1.0",
@@ -22,7 +23,12 @@
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "jest": "^29.7.0",
-    "jest-expo": "~51.0.0"
+    "jest-expo": "~51.0.0",
+    "typescript": "~5.3.3",
+    "@types/react": "~18.2.79"
+  },
+  "jest": {
+    "preset": "jest-expo"
   },
   "comment_versoes": "Versoes fixadas (pinned) propositalmente. Antes de instalar, conferir nomes/hashes no registro oficial (npmjs.com) e revisar o lockfile gerado para evitar typosquatting/pacotes maliciosos."
 }

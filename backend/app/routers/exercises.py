@@ -18,8 +18,11 @@ def list_exercises(db: Session = Depends(get_db)) -> list[Exercise]:
 
 
 @router.get("/{exercise_id}", response_model=ExercisePublic)
-def get_exercise(exercise_id: str, db: Session = Depends(get_db)) -> Exercise | None:
-    return db.get(Exercise, exercise_id)
+def get_exercise(exercise_id: str, db: Session = Depends(get_db)) -> Exercise:
+    exercise = db.get(Exercise, exercise_id)
+    if exercise is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exercício não encontrado")
+    return exercise
 
 
 @router.put(
