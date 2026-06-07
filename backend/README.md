@@ -85,6 +85,14 @@ resposta — nunca expõe vídeo, validação de score 0-100, isolamento entre
 usuários) e catálogo de exercícios (404, endpoint admin com
 `X-Admin-Api-Key` correta/incorreta/ausente).
 
+**Testes de integração contra Postgres real** (não rodam por padrão):
+ver [INTEGRATION_TESTING_PLAN.md](INTEGRATION_TESTING_PLAN.md) — usa o
+[docker-compose.yml](../docker-compose.yml) da raiz e
+`tests/test_integration_postgres.py` (marcado `@pytest.mark.integration`,
+pulado a menos que `RUN_INTEGRATION_TESTS=1`) para validar garantias
+específicas do banco (ex.: constraints) que o SQLite da suíte principal
+não cobre.
+
 ## Endpoints administrativos
 
 `PUT /exercises/{id}/reference-model` — protegido pelo header
@@ -97,8 +105,15 @@ processamento de um vídeo de referência, fechando o ciclo descrito em
 
 O ciclo completo descrito em `ARCHITECTURE.md` (autenticação, catálogo,
 histórico, migrations, ingestão de referências e testes da API — ver
-seção "Testes" acima) está coberto pelo scaffold atual. Os próximos
-passos são de produto/escala (ex.: rodar a suíte também contra um
-Postgres real via `testcontainers` para pegar diferenças de dialeto,
-paginação do histórico, rate limiting), a detalhar conforme a
-prioridade do projeto evoluir.
+seção "Testes" acima) está coberto pelo scaffold atual. Os planos para
+as próximas fases já estão documentados (arquivos prontos, nada
+instalado/executado ainda):
+
+- **Testes contra Postgres real** — [INTEGRATION_TESTING_PLAN.md](INTEGRATION_TESTING_PLAN.md)
+  (`docker-compose.yml` da raiz + `tests/test_integration_postgres.py`,
+  pulado por padrão).
+- **Containerização e deploy** — [../DEPLOY_PLAN.md](../DEPLOY_PLAN.md)
+  ([Dockerfile](Dockerfile) já criado).
+
+Os próximos passos de produto/escala (paginação do histórico, rate
+limiting) seguem a detalhar conforme a prioridade do projeto evoluir.

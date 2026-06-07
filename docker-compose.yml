@@ -1,0 +1,33 @@
+# Sobe Postgres + Redis locais para desenvolvimento e para os testes de
+# integração descritos em backend/INTEGRATION_TESTING_PLAN.md. As portas e
+# credenciais aqui combinam com os defaults de backend/.env.example —
+# ajuste ambos juntos se mudar algo.
+#
+# Imagens oficiais do Docker Hub, fixadas por versão (cuidado de
+# supply-chain igual ao resto do projeto — considere fixar por digest
+# para builds 100% reprodutíveis: postgres:16.4@sha256:...).
+
+services:
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: gym
+      POSTGRES_PASSWORD: gym
+      POSTGRES_DB: gym_execution
+    ports:
+      - "5432:5432"
+    volumes:
+      - gym_execution_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gym -d gym_execution"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.4
+    ports:
+      - "6379:6379"
+
+volumes:
+  gym_execution_db:

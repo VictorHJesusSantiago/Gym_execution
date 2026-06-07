@@ -17,6 +17,15 @@ RAM a partir de 2015).
 | [backend/](backend/) | API FastAPI: autenticação, catálogo de exercícios, histórico de sessões | [backend/README.md](backend/README.md) |
 | [backend/pipeline/](backend/pipeline/) | Pipeline offline de ingestão de vídeos de referência → sequências de pose | [backend/pipeline/README.md](backend/pipeline/README.md) |
 
+## Planos (próximas fases)
+
+| Documento | Cobre |
+|---|---|
+| [backend/INTEGRATION_TESTING_PLAN.md](backend/INTEGRATION_TESTING_PLAN.md) | Estender a suíte de testes (hoje SQLite em memória) com testes de integração contra Postgres real — `docker-compose.yml` + `tests/test_integration_postgres.py` já prontos, não rodam por padrão |
+| [DEPLOY_PLAN.md](DEPLOY_PLAN.md) | Containerização (`backend/Dockerfile`), hospedagem do backend, build/distribuição do app via EAS e extensão do CI para build+deploy |
+| [app/UX_PLAN.md](app/UX_PLAN.md) | Telas de conta/acompanhamento (já implementadas — documento mantido como registro do plano original) |
+| [app/src/services/MEDIAPIPE_INTEGRATION_PLAN.md](app/src/services/MEDIAPIPE_INTEGRATION_PLAN.md) | Substituir o detector de pose simulado por MediaPipe/TensorFlow Lite real |
+
 ## Começando
 
 Cada sub-projeto documenta sua própria instalação (com o cuidado de
