@@ -3,6 +3,9 @@
 Estrutura inicial do app híbrido (React Native + Expo), conforme
 [ARCHITECTURE.md](../ARCHITECTURE.md).
 
+> Telas/UX que ainda faltam (login, cadastro, histórico, perfil,
+> configurações): plano de navegação e wireframes em [UX_PLAN.md](UX_PLAN.md).
+
 ## Estrutura
 
 ```
