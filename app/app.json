@@ -12,7 +12,7 @@
     },
     "android": {
       "package": "com.gymexecution.app",
-      "minSdkVersion": 21
+      "minSdkVersion": 23
     },
     "web": {
       "bundler": "metro"

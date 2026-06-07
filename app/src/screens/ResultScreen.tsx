@@ -1,8 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/AppNavigator';
+import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Result'>;
+type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Result'>;
 
 export function ResultScreen({ route, navigation }: Props) {
   const { score, exerciseId } = route.params;

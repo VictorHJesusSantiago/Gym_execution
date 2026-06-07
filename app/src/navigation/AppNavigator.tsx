@@ -1,28 +1,69 @@
+import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuth } from '../hooks/useAuth';
+import { LoginScreen } from '../screens/LoginScreen';
+import { RegisterScreen } from '../screens/RegisterScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ExerciseListScreen } from '../screens/ExerciseListScreen';
 import { ExecutionScreen } from '../screens/ExecutionScreen';
 import { ResultScreen } from '../screens/ResultScreen';
 
-export type RootStackParamList = {
+export type PublicStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
+export type AuthenticatedStackParamList = {
   Home: undefined;
   ExerciseList: undefined;
   Execution: { exerciseId: string };
   Result: { score: number; exerciseId: string };
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const PublicStack = createNativeStackNavigator<PublicStackParamList>();
+const AuthenticatedStack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
+function PublicNavigator() {
+  return (
+    <PublicStack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+      <PublicStack.Screen name="Login" component={LoginScreen} />
+      <PublicStack.Screen name="Register" component={RegisterScreen} />
+    </PublicStack.Navigator>
+  );
+}
+
+function AuthenticatedNavigator() {
+  return (
+    <AuthenticatedStack.Navigator initialRouteName="Home">
+      <AuthenticatedStack.Screen name="Home" component={HomeScreen} options={{ title: 'Gym Execution' }} />
+      <AuthenticatedStack.Screen name="ExerciseList" component={ExerciseListScreen} options={{ title: 'Exercícios' }} />
+      <AuthenticatedStack.Screen name="Execution" component={ExecutionScreen} options={{ title: 'Execução' }} />
+      <AuthenticatedStack.Screen name="Result" component={ResultScreen} options={{ title: 'Resultado' }} />
+    </AuthenticatedStack.Navigator>
+  );
+}
+
+/**
+ * Alterna entre a pilha pública (Login/Cadastro) e a autenticada conforme
+ * o estado de sessão de `useAuth` — ver UX_PLAN.md seção 2. Enquanto o
+ * token persistido ainda está sendo carregado, mostra um loading simples
+ * para evitar "piscar" a tela de login antes de saber se já há sessão.
+ */
 export function AppNavigator() {
+  const { status } = useAuth();
+
+  if (status === 'loading') {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Gym Execution' }} />
-        <Stack.Screen name="ExerciseList" component={ExerciseListScreen} options={{ title: 'Exercícios' }} />
-        <Stack.Screen name="Execution" component={ExecutionScreen} options={{ title: 'Execução' }} />
-        <Stack.Screen name="Result" component={ResultScreen} options={{ title: 'Resultado' }} />
-      </Stack.Navigator>
+      {status === 'signedIn' ? <AuthenticatedNavigator /> : <PublicNavigator />}
     </NavigationContainer>
   );
 }

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/AppNavigator';
+import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
 import { usePoseSession } from '../hooks/usePoseSession';
 import { MockPoseDetector } from '../services/mockPoseDetector';
 import { getReferenceFrames } from '../services/referenceLibrary';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Execution'>;
+type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Execution'>;
 
 const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem — suficiente para análise de pose, leve para 2GB RAM
 

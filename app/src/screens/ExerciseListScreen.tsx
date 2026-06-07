@@ -1,9 +1,9 @@
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/AppNavigator';
+import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
 import { EXERCISES } from '../services/exerciseCatalog';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ExerciseList'>;
+type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'ExerciseList'>;
 
 export function ExerciseListScreen({ navigation }: Props) {
   return (
