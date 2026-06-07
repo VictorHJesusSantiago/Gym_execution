@@ -3,8 +3,10 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
 import { usePoseSession } from '../hooks/usePoseSession';
+import { useAuth } from '../hooks/useAuth';
 import { MockPoseDetector } from '../services/mockPoseDetector';
 import { getReferenceFrames } from '../services/referenceLibrary';
+import { recordSession } from '../services/sessionsService';
 
 type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Execution'>;
 
@@ -23,6 +25,7 @@ const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem — suficiente para an�
 export function ExecutionScreen({ route, navigation }: Props) {
   const { exerciseId } = route.params;
 
+  const { token } = useAuth();
   const detector = useMemo(() => new MockPoseDetector(), []);
   const referenceFrames = useMemo(() => getReferenceFrames(exerciseId), [exerciseId]);
   const { status, score, start, captureFrame, finish } = usePoseSession(detector, referenceFrames);
@@ -54,10 +57,20 @@ export function ExecutionScreen({ route, navigation }: Props) {
   }
 
   useEffect(() => {
-    if (status === 'finished' && score !== null) {
-      navigation.replace('Result', { score, exerciseId });
+    if (status !== 'finished' || score === null) return;
+
+    // Envia só o resultado calculado localmente (nunca o vídeo) para o
+    // histórico do usuário — ver ARCHITECTURE.md seção 5. Falha de rede
+    // não deve bloquear o feedback imediato ao usuário, por isso seguimos
+    // para a tela de resultado mesmo que o registro falhe (log silencioso).
+    if (token) {
+      recordSession(token, exerciseId, score, new Date()).catch(() => {
+        // intencional: ver comentário acima — feedback local prevalece
+      });
     }
-  }, [status, score, exerciseId, navigation]);
+
+    navigation.replace('Result', { score, exerciseId });
+  }, [status, score, exerciseId, navigation, token]);
 
   return (
     <View style={styles.container}>

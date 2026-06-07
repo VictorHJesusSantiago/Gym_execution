@@ -8,6 +8,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { ExerciseListScreen } from '../screens/ExerciseListScreen';
 import { ExecutionScreen } from '../screens/ExecutionScreen';
 import { ResultScreen } from '../screens/ResultScreen';
+import { HistoryScreen } from '../screens/HistoryScreen';
 
 export type PublicStackParamList = {
   Login: undefined;
@@ -19,6 +20,7 @@ export type AuthenticatedStackParamList = {
   ExerciseList: undefined;
   Execution: { exerciseId: string };
   Result: { score: number; exerciseId: string };
+  History: undefined;
 };
 
 const PublicStack = createNativeStackNavigator<PublicStackParamList>();
@@ -40,6 +42,7 @@ function AuthenticatedNavigator() {
       <AuthenticatedStack.Screen name="ExerciseList" component={ExerciseListScreen} options={{ title: 'Exercícios' }} />
       <AuthenticatedStack.Screen name="Execution" component={ExecutionScreen} options={{ title: 'Execução' }} />
       <AuthenticatedStack.Screen name="Result" component={ResultScreen} options={{ title: 'Resultado' }} />
+      <AuthenticatedStack.Screen name="History" component={HistoryScreen} options={{ title: 'Histórico' }} />
     </AuthenticatedStack.Navigator>
   );
 }

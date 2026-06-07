@@ -3,9 +3,9 @@
 Estrutura inicial do app híbrido (React Native + Expo), conforme
 [ARCHITECTURE.md](../ARCHITECTURE.md).
 
-> Telas de Login/Cadastro já implementadas (ver seção "Autenticação"
-> abaixo). Histórico, Perfil e Configurações continuam no plano —
-> wireframes e roadmap em [UX_PLAN.md](UX_PLAN.md).
+> Telas de Login/Cadastro/Histórico já implementadas (ver seções
+> "Autenticação" e "Histórico" abaixo). Perfil e Configurações continuam
+> no plano — wireframes e roadmap em [UX_PLAN.md](UX_PLAN.md).
 
 ## Estrutura
 
@@ -20,14 +20,16 @@ app/
     ├── navigation/AppNavigator.tsx   # alterna pilha pública/autenticada via useAuth
     ├── screens/
     │   ├── LoginScreen.tsx / RegisterScreen.tsx   # pilha pública
-    │   ├── HomeScreen.tsx
+    │   ├── HomeScreen.tsx        # + atalhos "Ver histórico" e "Sair"
     │   ├── ExerciseListScreen.tsx
     │   ├── ExecutionScreen.tsx   # placeholder p/ módulo de visão computacional
-    │   └── ResultScreen.tsx
+    │   ├── ResultScreen.tsx
+    │   └── HistoryScreen.tsx     # GET /sessions — histórico de treinos
     ├── services/
     │   ├── apiClient.ts          # fetch wrapper (base URL + Bearer token)
     │   ├── authService.ts        # consome /auth/register e /auth/login
     │   ├── authStorage.ts        # token JWT em armazenamento seguro (expo-secure-store)
+    │   ├── sessionsService.ts    # consome GET/POST /sessions (histórico)
     │   ├── exerciseCatalog.ts
     │   ├── poseTypes.ts          # tipos/contrato do detector de pose (PoseDetector)
     │   ├── poseScoring.ts        # algoritmo de comparação de execução (ângulos + DTW)
@@ -57,6 +59,20 @@ ao requisito de hardware antigo em troca de não expor o token.
 A URL da API é lida de `EXPO_PUBLIC_API_BASE_URL` (variável de ambiente
 pública do Expo — configurar no `.env` do app, ex.:
 `EXPO_PUBLIC_API_BASE_URL=http://localhost:8000`).
+
+## Histórico
+
+`HistoryScreen` ([código](src/screens/HistoryScreen.tsx)) lista as
+sessões do usuário via `GET /sessions`, reaproveitando o padrão visual
+de `ExerciseListScreen` (FlatList + card), com pull-to-refresh, estado
+vazio e tratamento de erro — conforme `UX_PLAN.md` seção 3.
+
+Para o histórico ter dados, `ExecutionScreen` agora também **registra**
+o resultado ao final de cada série via `POST /sessions`
+(`recordSession` em [sessionsService.ts](src/services/sessionsService.ts)),
+enviando só o score calculado localmente — nunca o vídeo (mesma decisão
+de privacidade/performance do `ARCHITECTURE.md` seção 5). Falhas de rede
+nesse envio não bloqueiam o feedback imediato ao usuário.
 
 ## Módulo de visão computacional (protótipo lógico)
 
@@ -96,7 +112,8 @@ npx expo start
 
 ## Próximos passos do roadmap
 
-- Telas de Histórico, Perfil e Configurações (`UX_PLAN.md`, ainda
-  pendentes — Login/Cadastro já prontos).
+- Telas de Perfil e Configurações (`UX_PLAN.md`; Login, Cadastro e
+  Histórico já prontos). Perfil depende de um novo endpoint
+  `GET/PUT /users/me` — ainda não existe no backend.
 - Integração real de câmera + inferência de pose, conforme
   `MEDIAPIPE_INTEGRATION_PLAN.md`.
