@@ -1,0 +1,12 @@
+# Dependências do pipeline OFFLINE de processamento de vídeos de referência.
+# Mantidas separadas de requirements.txt (API) de propósito: são bibliotecas
+# pesadas de visão computacional, usadas só no servidor/CI, nunca no app.
+#
+# Versões fixadas (pinned). Antes de instalar: conferir nomes exatos no PyPI
+# oficial (ex.: "mediapipe", não variações/typos), revisar hashes/lockfile e
+# considerar `pip-audit` — mesmo cuidado de supply-chain do restante do projeto.
+
+mediapipe==0.10.14
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+boto3==1.34.131
