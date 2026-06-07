@@ -1,27 +1,77 @@
+import { useEffect, useMemo, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
+import { usePoseSession } from '../hooks/usePoseSession';
+import { MockPoseDetector } from '../services/mockPoseDetector';
+import { getReferenceFrames } from '../services/referenceLibrary';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Execution'>;
 
+const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem — suficiente para análise de pose, leve para 2GB RAM
+
 /**
- * Placeholder: aqui entrará a captura de câmera + inferência de pose
- * (MediaPipe/TensorFlow Lite) descrita em ARCHITECTURE.md, item 4.
- * Por ora, simula a conclusão de uma série e navega para o resultado.
+ * Tela de execução: liga o detector de pose (hoje, `MockPoseDetector` —
+ * trocar por integração real com MediaPipe/TFLite, conforme
+ * ARCHITECTURE.md seção 4) à câmera e ao algoritmo de scoring.
+ *
+ * A captura de vídeo da câmera (ex: `expo-camera`) entra aqui chamando
+ * `captureFrame` a cada quadro processado; por ora simulamos esse laço
+ * com um intervalo, para validar o fluxo ponta a ponta sem dependências
+ * nativas adicionais.
  */
 export function ExecutionScreen({ route, navigation }: Props) {
   const { exerciseId } = route.params;
 
+  const detector = useMemo(() => new MockPoseDetector(), []);
+  const referenceFrames = useMemo(() => getReferenceFrames(exerciseId), [exerciseId]);
+  const { status, score, start, captureFrame, finish } = usePoseSession(detector, referenceFrames);
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    start();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (status === 'recording' && !intervalRef.current) {
+      intervalRef.current = setInterval(() => {
+        captureFrame(Date.now());
+      }, SAMPLE_INTERVAL_MS);
+    }
+  }, [status, captureFrame]);
+
   function handleFinish() {
-    const mockScore = 0; // substituído pelo score real do módulo de CV
-    navigation.replace('Result', { score: mockScore, exerciseId });
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    finish();
   }
+
+  useEffect(() => {
+    if (status === 'finished' && score !== null) {
+      navigation.replace('Result', { score, exerciseId });
+    }
+  }, [status, score, exerciseId, navigation]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Câmera e análise de movimento (em construção)</Text>
+      <Text style={styles.text}>
+        {status === 'loading' && 'Carregando modelo de análise de pose...'}
+        {status === 'recording' && 'Câmera ativa — execute o movimento'}
+        {status === 'finished' && 'Calculando resultado...'}
+      </Text>
       <Text style={styles.exerciseId}>Exercício: {exerciseId}</Text>
-      <Pressable style={styles.button} onPress={handleFinish}>
+      <Pressable
+        style={[styles.button, status !== 'recording' && styles.buttonDisabled]}
+        onPress={handleFinish}
+        disabled={status !== 'recording'}
+      >
         <Text style={styles.buttonText}>Finalizar série</Text>
       </Pressable>
     </View>
@@ -33,5 +83,6 @@ const styles = StyleSheet.create({
   text: { fontSize: 16, textAlign: 'center', color: '#555' },
   exerciseId: { fontSize: 14, color: '#94a3b8' },
   button: { backgroundColor: '#2563eb', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
+  buttonDisabled: { backgroundColor: '#94a3b8' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

@@ -18,10 +18,34 @@ app/
     │   ├── ExerciseListScreen.tsx
     │   ├── ExecutionScreen.tsx   # placeholder p/ módulo de visão computacional
     │   └── ResultScreen.tsx
-    ├── services/exerciseCatalog.ts
-    ├── components/               # (vazio, para componentes reutilizáveis)
-    └── hooks/                    # (vazio, para hooks customizados)
+    ├── services/
+    │   ├── exerciseCatalog.ts
+    │   ├── poseTypes.ts          # tipos/contrato do detector de pose (PoseDetector)
+    │   ├── poseScoring.ts        # algoritmo de comparação de execução (ângulos + DTW)
+    │   ├── mockPoseDetector.ts   # detector simulado p/ validar o fluxo sem libs nativas
+    │   └── referenceLibrary.ts   # fonte das sequências de pose de referência
+    ├── hooks/usePoseSession.ts   # orquestra captura → scoring → resultado
+    └── components/               # (vazio, para componentes reutilizáveis)
 ```
+
+## Módulo de visão computacional (protótipo lógico)
+
+A `ExecutionScreen` já roda o fluxo completo descrito em `ARCHITECTURE.md`
+(seção 4) usando um **detector simulado** (`MockPoseDetector`):
+
+1. Carrega o "modelo" → 2. Amostra frames periodicamente → 3. Acumula
+landmarks → 4. Compara com a referência via `scoreExecution` (ângulos
+articulares + Dynamic Time Warping) → 5. Mostra a porcentagem na tela
+de resultado.
+
+**O que falta para ser real** (cada item é um próximo passo independente,
+que envolve instalar/buildar pacotes nativos — fazer com cautela e
+revisão de supply-chain):
+
+- Substituir `MockPoseDetector` por uma implementação real da interface
+  `PoseDetector` usando `expo-camera` + MediaPipe Pose / TensorFlow Lite.
+- Substituir `getReferenceFrames` por consumo real da API do backend
+  (vídeos de referência processados, cacheados localmente).
 
 ## Instalação (faça você mesmo, com revisão antes de instalar)
 
