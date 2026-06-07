@@ -75,6 +75,16 @@ sessões do usuário via `GET /sessions`, reaproveitando o padrão visual
 de `ExerciseListScreen` (FlatList + card), com pull-to-refresh, estado
 vazio e tratamento de erro — conforme `UX_PLAN.md` seção 3.
 
+A lista é **paginada** (`limit`/`offset`, ver
+[sessionsService.ts](src/services/sessionsService.ts) e
+`backend/app/routers/sessions.py`): a tela carrega páginas de
+`SESSIONS_PAGE_SIZE` (20) itens e busca a próxima ao chegar perto do
+fim da lista (`onEndReached` da FlatList, com indicador no rodapé) —
+conforme `UX_PLAN.md` seção 3 ("lista paginada" no wireframe de
+Histórico). `ProfileScreen` usa `listAllMySessions` (que percorre todas
+as páginas) para calcular estatísticas agregadas, já que precisa do
+histórico completo, não só da primeira página.
+
 Para o histórico ter dados, `ExecutionScreen` agora também **registra**
 o resultado ao final de cada série via `POST /sessions`
 (`recordSession` em [sessionsService.ts](src/services/sessionsService.ts)),

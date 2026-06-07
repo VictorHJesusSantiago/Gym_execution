@@ -115,5 +115,20 @@ instalado/executado ainda):
 - **Containerização e deploy** — [../DEPLOY_PLAN.md](../DEPLOY_PLAN.md)
   ([Dockerfile](Dockerfile) já criado).
 
-Os próximos passos de produto/escala (paginação do histórico, rate
-limiting) seguem a detalhar conforme a prioridade do projeto evoluir.
+**Paginação do histórico** já está implementada: `GET /sessions` aceita
+`limit` (padrão 20, máx. 100) e `offset` (ver
+[routers/sessions.py](app/routers/sessions.py) e
+[tests/test_sessions.py](tests/test_sessions.py)); o app consome isso
+em `HistoryScreen` com carregamento incremental (ver `app/README.md`,
+seção "Histórico").
+
+O catálogo de exercícios também ganhou um **seed inicial** via migration
+de dados ([alembic/versions/0002_seed_exercise_catalog.py](alembic/versions/0002_seed_exercise_catalog.py),
+testada em [tests/test_exercise_catalog_seed.py](tests/test_exercise_catalog_seed.py)) —
+sem ele, uma instalação nova ficaria com `GET /exercises` vazio.
+
+O próximo passo de produto/escala que segue **deliberadamente como plano**
+(exigiria adicionar uma nova dependência, ex. `slowapi`, e medir o
+impacto antes de instalar) é **rate limiting** dos endpoints de
+autenticação/escrita — hoje mitigado apenas pela validação de payload e
+autenticação obrigatória.

@@ -73,3 +73,45 @@ def test_list_my_sessions_returns_only_own_sessions_newest_first(client, auth_he
     assert response.status_code == 200
     scores = [item["score"] for item in response.json()]
     assert scores == [90, 70]  # só as sessões da usuária A, da mais recente para a mais antiga
+
+
+def test_list_my_sessions_supports_pagination(client, auth_headers, db_session):
+    _create_exercise(db_session)
+    headers = auth_headers()
+
+    for day, score in enumerate([60, 70, 80, 90, 100], start=1):
+        client.post(
+            "/sessions",
+            json={"exercise_id": "agachamento", "score": score, "executed_at": f"2026-06-0{day}T10:00:00Z"},
+            headers=headers,
+        )
+
+    first_page = client.get("/sessions", params={"limit": 2, "offset": 0}, headers=headers)
+    second_page = client.get("/sessions", params={"limit": 2, "offset": 2}, headers=headers)
+
+    assert [item["score"] for item in first_page.json()] == [100, 90]
+    assert [item["score"] for item in second_page.json()] == [80, 70]
+
+
+def test_list_my_sessions_rejects_out_of_range_pagination_params(client, auth_headers):
+    headers = auth_headers()
+
+    assert client.get("/sessions", params={"limit": 0}, headers=headers).status_code == 422
+    assert client.get("/sessions", params={"limit": 101}, headers=headers).status_code == 422
+    assert client.get("/sessions", params={"offset": -1}, headers=headers).status_code == 422
+
+
+def test_list_my_sessions_defaults_to_first_twenty(client, auth_headers, db_session):
+    _create_exercise(db_session)
+    headers = auth_headers()
+
+    for day in range(1, 26):
+        client.post(
+            "/sessions",
+            json={"exercise_id": "agachamento", "score": 50, "executed_at": f"2026-06-{day:02d}T10:00:00Z"},
+            headers=headers,
+        )
+
+    response = client.get("/sessions", headers=headers)
+
+    assert len(response.json()) == 20

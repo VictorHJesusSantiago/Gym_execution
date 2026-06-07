@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, ActivityIndicator, StyleSheet } from 
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { getMyProfile, updateMyProfile } from '../services/userService';
-import { listMySessions } from '../services/sessionsService';
+import { listAllMySessions } from '../services/sessionsService';
 import { ApiError } from '../services/apiClient';
 import { computeProfileStats, type ProfileStats } from '../services/profileStats';
 import type { UserPublic } from '../services/authService';
@@ -26,7 +26,7 @@ export function ProfileScreen() {
     if (!token) return;
     setError(null);
     try {
-      const [profile, sessions] = await Promise.all([getMyProfile(token), listMySessions(token)]);
+      const [profile, sessions] = await Promise.all([getMyProfile(token), listAllMySessions(token)]);
       setUser(profile);
       setName(profile.name);
       setStats(computeProfileStats(sessions.map((session) => session.score)));
