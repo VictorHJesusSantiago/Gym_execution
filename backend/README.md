@@ -30,6 +30,17 @@ backend/
         └── sessions.py       # POST /sessions, GET /sessions (histórico)
 ```
 
+```
+backend/
+├── pytest.ini                # roda a partir de backend/ (testpaths=tests)
+└── tests/
+    ├── conftest.py           # SQLite em memória + override de get_db + fixtures (client, auth_headers, db_session)
+    ├── test_auth.py          # registro/login: sucesso, e-mail duplicado, credenciais inválidas
+    ├── test_users.py         # GET/PUT /users/me: autenticação e persistência
+    ├── test_sessions.py      # registro de sessão, validação de score, isolamento por usuário
+    └── test_exercises.py     # catálogo, 404, endpoint admin (chave correta/incorreta/ausente)
+```
+
 ## Instalação (faça você mesmo, com revisão antes de instalar)
 
 > ⚠️ **Atenção a supply-chain attacks** (como já ocorreu com pacotes do
@@ -53,6 +64,27 @@ Variáveis de ambiente esperadas (`.env`, nunca commitar):
 `ADMIN_API_KEY` (ver `app/core/config.py` para os valores padrão de
 desenvolvimento — gerar uma chave forte e aleatória em produção).
 
+## Testes
+
+```bash
+cd backend
+pytest
+```
+
+A suíte ([tests/](tests/)) usa `TestClient` do FastAPI com **SQLite em
+memória** (ver [conftest.py](tests/conftest.py)) — não precisa do Postgres
+de `DATABASE_URL` rodando, já que os modelos só usam tipos padrão
+(`String`/`Integer`/`DateTime`). Cada teste roda em um banco limpo
+(fixture `_reset_database` recria as tabelas a cada execução) e a fixture
+`auth_headers` registra/loga um usuário de teste para exercitar rotas
+protegidas por `get_current_user`.
+
+Cobertura atual: registro/login (sucesso e rejeições), perfil
+(`GET/PUT /users/me`, autenticação e persistência), sessões (contrato de
+resposta — nunca expõe vídeo, validação de score 0-100, isolamento entre
+usuários) e catálogo de exercícios (404, endpoint admin com
+`X-Admin-Api-Key` correta/incorreta/ausente).
+
 ## Endpoints administrativos
 
 `PUT /exercises/{id}/reference-model` — protegido pelo header
@@ -64,7 +96,9 @@ processamento de um vídeo de referência, fechando o ciclo descrito em
 ## Roadmap
 
 O ciclo completo descrito em `ARCHITECTURE.md` (autenticação, catálogo,
-histórico, migrations e ingestão de referências) está coberto pelo
-scaffold atual. Os próximos passos são de produto/escala (ex.: testes
-de integração contra um banco real, paginação do histórico, rate
-limiting), a detalhar conforme a prioridade do projeto evoluir.
+histórico, migrations, ingestão de referências e testes da API — ver
+seção "Testes" acima) está coberto pelo scaffold atual. Os próximos
+passos são de produto/escala (ex.: rodar a suíte também contra um
+Postgres real via `testcontainers` para pegar diferenças de dialeto,
+paginação do histórico, rate limiting), a detalhar conforme a
+prioridade do projeto evoluir.
