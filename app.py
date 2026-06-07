@@ -19,7 +19,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def get_source(raw_source: str):
+def get_source(raw_source: int | str):
     try:
         return int(raw_source)
     except (TypeError, ValueError):
@@ -56,8 +56,8 @@ def main() -> int:
 
     print("Press 'q' to quit.")
     while True:
-        ok, frame = cap.read()
-        if not ok:
+        success, frame = cap.read()
+        if not success:
             break
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
