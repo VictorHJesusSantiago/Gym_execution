@@ -1,6 +1,11 @@
 import argparse
 from collections import deque
 
+HIGH_MOVEMENT_THRESHOLD = 20
+MEDIUM_MOVEMENT_THRESHOLD = 8
+BLUR_KERNEL_SIZE = (7, 7)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Gym movement monitor using computer vision."
@@ -19,7 +24,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def get_source(raw_source: int | str):
+def get_source(raw_source: int | str) -> int | str:
     try:
         return int(raw_source)
     except (TypeError, ValueError):
@@ -27,9 +32,9 @@ def get_source(raw_source: int | str):
 
 
 def movement_level(score: float) -> str:
-    if score > 20:
+    if score > HIGH_MOVEMENT_THRESHOLD:
         return "HIGH"
-    if score > 8:
+    if score > MEDIUM_MOVEMENT_THRESHOLD:
         return "MEDIUM"
     return "LOW"
 
@@ -61,7 +66,7 @@ def main() -> int:
             break
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (7, 7), 0)
+        gray = cv2.GaussianBlur(gray, BLUR_KERNEL_SIZE, 0)
 
         if previous_gray is not None:
             diff = cv2.absdiff(gray, previous_gray)
