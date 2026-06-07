@@ -1,21 +1,26 @@
-# Plano de telas/UX — próxima fase
+# Plano de telas/UX — status: implementado
 
-O scaffold atual cobre o fluxo central (Home → Lista de exercícios →
-Execução → Resultado, ver [AppNavigator.tsx](src/navigation/AppNavigator.tsx)).
-Faltam as telas de **conta** e **acompanhamento**, que conectam o app aos
-endpoints já existentes no backend (`/auth`, `/sessions`, ver
-[backend/README.md](../backend/README.md)). Este documento é só o plano —
-wireframes em texto e fluxo de navegação — sem implementação ainda.
+> Todas as telas listadas abaixo (Login, Cadastro, Histórico, Perfil e
+> Configurações) já foram implementadas — ver [README.md](README.md)
+> seções "Autenticação", "Histórico" e "Perfil e Configurações" para os
+> links de código. Este documento permanece como registro do plano
+> original (wireframes e fluxo de navegação que guiaram a implementação).
+
+O scaffold cobre o fluxo central (Home → Lista de exercícios →
+Execução → Resultado, ver [AppNavigator.tsx](src/navigation/AppNavigator.tsx))
+e as telas de **conta** e **acompanhamento**, que conectam o app aos
+endpoints do backend (`/auth`, `/users`, `/sessions`, ver
+[backend/README.md](../backend/README.md)).
 
 ## 1. Telas a adicionar
 
-| Tela | Rota proposta | Endpoint(s) consumidos | Prioridade |
+| Tela | Rota proposta | Endpoint(s) consumidos | Status |
 |---|---|---|---|
-| Login | `Login` | `POST /auth/login` | Alta — bloqueia o uso de `/sessions` |
-| Cadastro | `Register` | `POST /auth/register` | Alta |
-| Histórico de treinos | `History` | `GET /sessions` | Alta — é o principal valor de "acompanhamento" |
-| Perfil | `Profile` | (futuro `GET/PUT /users/me` — não existe ainda) | Média |
-| Configurações | `Settings` | local (preferências do dispositivo) | Baixa |
+| Login | `Login` | `POST /auth/login` | ✅ [LoginScreen.tsx](src/screens/LoginScreen.tsx) |
+| Cadastro | `Register` | `POST /auth/register` | ✅ [RegisterScreen.tsx](src/screens/RegisterScreen.tsx) |
+| Histórico de treinos | `History` | `GET /sessions` | ✅ [HistoryScreen.tsx](src/screens/HistoryScreen.tsx) |
+| Perfil | `Profile` | `GET/PUT /users/me` | ✅ [ProfileScreen.tsx](src/screens/ProfileScreen.tsx) — endpoint criado em `backend/app/routers/users.py` |
+| Configurações | `Settings` | local (`AsyncStorage`, ver [preferencesStorage.ts](src/services/preferencesStorage.ts)) | ✅ [SettingsScreen.tsx](src/screens/SettingsScreen.tsx) |
 
 ## 2. Fluxo de navegação atualizado
 
@@ -181,20 +186,21 @@ export type AuthenticatedStackParamList = {
 };
 ```
 
-## 5. Passos de implementação sugeridos (ordem)
+## 5. Passos de implementação (todos concluídos, na ordem em que foram feitos)
 
-1. Criar `AuthContext`/`useAuth` (estado de sessão + armazenamento seguro
-   do token com `expo-secure-store`) e um `apiClient.ts` (fetch wrapper
-   com `Authorization: Bearer <token>`).
-2. Implementar `LoginScreen` e `RegisterScreen`, consumindo `/auth/*`.
-3. Dividir `AppNavigator` em pilha pública/autenticada conforme seção 2.
-4. Implementar `HistoryScreen` consumindo `GET /sessions` (reaproveitando
-   o padrão de lista existente).
-5. Implementar `ProfileScreen` — depende de um novo endpoint
-   `GET /users/me` no backend (ainda não existe; é um item a somar ao
-   roadmap do backend).
-6. Implementar `SettingsScreen` com preferências locais (`AsyncStorage`),
-   incluindo a opção de qualidade de câmera mencionada acima.
+1. ✅ `AuthContext`/`useAuth` (estado de sessão + armazenamento seguro do
+   token com `expo-secure-store`) e `apiClient.ts` (fetch wrapper com
+   `Authorization: Bearer <token>`).
+2. ✅ `LoginScreen` e `RegisterScreen`, consumindo `/auth/*`.
+3. ✅ `AppNavigator` dividido em pilha pública/autenticada conforme seção 2.
+4. ✅ `HistoryScreen` consumindo `GET /sessions` (reaproveitando o padrão
+   de lista existente).
+5. ✅ `ProfileScreen` — exigiu criar o endpoint `GET/PUT /users/me` no
+   backend (`backend/app/routers/users.py`, registrado em `main.py` e
+   documentado em `backend/README.md`).
+6. ✅ `SettingsScreen` com preferências locais (`AsyncStorage` via
+   `preferencesStorage.ts`), incluindo a opção de qualidade de câmera
+   mencionada acima.
 
 ## 6. Cuidados de supply-chain ao implementar
 

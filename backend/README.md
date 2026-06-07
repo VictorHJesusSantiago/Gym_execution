@@ -25,6 +25,7 @@ backend/
     ├── schemas/              # contratos de entrada/saída (Pydantic)
     └── routers/
         ├── auth.py           # POST /auth/register, /auth/login
+        ├── users.py          # GET/PUT /users/me (perfil do usuário autenticado)
         ├── exercises.py      # GET /exercises, /exercises/{id}
         └── sessions.py       # POST /sessions, GET /sessions (histórico)
 ```

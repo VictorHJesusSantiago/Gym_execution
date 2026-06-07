@@ -1,0 +1,101 @@
+import { useCallback, useState } from 'react';
+import { View, Text, Pressable, Switch, ActivityIndicator, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import {
+  loadPreferences,
+  savePreferences,
+  DEFAULT_PREFERENCES,
+  type Preferences,
+  type CameraQuality,
+} from '../services/preferencesStorage';
+
+const CAMERA_QUALITY_OPTIONS: { value: CameraQuality; label: string }[] = [
+  { value: 'high', label: 'Alta' },
+  { value: 'standard', label: 'Padrão' },
+  { value: 'saver', label: 'Economia' },
+];
+
+/**
+ * Tela de Configurações (UX_PLAN.md): preferências locais persistidas via
+ * AsyncStorage — não envolvem a API, então cada alteração é salva na hora.
+ */
+export function SettingsScreen() {
+  const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadPreferences().then((loaded) => {
+        if (active) {
+          setPreferences(loaded);
+          setLoading(false);
+        }
+      });
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  function update(partial: Partial<Preferences>) {
+    const next = { ...preferences, ...partial };
+    setPreferences(next);
+    savePreferences(next).catch(() => {
+      // Preferência local: falha ao persistir não deve travar a navegação.
+    });
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>Qualidade da câmera</Text>
+      <View style={styles.optionsRow}>
+        {CAMERA_QUALITY_OPTIONS.map((option) => {
+          const selected = preferences.cameraQuality === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              style={[styles.option, selected && styles.optionSelected]}
+              onPress={() => update({ cameraQuality: option.value })}
+            >
+              <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{option.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={styles.row}>
+        <Text style={styles.sectionTitle}>Som de feedback</Text>
+        <Switch
+          value={preferences.soundFeedback}
+          onValueChange={(value) => update({ soundFeedback: value })}
+        />
+      </View>
+
+      <View style={styles.row}>
+        <Text style={styles.sectionTitle}>Modo escuro</Text>
+        <Switch value={preferences.darkMode} onValueChange={(value) => update({ darkMode: value })} />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 24, gap: 20, paddingTop: 48 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  sectionTitle: { fontSize: 16, fontWeight: '600' },
+  optionsRow: { flexDirection: 'row', gap: 8 },
+  option: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
+  optionSelected: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
+  optionText: { color: '#334155', fontSize: 14 },
+  optionTextSelected: { color: '#fff', fontWeight: '600' },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+});

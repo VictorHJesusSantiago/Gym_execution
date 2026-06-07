@@ -1,13 +1,9 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
-import { useAuth } from '../hooks/useAuth';
-
 type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
-  const { signOut } = useAuth();
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Gym Execution</Text>
@@ -21,9 +17,14 @@ export function HomeScreen({ navigation }: Props) {
         <Text style={styles.secondaryButtonText}>Ver histórico</Text>
       </Pressable>
 
-      <Pressable onPress={signOut}>
-        <Text style={styles.link}>Sair</Text>
-      </Pressable>
+      <View style={styles.linkRow}>
+        <Pressable onPress={() => navigation.navigate('Profile')}>
+          <Text style={styles.link}>Perfil</Text>
+        </Pressable>
+        <Pressable onPress={() => navigation.navigate('Settings')}>
+          <Text style={styles.link}>Configurações</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -42,5 +43,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   secondaryButtonText: { color: '#2563eb', fontSize: 16, fontWeight: '600' },
-  link: { color: '#94a3b8', fontSize: 14, marginTop: 8 },
+  linkRow: { flexDirection: 'row', gap: 24, marginTop: 8 },
+  link: { color: '#94a3b8', fontSize: 14 },
 });

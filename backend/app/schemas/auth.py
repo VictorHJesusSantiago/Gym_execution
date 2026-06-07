@@ -15,6 +15,13 @@ class UserPublic(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class UserUpdate(BaseModel):
+    """Campos editáveis pelo próprio usuário em `PUT /users/me`
+    (ver UX_PLAN.md — tela de Perfil, "Editar perfil")."""
+
+    name: str
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

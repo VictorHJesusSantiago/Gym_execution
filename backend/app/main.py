@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 
 from .core.config import settings
-from .routers import auth, exercises, sessions
+from .routers import auth, exercises, sessions, users
 
 app = FastAPI(title=settings.app_name)
 
 app.include_router(auth.router)
+app.include_router(users.router)
 app.include_router(exercises.router)
 app.include_router(sessions.router)
 

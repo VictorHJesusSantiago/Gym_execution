@@ -3,9 +3,10 @@
 Estrutura inicial do app híbrido (React Native + Expo), conforme
 [ARCHITECTURE.md](../ARCHITECTURE.md).
 
-> Telas de Login/Cadastro/Histórico já implementadas (ver seções
-> "Autenticação" e "Histórico" abaixo). Perfil e Configurações continuam
-> no plano — wireframes e roadmap em [UX_PLAN.md](UX_PLAN.md).
+> Todas as telas de `UX_PLAN.md` estão implementadas: Login/Cadastro/
+> Histórico (ver seções "Autenticação" e "Histórico" abaixo) e também
+> Perfil/Configurações (ver seção "Perfil e Configurações"). Wireframes
+> e plano original seguem em [UX_PLAN.md](UX_PLAN.md) como referência.
 
 ## Estrutura
 
@@ -20,16 +21,20 @@ app/
     ├── navigation/AppNavigator.tsx   # alterna pilha pública/autenticada via useAuth
     ├── screens/
     │   ├── LoginScreen.tsx / RegisterScreen.tsx   # pilha pública
-    │   ├── HomeScreen.tsx        # + atalhos "Ver histórico" e "Sair"
+    │   ├── HomeScreen.tsx        # + atalhos "Ver histórico", "Perfil", "Configurações"
     │   ├── ExerciseListScreen.tsx
     │   ├── ExecutionScreen.tsx   # placeholder p/ módulo de visão computacional
     │   ├── ResultScreen.tsx
-    │   └── HistoryScreen.tsx     # GET /sessions — histórico de treinos
+    │   ├── HistoryScreen.tsx     # GET /sessions — histórico de treinos
+    │   ├── ProfileScreen.tsx     # GET/PUT /users/me + estatísticas + logout
+    │   └── SettingsScreen.tsx    # preferências locais (AsyncStorage)
     ├── services/
     │   ├── apiClient.ts          # fetch wrapper (base URL + Bearer token)
     │   ├── authService.ts        # consome /auth/register e /auth/login
     │   ├── authStorage.ts        # token JWT em armazenamento seguro (expo-secure-store)
     │   ├── sessionsService.ts    # consome GET/POST /sessions (histórico)
+    │   ├── userService.ts        # consome GET/PUT /users/me (perfil)
+    │   ├── preferencesStorage.ts # preferências locais via AsyncStorage
     │   ├── exerciseCatalog.ts
     │   ├── poseTypes.ts          # tipos/contrato do detector de pose (PoseDetector)
     │   ├── poseScoring.ts        # algoritmo de comparação de execução (ângulos + DTW)
@@ -74,6 +79,22 @@ enviando só o score calculado localmente — nunca o vídeo (mesma decisão
 de privacidade/performance do `ARCHITECTURE.md` seção 5). Falhas de rede
 nesse envio não bloqueiam o feedback imediato ao usuário.
 
+## Perfil e Configurações
+
+`ProfileScreen` ([código](src/screens/ProfileScreen.tsx)) consome
+`GET/PUT /users/me` ([userService.ts](src/services/userService.ts),
+endpoint novo em `backend/app/routers/users.py`) para mostrar e editar
+nome/e-mail, calcula "Treinos realizados" e "Pontuação média" a partir
+de `GET /sessions` (sem precisar de endpoint agregado no backend) e
+expõe o `signOut` — conforme wireframe da seção 3 de `UX_PLAN.md`.
+
+`SettingsScreen` ([código](src/screens/SettingsScreen.tsx)) guarda
+preferências **só no dispositivo** via `AsyncStorage`
+([preferencesStorage.ts](src/services/preferencesStorage.ts)): qualidade
+da câmera (Alta/Padrão/Economia — liga direto com a decisão de
+performance do `ARCHITECTURE.md` seção 5), som de feedback e modo
+escuro. Cada alteração é salva imediatamente, sem botão de "salvar".
+
 ## Módulo de visão computacional (protótipo lógico)
 
 A `ExecutionScreen` já roda o fluxo completo descrito em `ARCHITECTURE.md`
@@ -112,8 +133,8 @@ npx expo start
 
 ## Próximos passos do roadmap
 
-- Telas de Perfil e Configurações (`UX_PLAN.md`; Login, Cadastro e
-  Histórico já prontos). Perfil depende de um novo endpoint
-  `GET/PUT /users/me` — ainda não existe no backend.
+Todas as telas planejadas em `UX_PLAN.md` estão implementadas. O que
+resta é o item já sinalizado como dependente de pacotes nativos:
+
 - Integração real de câmera + inferência de pose, conforme
   `MEDIAPIPE_INTEGRATION_PLAN.md`.
