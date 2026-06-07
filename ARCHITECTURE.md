@@ -1,0 +1,94 @@
+# Arquitetura — App Híbrido de Academia com Visão Computacional
+
+## 1. Objetivo
+App híbrido (mobile + web mobile) que grava o usuário executando exercícios de
+musculação/treino e retorna uma porcentagem de acerto da execução, comparando o
+movimento capturado com padrões de referência (gerais e específicos por exercício).
+Deve rodar de forma fluida em aparelhos a partir de 2GB de RAM (~2015+).
+
+## 2. Stack escolhida (alinhada às ferramentas mais pedidas no mercado de TI)
+
+| Camada | Ferramenta | Justificativa |
+|---|---|---|
+| App híbrido | **React Native + Expo** | Um único código-base para Android/iOS/Web; stack muito demandada; bom suporte a câmera |
+| Visão computacional (no dispositivo) | **MediaPipe Pose + TensorFlow Lite** | Inferência local, leve, sem depender de internet — essencial em hardware fraco |
+| Treinamento de modelo (servidor) | **Python + PyTorch**, exportado para TFLite/ONNX | Separa processamento pesado (nuvem) de inferência leve (celular) |
+| Backend / API | **Python + FastAPI** | Leve, rápida, tipagem com Pydantic, muito pedida no mercado |
+| Banco de dados | **PostgreSQL** | Relacional, robusto, padrão de mercado para dados de usuários/treinos |
+| Cache / sessões | **Redis** | Reduz latência em consultas repetidas (ex: vídeos de referência) |
+| Armazenamento de mídia | **S3-compatível (ex: AWS S3 / MinIO self-hosted)** + CDN | Vídeos de referência e gravações, com cache para economizar dados móveis |
+| Containerização / deploy | **Docker + GitHub Actions (CI/CD)** | Padrão de mercado, facilita deploy reproduzível |
+| Versionamento | **Git/GitHub** | Universal |
+| Testes | **Pytest** (backend) / **Jest** (frontend) | Padrão em vagas de qualquer stack |
+
+> ⚠️ Cuidado com supply-chain: instalar pacotes apenas de fontes oficiais
+> (PyPI/npm), conferir nomes (typosquatting), revisar `package-lock.json` /
+> `requirements.txt`/hashes, e preferir versões fixadas (pinned) em produção.
+
+## 3. Visão geral dos componentes
+
+```
+┌─────────────────────────────┐
+│   App (React Native/Expo)   │
+│  - Captura de vídeo (câmera)│
+│  - Inferência local         │
+│    (MediaPipe + TFLite)     │
+│  - UI de feedback (% score) │
+└──────────────┬──────────────┘
+               │ HTTPS (REST/JSON)
+┌──────────────▼──────────────┐
+│      Backend (FastAPI)      │
+│  - Autenticação de usuário  │
+│  - Histórico de treinos     │
+│  - Catálogo de exercícios   │
+│  - Distribuição de modelos  │
+│    de referência (TFLite)   │
+└──────┬─────────────┬────────┘
+       │             │
+┌──────▼─────┐ ┌─────▼──────┐
+│ PostgreSQL │ │   Redis    │
+│ (dados)    │ │  (cache)   │
+└────────────┘ └────────────┘
+       │
+┌──────▼─────────────┐
+│ Storage de mídia    │
+│ (S3 / MinIO + CDN)  │
+│ - vídeos de         │
+│   referência        │
+│ - clipes do usuário │
+│   (opcional/local)  │
+└─────────────────────┘
+```
+
+## 4. Fluxo principal (execução de um exercício)
+
+1. Usuário seleciona um exercício no app → backend retorna metadados e o
+   modelo de referência (TFLite) já cacheado/baixado localmente.
+2. App ativa a câmera e roda a detecção de pose **localmente** (MediaPipe),
+   extraindo pontos-chave (articulações) quadro a quadro.
+3. A sequência de poses é comparada com o padrão de referência (algoritmo de
+   similaridade — ex: distância angular entre articulações, DTW para alinhar
+   no tempo) **no próprio dispositivo**, evitando enviar vídeo bruto.
+4. App calcula uma porcentagem de execução correta (geral + por fase do
+   movimento) e mostra feedback em tempo real ou ao final da série.
+5. Apenas o resultado (score, métricas, opcionalmente um clipe curto) é
+   enviado ao backend para histórico — minimizando tráfego de dados.
+
+## 5. Decisões de performance (alvo: 2GB RAM, hardware ~2015)
+
+- **Inferência on-device**: evita latência de rede e custo de upload de vídeo.
+- **Modelos quantizados (INT8)** via TensorFlow Lite: reduzem uso de memória
+  e CPU sem perda significativa de precisão para detecção de pose.
+- **Resolução de captura reduzida** (ex: 480p) e taxa de quadros adaptativa
+  conforme capacidade do aparelho.
+- **Lazy loading** de vídeos/modelos de referência, com cache local.
+- **Sem processamento de vídeo bruto no servidor** por padrão (custo e
+  privacidade) — servidor só recebe métricas/scores.
+
+## 6. Próximos passos sugeridos (cada um cabe em um novo escopo de cota)
+
+1. Scaffold do projeto React Native/Expo (estrutura de pastas, navegação).
+2. Protótipo do módulo de captura + inferência de pose (MediaPipe/TFLite).
+3. Definição do algoritmo de scoring (comparação de poses/ângulos).
+4. Scaffold do backend FastAPI (rotas de auth, exercícios, histórico).
+5. Modelagem do banco de dados (usuários, exercícios, sessões de treino).
