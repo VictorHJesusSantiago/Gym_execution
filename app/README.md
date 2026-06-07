@@ -34,12 +34,14 @@ app/
     │   ├── authStorage.ts        # token JWT em armazenamento seguro (expo-secure-store)
     │   ├── sessionsService.ts    # consome GET/POST /sessions (histórico)
     │   ├── userService.ts        # consome GET/PUT /users/me (perfil)
+    │   ├── profileStats.ts       # agrega "treinos realizados"/"pontuação média" (testável isoladamente)
     │   ├── preferencesStorage.ts # preferências locais via AsyncStorage
     │   ├── exerciseCatalog.ts
     │   ├── poseTypes.ts          # tipos/contrato do detector de pose (PoseDetector)
     │   ├── poseScoring.ts        # algoritmo de comparação de execução (ângulos + DTW)
     │   ├── mockPoseDetector.ts   # detector simulado p/ validar o fluxo sem libs nativas
-    │   └── referenceLibrary.ts   # fonte das sequências de pose de referência
+    │   ├── referenceLibrary.ts   # fonte das sequências de pose de referência
+    │   └── __tests__/            # poseScoring, profileStats, preferencesStorage (Jest)
     ├── hooks/
     │   ├── useAuth.tsx           # AuthProvider/useAuth — fonte única do estado de sessão
     │   └── usePoseSession.ts     # orquestra captura → scoring → resultado
@@ -85,8 +87,11 @@ nesse envio não bloqueiam o feedback imediato ao usuário.
 `GET/PUT /users/me` ([userService.ts](src/services/userService.ts),
 endpoint novo em `backend/app/routers/users.py`) para mostrar e editar
 nome/e-mail, calcula "Treinos realizados" e "Pontuação média" a partir
-de `GET /sessions` (sem precisar de endpoint agregado no backend) e
-expõe o `signOut` — conforme wireframe da seção 3 de `UX_PLAN.md`.
+de `GET /sessions` via [profileStats.ts](src/services/profileStats.ts)
+(extraído da tela para ser testado isoladamente — mesmo padrão de
+`poseScoring.ts` — ver [profileStats.test.ts](src/services/__tests__/profileStats.test.ts);
+sem precisar de endpoint agregado no backend) e expõe o `signOut` —
+conforme wireframe da seção 3 de `UX_PLAN.md`.
 
 `SettingsScreen` ([código](src/screens/SettingsScreen.tsx)) guarda
 preferências **só no dispositivo** via `AsyncStorage`
@@ -94,6 +99,10 @@ preferências **só no dispositivo** via `AsyncStorage`
 da câmera (Alta/Padrão/Economia — liga direto com a decisão de
 performance do `ARCHITECTURE.md` seção 5), som de feedback e modo
 escuro. Cada alteração é salva imediatamente, sem botão de "salvar".
+Testado com o mock oficial de `AsyncStorage` em
+[preferencesStorage.test.ts](src/services/__tests__/preferencesStorage.test.ts)
+(padrões, persistência, merge de dados parciais e recuperação de
+conteúdo corrompido).
 
 ## Módulo de visão computacional (protótipo lógico)
 

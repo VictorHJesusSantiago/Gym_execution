@@ -5,15 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 import { getMyProfile, updateMyProfile } from '../services/userService';
 import { listMySessions } from '../services/sessionsService';
 import { ApiError } from '../services/apiClient';
+import { computeProfileStats, type ProfileStats } from '../services/profileStats';
 import type { UserPublic } from '../services/authService';
-
-type Stats = { trainingCount: number; averageScore: number | null };
-
-function computeStats(scores: number[]): Stats {
-  if (scores.length === 0) return { trainingCount: 0, averageScore: null };
-  const total = scores.reduce((sum, score) => sum + score, 0);
-  return { trainingCount: scores.length, averageScore: Math.round(total / scores.length) };
-}
 
 /**
  * Tela de Perfil (UX_PLAN.md): dados do usuário (GET/PUT /users/me),
@@ -22,7 +15,7 @@ function computeStats(scores: number[]): Stats {
 export function ProfileScreen() {
   const { token, signOut } = useAuth();
   const [user, setUser] = useState<UserPublic | null>(null);
-  const [stats, setStats] = useState<Stats>({ trainingCount: 0, averageScore: null });
+  const [stats, setStats] = useState<ProfileStats>({ trainingCount: 0, averageScore: null });
   const [name, setName] = useState('');
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,7 +29,7 @@ export function ProfileScreen() {
       const [profile, sessions] = await Promise.all([getMyProfile(token), listMySessions(token)]);
       setUser(profile);
       setName(profile.name);
-      setStats(computeStats(sessions.map((session) => session.score)));
+      setStats(computeProfileStats(sessions.map((session) => session.score)));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o perfil.');
     } finally {
