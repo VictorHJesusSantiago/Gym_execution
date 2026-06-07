@@ -6,6 +6,13 @@ MEDIUM_MOVEMENT_THRESHOLD = 8
 BLUR_KERNEL_SIZE = (7, 7)
 
 
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("--history must be 1 or greater")
+    return parsed
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Gym movement monitor using computer vision."
@@ -17,7 +24,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--history",
-        type=int,
+        type=positive_int,
         default=30,
         help="Number of frames used for smoothing movement score.",
     )
@@ -25,6 +32,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def get_source(raw_source: int | str) -> int | str:
+    if isinstance(raw_source, int):
+        return raw_source
+
     try:
         return int(raw_source)
     except (TypeError, ValueError):
@@ -57,7 +67,7 @@ def main() -> int:
         return 1
 
     previous_gray = None
-    scores = deque(maxlen=max(1, args.history))
+    scores = deque(maxlen=args.history)
 
     print("Press 'q' to quit.")
     while True:
@@ -70,9 +80,9 @@ def main() -> int:
 
         if previous_gray is not None:
             diff = cv2.absdiff(gray, previous_gray)
-            score = float(np.mean(diff))
+            score = np.mean(diff)
             scores.append(score)
-            avg_score = float(np.mean(scores))
+            avg_score = np.mean(scores)
             level = movement_level(avg_score)
 
             cv2.putText(
