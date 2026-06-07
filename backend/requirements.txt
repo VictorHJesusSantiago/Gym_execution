@@ -1,0 +1,20 @@
+# Versões fixadas (pinned) propositalmente.
+# Antes de instalar: `pip install -r requirements.txt --require-hashes` (gerar hashes
+# com pip-compile/pip-audit) e conferir nomes contra o PyPI oficial para evitar
+# typosquatting — mesmo cuidado citado em ARCHITECTURE.md.
+
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.4
+pydantic-settings==2.3.4
+sqlalchemy==2.0.31
+alembic==1.13.2
+psycopg2-binary==2.9.9
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+python-multipart==0.0.9
+redis==5.0.7
+
+# testes
+pytest==8.2.2
+httpx==0.27.0
