@@ -48,11 +48,22 @@ uvicorn app.main:app --reload
 ```
 
 Variáveis de ambiente esperadas (`.env`, nunca commitar):
-`DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY`, `MEDIA_STORAGE_URL`
-(ver `app/core/config.py` para os valores padrão de desenvolvimento).
+`DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY`, `MEDIA_STORAGE_URL`,
+`ADMIN_API_KEY` (ver `app/core/config.py` para os valores padrão de
+desenvolvimento — gerar uma chave forte e aleatória em produção).
 
-## Próximos passos do roadmap
+## Endpoints administrativos
 
-- Endpoint/processo de ingestão dos vídeos de referência → geração das
-  sequências de pose (offline, processamento pesado no servidor) →
-  publicação do `reference_model_uri` consumido pelo app.
+`PUT /exercises/{id}/reference-model` — protegido pelo header
+`X-Admin-Api-Key` (comparado em tempo constante, ver `core/deps.py`),
+chamado pelo [pipeline de ingestão](pipeline/README.md) ao final do
+processamento de um vídeo de referência, fechando o ciclo descrito em
+`ARCHITECTURE.md` sem passo manual no banco.
+
+## Roadmap
+
+O ciclo completo descrito em `ARCHITECTURE.md` (autenticação, catálogo,
+histórico, migrations e ingestão de referências) está coberto pelo
+scaffold atual. Os próximos passos são de produto/escala (ex.: testes
+de integração contra um banco real, paginação do histórico, rate
+limiting), a detalhar conforme a prioridade do projeto evoluir.

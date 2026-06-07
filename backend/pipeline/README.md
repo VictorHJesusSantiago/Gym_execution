@@ -34,7 +34,12 @@ App baixa e cacheia localmente → usado em `getReferenceFrames`
   (MediaPipe) a cada ~100ms (mesma taxa de amostragem da `ExecutionScreen`
   no app) e grava o JSON da sequência.
 - `publish_reference.py` — envia o JSON para o storage de mídia (S3) e
-  imprime a URL a ser registrada em `reference_model_uri`.
+  registra a URL automaticamente via `PUT /exercises/{id}/reference-model`
+  (endpoint administrativo protegido por `X-Admin-Api-Key`, ver
+  [README do backend](../README.md)), fechando o ciclo sem passo manual.
+- `test_pose_sequence_format.py` — garante que o JSON gerado usa as
+  mesmas chaves/tipos que `app/src/services/poseTypes.ts` espera
+  (`timestampMs`, `landmarks`, `x`/`y`/`visibility`).
 
 ## Instalação (faça você mesmo, com revisão antes de instalar)
 
@@ -59,12 +64,17 @@ python extract_pose_sequence.py --video squat_reference.mp4 \
 
 python publish_reference.py --exercise-id squat \
     --sequence-file squat_reference.json \
-    --bucket gym-execution-reference-models
+    --bucket gym-execution-reference-models \
+    --api-url https://api.gymexecution.example.com \
+    --admin-api-key "$GYM_ADMIN_API_KEY"
 ```
 
-## Próximos passos do roadmap
+## Testes
 
-- Endpoint administrativo (autenticado) para atualizar `reference_model_uri`
-  automaticamente após a publicação, fechando o ciclo sem passo manual.
-- Testes automatizados de `pose_sequence_format` (compatibilidade do JSON
-  com o que `app/src/services/poseTypes.ts` espera).
+```bash
+pytest test_pose_sequence_format.py
+```
+
+Valida que o JSON produzido usa exatamente as chaves/tipos que o app
+espera (`timestampMs`, `landmarks`, `x`/`y`/`visibility`) — sem precisar
+de mediapipe/opencv instalados, já que testa só a camada de serialização.

@@ -22,5 +22,10 @@ class Settings(BaseSettings):
 
     media_storage_url: str = "https://storage.example.com"
 
+    admin_api_key: str = "change-me-in-env"
+    """Chave usada por processos internos (ex.: pipeline de ingestão de
+    referências, ver backend/pipeline/publish_reference.py) para chamar
+    endpoints administrativos — não é uma conta de usuário comum."""
+
 
 settings = Settings()

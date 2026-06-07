@@ -1,6 +1,14 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
+
+
+class ExerciseReferenceModelUpdate(BaseModel):
+    """Payload do endpoint administrativo chamado ao final do pipeline de
+    ingestão (ver backend/pipeline/publish_reference.py), após a sequência
+    de pose ser publicada no storage de mídia."""
+
+    reference_model_uri: HttpUrl
 
 
 class ExercisePublic(BaseModel):
