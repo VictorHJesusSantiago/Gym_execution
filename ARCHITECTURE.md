@@ -85,10 +85,35 @@ Deve rodar de forma fluida em aparelhos a partir de 2GB de RAM (~2015+).
 - **Sem processamento de vídeo bruto no servidor** por padrão (custo e
   privacidade) — servidor só recebe métricas/scores.
 
-## 6. Próximos passos sugeridos (cada um cabe em um novo escopo de cota)
+## 6. Status e próximos passos
 
-1. Scaffold do projeto React Native/Expo (estrutura de pastas, navegação).
-2. Protótipo do módulo de captura + inferência de pose (MediaPipe/TFLite).
-3. Definição do algoritmo de scoring (comparação de poses/ângulos).
-4. Scaffold do backend FastAPI (rotas de auth, exercícios, histórico).
-5. Modelagem do banco de dados (usuários, exercícios, sessões de treino).
+A maior parte do scaffold descrito neste documento já está implementada
+(cada item abaixo coube em um escopo de cota separado — ver os READMEs
+de cada diretório para os detalhes e links de código):
+
+1. ✅ Scaffold do projeto React Native/Expo (estrutura de pastas,
+   navegação pública/autenticada — ver [app/README.md](app/README.md)).
+2. ✅ Protótipo do algoritmo de scoring (ângulos articulares + Dynamic
+   Time Warping, ver `app/src/services/poseScoring.ts`) validado com um
+   detector simulado (`MockPoseDetector`) — a inferência **real** com
+   MediaPipe/TensorFlow Lite segue como plano detalhado em
+   [app/src/services/MEDIAPIPE_INTEGRATION_PLAN.md](app/src/services/MEDIAPIPE_INTEGRATION_PLAN.md)
+   (é o item que exige instalar pacotes nativos — feito por último,
+   deliberadamente).
+3. ✅ Scaffold do backend FastAPI (rotas de auth, usuários, exercícios,
+   histórico — ver [backend/README.md](backend/README.md)) com suíte de
+   testes (`pytest` + SQLite em memória).
+4. ✅ Modelagem do banco de dados (usuários, exercícios, sessões de
+   treino) com migrations Alembic.
+5. ✅ Telas de conta/acompanhamento do app (Login, Cadastro, Histórico,
+   Perfil, Configurações — ver [app/UX_PLAN.md](app/UX_PLAN.md)).
+6. ✅ CI rodando os testes a cada push/PR
+   ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+
+Planos prontos para as próximas fases (arquivos de configuração/teste já
+escritos, nada instalado/executado ainda — ver tabela "Planos" em
+[README.md](README.md)):
+
+- [backend/INTEGRATION_TESTING_PLAN.md](backend/INTEGRATION_TESTING_PLAN.md) — testes contra Postgres real.
+- [DEPLOY_PLAN.md](DEPLOY_PLAN.md) — containerização, hospedagem e build/distribuição via EAS.
+- [app/src/services/MEDIAPIPE_INTEGRATION_PLAN.md](app/src/services/MEDIAPIPE_INTEGRATION_PLAN.md) — inferência de pose real.

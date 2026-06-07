@@ -40,8 +40,9 @@ app/
     │   ├── poseTypes.ts          # tipos/contrato do detector de pose (PoseDetector)
     │   ├── poseScoring.ts        # algoritmo de comparação de execução (ângulos + DTW)
     │   ├── mockPoseDetector.ts   # detector simulado p/ validar o fluxo sem libs nativas
+    │   ├── moveNetAdapter.ts     # converte saída do MoveNet (17 kpts COCO) → formato MediaPipe (33), p/ integração futura
     │   ├── referenceLibrary.ts   # fonte das sequências de pose de referência
-    │   └── __tests__/            # poseScoring, profileStats, preferencesStorage (Jest)
+    │   └── __tests__/            # poseScoring, profileStats, preferencesStorage, moveNetAdapter (Jest)
     ├── hooks/
     │   ├── useAuth.tsx           # AuthProvider/useAuth — fonte única do estado de sessão
     │   └── usePoseSession.ts     # orquestra captura → scoring → resultado
@@ -119,10 +120,15 @@ que envolve instalar/buildar pacotes nativos — fazer com cautela e
 revisão de supply-chain):
 
 - Substituir `MockPoseDetector` por uma implementação real da interface
-  `PoseDetector` usando `expo-camera` + MediaPipe Pose / TensorFlow Lite —
-  plano detalhado (bibliotecas, esqueleto de código, mapeamento de
-  keypoints, performance e cuidados de supply-chain) em
-  [MEDIAPIPE_INTEGRATION_PLAN.md](src/services/MEDIAPIPE_INTEGRATION_PLAN.md).
+  `PoseDetector` usando `expo-camera`/`react-native-vision-camera` +
+  MediaPipe Pose / TensorFlow Lite (MoveNet) — plano detalhado
+  (bibliotecas, esqueleto de código, performance e cuidados de
+  supply-chain) em [MEDIAPIPE_INTEGRATION_PLAN.md](src/services/MEDIAPIPE_INTEGRATION_PLAN.md).
+  A parte que **não depende de pacotes nativos** já foi adiantada: a
+  conversão do formato de saída do MoveNet (17 keypoints COCO) para o
+  formato MediaPipe (33 landmarks) que `poseScoring.ts` espera —
+  [moveNetAdapter.ts](src/services/moveNetAdapter.ts) + testes em
+  [moveNetAdapter.test.ts](src/services/__tests__/moveNetAdapter.test.ts).
 - Substituir `getReferenceFrames` por consumo real da API do backend
   (vídeos de referência processados, cacheados localmente).
 

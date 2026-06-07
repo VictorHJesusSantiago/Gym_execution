@@ -36,12 +36,13 @@ const detector = useMemo(() => new MediaPipePoseDetector(), []);
 ## 3. Esqueleto da implementação real
 
 ```ts
-// mediaPipePoseDetector.ts (nome final a definir conforme a lib escolhida)
-import { PoseDetector, PoseFrame, Landmark } from './poseTypes';
+// movenetPoseDetector.ts (nome final a definir conforme a lib escolhida)
+import { PoseDetector, PoseFrame } from './poseTypes';
+import { moveNetToMediaPipeFrame } from './moveNetAdapter'; // ✅ já implementado e testado
 // import { loadTensorflowModel, TensorflowModel } from 'react-native-fast-tflite';
 // import { useFrameProcessor } from 'react-native-vision-camera'; // se for essa a rota
 
-export class MediaPipePoseDetector implements PoseDetector {
+export class MoveNetPoseDetector implements PoseDetector {
   // private model: TensorflowModel | null = null;
 
   async load(): Promise<void> {
@@ -51,10 +52,9 @@ export class MediaPipePoseDetector implements PoseDetector {
   async detect(timestampMs: number): Promise<PoseFrame | null> {
     // 1. obter o frame atual da câmera (via frame processor / ImageCapture)
     // 2. redimensionar/normalizar para a entrada do modelo (ex.: 192x192 RGB)
-    // 3. rodar `this.model.runSync([inputTensor])`
-    // 4. mapear a saída (17 keypoints do MoveNet OU 33 do MediaPipe Pose)
-    //    para o formato `Landmark[]` em `poseTypes.ts`
-    // 5. retornar { timestampMs, landmarks }
+    // 3. const keypoints = this.model!.runSync([inputTensor]); // 17 pontos COCO
+    // 4. converter para o formato MediaPipe (33 landmarks) num único ponto:
+    //    return moveNetToMediaPipeFrame(timestampMs, keypoints);
     return null;
   }
 
@@ -64,15 +64,23 @@ export class MediaPipePoseDetector implements PoseDetector {
 }
 ```
 
-### Atenção ao mapeamento de keypoints
+### Atenção ao mapeamento de keypoints — ✅ já resolvido
 
 O MoveNet usa **17** keypoints (formato COCO), enquanto `LANDMARK_INDEX`
-em `poseTypes.ts` segue os **33** do MediaPipe Pose. Caso opte pelo
-MoveNet, será necessário **adaptar `LANDMARK_INDEX` e `ANGLE_TRIPLETS`**
-em [poseScoring.ts](poseScoring.ts) para o novo índice — ou escrever uma
-função de conversão MoveNet→MediaPipe antes de retornar o `PoseFrame`,
-preservando o restante do app sem alterações. A segunda opção é mais
-simples de manter (concentra a tradução em um único ponto).
+em `poseTypes.ts` segue os **33** do MediaPipe Pose. Em vez de adaptar
+`LANDMARK_INDEX`/`poseScoring.ts` (replicaria a tradução em vários
+lugares), foi escrita a função de conversão sugerida — concentrando-a
+num único ponto: [moveNetAdapter.ts](moveNetAdapter.ts)
+(`moveNetToMediaPipeFrame`, testada em
+[__tests__/moveNetAdapter.test.ts](__tests__/moveNetAdapter.test.ts), que
+inclusive verifica que o resultado é compatível com `extractJointAngles`).
+
+Os 17 pontos COCO têm correspondência direta nos 33 do MediaPipe — a
+função preenche os 16 landmarks sem equivalente (dedos, calcanhares,
+pontos extras de olho/boca) com um placeholder de visibilidade zero, já
+que `LANDMARK_INDEX` (as 12 articulações usadas no scoring) não os
+referencia. Quando a implementação real do MoveNet existir, basta
+encadear: `moveNetToMediaPipeFrame(timestampMs, model.runSync(...))`.
 
 ## 4. Onde plugar a câmera na `ExecutionScreen`
 
