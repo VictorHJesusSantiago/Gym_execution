@@ -9,6 +9,11 @@ histórico de sessões de treino (apenas scores — nunca vídeo bruto).
 ```
 backend/
 ├── requirements.txt          # dependências (versões fixadas)
+├── alembic.ini               # configuração do Alembic (migrations)
+├── alembic/
+│   ├── env.py                # usa a DATABASE_URL real da app (.env)
+│   └── versions/
+│       └── 0001_initial_schema.py  # cria users, exercises, training_sessions
 └── app/
     ├── main.py               # ponto de entrada (FastAPI app + rotas)
     ├── core/
@@ -38,6 +43,7 @@ python -m venv .venv
 . .venv/Scripts/activate        # Windows (PowerShell: .venv\Scripts\Activate.ps1)
 pip install -r requirements.txt
 cp .env.example .env            # criar e preencher com valores locais (ver abaixo)
+alembic upgrade head            # aplica as migrations (cria as tabelas no banco)
 uvicorn app.main:app --reload
 ```
 
@@ -47,8 +53,6 @@ Variáveis de ambiente esperadas (`.env`, nunca commitar):
 
 ## Próximos passos do roadmap
 
-- Migrations com Alembic para criar as tabelas (`users`, `exercises`,
-  `training_sessions`) descritas em `app/models/`.
 - Endpoint/processo de ingestão dos vídeos de referência → geração das
   sequências de pose (offline, processamento pesado no servidor) →
   publicação do `reference_model_uri` consumido pelo app.
