@@ -55,7 +55,7 @@ function AuthenticatedNavigator() {
 
 /**
  * Alterna entre a pilha pública (Login/Cadastro) e a autenticada conforme
- * o estado de sessão de `useAuth` — ver UX_PLAN.md seção 2. Enquanto o
+ * o estado de sessão de `useAuth` — ver README.md seção 2. Enquanto o
  * token persistido ainda está sendo carregado, mostra um loading simples
  * para evitar "piscar" a tela de login antes de saber se já há sessão.
  */

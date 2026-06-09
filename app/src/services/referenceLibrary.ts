@@ -3,7 +3,7 @@ import { PoseFrame } from './poseTypes';
 /**
  * Fonte das sequências de pose de referência por exercício.
  *
- * Em produção (ARCHITECTURE.md, seção 3): o backend distribui sequências
+ * Em produção (README.md, seção 3): o backend distribui sequências
  * pré-processadas (extraídas de vídeos de referência gravados por
  * profissionais), cacheadas localmente para uso offline. Aqui, geramos
  * uma sequência sintética só para validar o algoritmo de scoring

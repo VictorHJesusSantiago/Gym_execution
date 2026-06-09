@@ -13,7 +13,7 @@ router = APIRouter(prefix="/exercises", tags=["exercises"])
 @router.get("", response_model=list[ExercisePublic])
 def list_exercises(db: Session = Depends(get_db)) -> list[Exercise]:
     """Catálogo de exercícios com link para o modelo de referência (pose),
-    cacheável localmente pelo app — ver ARCHITECTURE.md seção 3."""
+    cacheável localmente pelo app — ver README.md seção 3."""
     return list(db.scalars(select(Exercise)))
 
 

@@ -19,7 +19,7 @@ def record_session(
 ) -> TrainingSession:
     """Recebe apenas o resultado (score) calculado no dispositivo —
     nunca o vídeo bruto, conforme decisão de privacidade/performance
-    em ARCHITECTURE.md seção 5."""
+    em README.md seção 5."""
     session = TrainingSession(
         user_id=current_user.id,
         exercise_id=payload.exercise_id,
@@ -41,7 +41,7 @@ def list_my_sessions(
 ) -> list[TrainingSession]:
     """Histórico paginado (mais recente primeiro). `limit`/`offset` evitam
     carregar o histórico inteiro de uma vez — importante conforme o
-    usuário acumula sessões (ver UX_PLAN.md, "lista paginada" no
+    usuário acumula sessões (ver README.md, "lista paginada" no
     wireframe de Histórico)."""
     stmt = (
         select(TrainingSession)

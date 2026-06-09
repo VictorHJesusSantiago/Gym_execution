@@ -4,7 +4,7 @@ endpoint administrativo da API (PUT /exercises/{id}/reference-model).
 
 Mantém o app desacoplado do pipeline: ele só consome a URL pública
 (cacheável localmente), nunca o vídeo bruto nem o processo de geração
-— ver ARCHITECTURE.md seções 3 e 5.
+— ver README.md seções 3 e 5.
 
 Uso:
     python publish_reference.py --exercise-id squat \

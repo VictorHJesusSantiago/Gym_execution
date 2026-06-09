@@ -1,4 +1,4 @@
-"""Testes de integração contra um Postgres real (ver INTEGRATION_TESTING_PLAN.md).
+"""Testes de integração contra um Postgres real (ver README.md "Testes").
 
 Não rodam por padrão — exigem RUN_INTEGRATION_TESTS=1 e um Postgres
 acessível via INTEGRATION_DATABASE_URL (ex.: `docker compose up -d db`
@@ -27,7 +27,7 @@ pytestmark = [
         os.environ.get("RUN_INTEGRATION_TESTS") != "1",
         reason=(
             "Defina RUN_INTEGRATION_TESTS=1 com um Postgres real disponível "
-            "(ver docker-compose.yml e INTEGRATION_TESTING_PLAN.md)."
+            "(ver docker-compose.yml e README.md \"Testes\")."
         ),
     ),
 ]

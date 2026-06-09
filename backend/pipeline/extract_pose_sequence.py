@@ -1,7 +1,7 @@
 """Extrai a sequência de pose de um vídeo de referência usando MediaPipe Pose.
 
 Processo OFFLINE (roda no servidor/CI, não no celular do usuário — ver
-ARCHITECTURE.md seção 5: o app só faz inferência leve em tempo real).
+README.md seção 5: o app só faz inferência leve em tempo real).
 
 Uso:
     python extract_pose_sequence.py --video squat_reference.mp4 \

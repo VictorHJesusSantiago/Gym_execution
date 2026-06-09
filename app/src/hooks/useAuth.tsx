@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
  * `signIn`/`signUp`/`signOut`, usados pelas telas de Login/Cadastro e
  * pelo restante do app para autorizar chamadas (`apiRequest(..., { token })`).
  *
- * Ver plano de navegação em UX_PLAN.md seção 2: `AppNavigator` decide
+ * Ver plano de navegação em README.md seção 2: `AppNavigator` decide
  * entre pilha pública/autenticada a partir de `status`.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {

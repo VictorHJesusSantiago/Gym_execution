@@ -17,10 +17,10 @@ export const DEFAULT_PREFERENCES: Preferences = {
 const STORAGE_KEY = '@gym_execution/preferences';
 
 /**
- * Preferências locais (UX_PLAN.md — tela de Configurações). Guardadas só
+ * Preferências locais (README.md — tela de Configurações). Guardadas só
  * no dispositivo via AsyncStorage: não são dados de conta, então não
  * fazem parte da API. "Qualidade da câmera" alimenta diretamente a
- * decisão de performance da seção 5 do ARCHITECTURE.md.
+ * decisão de performance da seção 5 do README.md.
  */
 export async function loadPreferences(): Promise<Preferences> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);

@@ -12,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get("/me", response_model=UserPublic)
 def get_my_profile(current_user: User = Depends(get_current_user)) -> User:
     """Dados do usuário autenticado — consumido pela tela de Perfil
-    (ver UX_PLAN.md)."""
+    (ver README.md)."""
     return current_user
 
 

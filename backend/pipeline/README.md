@@ -1,9 +1,9 @@
 # Pipeline de ingestão de vídeos de referência
 
 Processo **offline** (roda no servidor/CI — nunca no celular do usuário,
-ver [ARCHITECTURE.md](../../ARCHITECTURE.md) seção 5) que transforma um
-vídeo de um profissional executando um exercício em uma sequência de pose
-publicada e consumida pelo app como padrão de comparação.
+ver [README.md raiz, seção "Decisões de performance"](../../README.md#decisões-de-performance-alvo-2gb-ram-hardware-2015))
+que transforma um vídeo de um profissional executando um exercício em uma
+sequência de pose publicada e consumida pelo app como padrão de comparação.
 
 ## Fluxo
 

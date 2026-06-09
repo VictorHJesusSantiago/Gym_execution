@@ -1,8 +1,9 @@
-# Gym Execution — Backend (scaffold)
+# Gym Execution — Backend
 
-API em FastAPI conforme [ARCHITECTURE.md](../ARCHITECTURE.md): autenticação,
-catálogo de exercícios (com link para modelos de pose de referência) e
-histórico de sessões de treino (apenas scores — nunca vídeo bruto).
+API em FastAPI (ver [arquitetura geral](../README.md#arquitetura)):
+autenticação, catálogo de exercícios (com link para modelos de pose de
+referência) e histórico de sessões de treino (apenas scores — nunca
+vídeo bruto).
 
 ## Estrutura
 
@@ -85,35 +86,40 @@ resposta — nunca expõe vídeo, validação de score 0-100, isolamento entre
 usuários) e catálogo de exercícios (404, endpoint admin com
 `X-Admin-Api-Key` correta/incorreta/ausente).
 
-**Testes de integração contra Postgres real** (não rodam por padrão):
-ver [INTEGRATION_TESTING_PLAN.md](INTEGRATION_TESTING_PLAN.md) — usa o
-[docker-compose.yml](../docker-compose.yml) da raiz e
-`tests/test_integration_postgres.py` (marcado `@pytest.mark.integration`,
-pulado a menos que `RUN_INTEGRATION_TESTS=1`) para validar garantias
-específicas do banco (ex.: constraints) que o SQLite da suíte principal
-não cobre.
+**Testes de integração contra Postgres real** (não rodam por padrão): usam
+o [docker-compose.yml](../docker-compose.yml) da raiz (Postgres 16.4 +
+Redis 7.4) e `tests/test_integration_postgres.py` (marcado
+`@pytest.mark.integration`, pulado a menos que `RUN_INTEGRATION_TESTS=1`)
+para validar garantias específicas do banco (ex.: constraints) que o
+SQLite da suíte principal não cobre. Uso local:
+
+```bash
+docker compose up -d   # na raiz do repo
+docker exec gym_execution-db-1 psql -U gym -d gym_execution -c "CREATE DATABASE gym_execution_test;"
+cd backend
+RUN_INTEGRATION_TESTS=1 INTEGRATION_DATABASE_URL=postgresql+psycopg2://gym:gym@localhost:5432/gym_execution_test pytest -m integration -k postgres
+```
+
+Validado nesta máquina (1 passed). Em CI, o job opcional
+`backend-integration-tests` ([../.github/workflows/ci.yml](../.github/workflows/ci.yml))
+roda essa mesma suíte contra um serviço Postgres, agendado semanalmente
+ou sob demanda (`workflow_dispatch`) — não bloqueia PRs comuns por ser
+mais lento e depender de infra externa.
 
 ## Endpoints administrativos
 
 `PUT /exercises/{id}/reference-model` — protegido pelo header
 `X-Admin-Api-Key` (comparado em tempo constante, ver `core/deps.py`),
 chamado pelo [pipeline de ingestão](pipeline/README.md) ao final do
-processamento de um vídeo de referência, fechando o ciclo descrito em
-`ARCHITECTURE.md` sem passo manual no banco.
+processamento de um vídeo de referência, fechando o ciclo de publicação
+de modelos de referência sem passo manual no banco.
 
 ## Roadmap
 
-O ciclo completo descrito em `ARCHITECTURE.md` (autenticação, catálogo,
-histórico, migrations, ingestão de referências e testes da API — ver
-seção "Testes" acima) está coberto pelo scaffold atual. Os planos para
-as próximas fases já estão documentados (arquivos prontos, nada
-instalado/executado ainda):
-
-- **Testes contra Postgres real** — [INTEGRATION_TESTING_PLAN.md](INTEGRATION_TESTING_PLAN.md)
-  (`docker-compose.yml` da raiz + `tests/test_integration_postgres.py`,
-  pulado por padrão).
-- **Containerização e deploy** — [../DEPLOY_PLAN.md](../DEPLOY_PLAN.md)
-  ([Dockerfile](Dockerfile) já criado).
+O ciclo completo (autenticação, catálogo, histórico, migrations, ingestão
+de referências, testes contra SQLite e Postgres real, containerização e
+CI/CD — ver [README.md raiz, seção "Deploy"](../README.md#deploy)) está
+coberto pelo scaffold atual.
 
 **Paginação do histórico** já está implementada: `GET /sessions` aceita
 `limit` (padrão 20, máx. 100) e `offset` (ver
@@ -163,9 +169,9 @@ pins em `requirements.txt` já refletem os ajustes:
   (2020) é incompatível com `bcrypt>=4.1` (que passou a levantar
   `ValueError` em vez de truncar senhas longas no autoteste interno do
   passlib, um problema conhecido do ecossistema).
-- **`psycopg2-binary`**: sem wheel pré-compilada para Python 3.13/3.14 e
-  sem `pg_config` (toolchain do Postgres) nesta máquina para compilar —
-  por isso os testes usam `DATABASE_URL=sqlite:///...` (a suíte já roda
-  inteiramente sobre SQLite via `tests/conftest.py`; a conexão real com
-  Postgres só é exercida no teste de integração opcional, ver
-  `INTEGRATION_TESTING_PLAN.md`).
+- **`psycopg2-binary`**: ajustado de `2.9.9` (sem wheel para `cp313`/`cp314`)
+  para `2.9.12` (tem wheel oficial para essas versões) — por padrão os
+  testes usam `DATABASE_URL=sqlite:///...` (a suíte roda inteiramente
+  sobre SQLite via `tests/conftest.py`); a conexão real com Postgres é
+  exercida no teste de integração opcional (ver seção "Testes" acima),
+  já validado com `psycopg2-binary==2.9.12` contra Postgres 16.4 real.

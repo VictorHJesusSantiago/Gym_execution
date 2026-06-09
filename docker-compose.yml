@@ -1,5 +1,5 @@
 # Sobe Postgres + Redis locais para desenvolvimento e para os testes de
-# integração descritos em backend/INTEGRATION_TESTING_PLAN.md. As portas e
+# integração descritos em backend/README.md ("Testes"). As portas e
 # credenciais aqui combinam com os defaults de backend/.env.example —
 # ajuste ambos juntos se mudar algo.
 #

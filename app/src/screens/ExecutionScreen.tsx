@@ -15,7 +15,7 @@ const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem — suficiente para an�
 /**
  * Tela de execução: liga o detector de pose (hoje, `MockPoseDetector` —
  * trocar por integração real com MediaPipe/TFLite, conforme
- * ARCHITECTURE.md seção 4) à câmera e ao algoritmo de scoring.
+ * README.md seção 4) à câmera e ao algoritmo de scoring.
  *
  * A captura de vídeo da câmera (ex: `expo-camera`) entra aqui chamando
  * `captureFrame` a cada quadro processado; por ora simulamos esse laço
@@ -60,7 +60,7 @@ export function ExecutionScreen({ route, navigation }: Props) {
     if (status !== 'finished' || score === null) return;
 
     // Envia só o resultado calculado localmente (nunca o vídeo) para o
-    // histórico do usuário — ver ARCHITECTURE.md seção 5. Falha de rede
+    // histórico do usuário — ver README.md seção 5. Falha de rede
     // não deve bloquear o feedback imediato ao usuário, por isso seguimos
     // para a tela de resultado mesmo que o registro falhe (log silencioso).
     if (token) {

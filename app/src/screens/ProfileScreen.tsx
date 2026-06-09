@@ -9,7 +9,7 @@ import { computeProfileStats, type ProfileStats } from '../services/profileStats
 import type { UserPublic } from '../services/authService';
 
 /**
- * Tela de Perfil (UX_PLAN.md): dados do usuário (GET/PUT /users/me),
+ * Tela de Perfil (README.md): dados do usuário (GET/PUT /users/me),
  * estatísticas agregadas a partir do histórico (GET /sessions) e logout.
  */
 export function ProfileScreen() {

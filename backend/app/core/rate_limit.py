@@ -12,4 +12,4 @@ limiter = Limiter(key_func=get_remote_address, enabled=settings.rate_limit_enabl
 AUTH_RATE_LIMIT = "10/minute"
 """Aplicado a /auth/register e /auth/login — generoso o bastante para uso
 normal (poucas tentativas por minuto), mas barra varreduras automatizadas
-de credenciais. Ver ARCHITECTURE.md seção de segurança."""
+de credenciais. Ver README.md seção de segurança."""

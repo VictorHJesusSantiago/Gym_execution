@@ -17,7 +17,7 @@ class UserPublic(BaseModel):
 
 class UserUpdate(BaseModel):
     """Campos editáveis pelo próprio usuário em `PUT /users/me`
-    (ver UX_PLAN.md — tela de Perfil, "Editar perfil")."""
+    (ver README.md — tela de Perfil, "Editar perfil")."""
 
     name: str
 

@@ -9,7 +9,7 @@ from .base import Base, TimestampMixin, generate_uuid
 class TrainingSession(Base, TimestampMixin):
     """Registro de uma série executada: apenas o score e metadados —
     o vídeo bruto não é enviado ao servidor (processamento on-device,
-    ver ARCHITECTURE.md seção 4 e 5)."""
+    ver README.md seção 4 e 5)."""
 
     __tablename__ = "training_sessions"
 

@@ -16,7 +16,7 @@ const CAMERA_QUALITY_OPTIONS: { value: CameraQuality; label: string }[] = [
 ];
 
 /**
- * Tela de Configurações (UX_PLAN.md): preferências locais persistidas via
+ * Tela de Configurações (README.md): preferências locais persistidas via
  * AsyncStorage — não envolvem a API, então cada alteração é salva na hora.
  */
 export function SettingsScreen() {

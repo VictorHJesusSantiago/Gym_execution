@@ -5,7 +5,7 @@ import * as SecureStore from 'expo-secure-store';
  * (Keychain no iOS, Android Keystore no Android) — nunca em AsyncStorage
  * simples, que guarda dados em texto puro.
  *
- * Trade-off com o requisito de hardware antigo (ARCHITECTURE.md): o
+ * Trade-off com o requisito de hardware antigo (README.md): o
  * Android Keystore exige API 23+ (Android 6.0, fim de 2015), por isso
  * `app.json` foi ajustado de minSdkVersion 21 para 23 — ainda alinhado
  * ao "a partir de 2015", apenas restringindo a poucos meses iniciais

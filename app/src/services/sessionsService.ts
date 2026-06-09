@@ -44,7 +44,7 @@ export async function listAllMySessions(token: string): Promise<TrainingSessionP
 
 /**
  * Envia apenas o resultado já calculado no dispositivo (nunca o vídeo
- * bruto — ver ARCHITECTURE.md seção 5 e backend/app/routers/sessions.py).
+ * bruto — ver README.md seção 5 e backend/app/routers/sessions.py).
  */
 export function recordSession(
   token: string,

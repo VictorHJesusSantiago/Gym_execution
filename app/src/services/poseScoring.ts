@@ -2,7 +2,7 @@ import { Landmark, LANDMARK_INDEX, PoseFrame } from './poseTypes';
 
 /**
  * Algoritmo de comparação de execução de exercício, descrito em
- * ARCHITECTURE.md (seção 4): compara o ângulo das principais articulações
+ * README.md (seção 4): compara o ângulo das principais articulações
  * do usuário, quadro a quadro, com uma sequência de referência, e gera
  * uma porcentagem de acerto. Roda 100% no dispositivo (sem enviar vídeo).
  *

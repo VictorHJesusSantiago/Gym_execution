@@ -1,12 +1,10 @@
-# Gym Execution — App (scaffold)
+# Gym Execution — App
 
-Estrutura inicial do app híbrido (React Native + Expo), conforme
-[ARCHITECTURE.md](../ARCHITECTURE.md).
+App híbrido (React Native + Expo) — ver [arquitetura geral](../README.md#arquitetura).
 
-> Todas as telas de `UX_PLAN.md` estão implementadas: Login/Cadastro/
-> Histórico (ver seções "Autenticação" e "Histórico" abaixo) e também
-> Perfil/Configurações (ver seção "Perfil e Configurações"). Wireframes
-> e plano original seguem em [UX_PLAN.md](UX_PLAN.md) como referência.
+Todas as telas planejadas estão implementadas: Login/Cadastro/Histórico
+(ver seções "Autenticação" e "Histórico" abaixo) e também
+Perfil/Configurações (ver seção "Perfil e Configurações").
 
 ## Estrutura
 
@@ -51,7 +49,7 @@ app/
 
 ## Autenticação
 
-Implementada conforme `UX_PLAN.md` seções 1-2: `AuthProvider`
+`AuthProvider`
 ([useAuth.tsx](src/hooks/useAuth.tsx)) carrega o token persistido ao
 abrir o app e expõe `signIn`/`signUp`/`signOut`; `AppNavigator` alterna
 entre a pilha pública (`Login`/`Register`) e a autenticada conforme o
@@ -73,15 +71,14 @@ pública do Expo — configurar no `.env` do app, ex.:
 `HistoryScreen` ([código](src/screens/HistoryScreen.tsx)) lista as
 sessões do usuário via `GET /sessions`, reaproveitando o padrão visual
 de `ExerciseListScreen` (FlatList + card), com pull-to-refresh, estado
-vazio e tratamento de erro — conforme `UX_PLAN.md` seção 3.
+vazio e tratamento de erro.
 
 A lista é **paginada** (`limit`/`offset`, ver
 [sessionsService.ts](src/services/sessionsService.ts) e
 `backend/app/routers/sessions.py`): a tela carrega páginas de
 `SESSIONS_PAGE_SIZE` (20) itens e busca a próxima ao chegar perto do
-fim da lista (`onEndReached` da FlatList, com indicador no rodapé) —
-conforme `UX_PLAN.md` seção 3 ("lista paginada" no wireframe de
-Histórico). `ProfileScreen` usa `listAllMySessions` (que percorre todas
+fim da lista (`onEndReached` da FlatList, com indicador no rodapé).
+`ProfileScreen` usa `listAllMySessions` (que percorre todas
 as páginas) para calcular estatísticas agregadas, já que precisa do
 histórico completo, não só da primeira página.
 
@@ -89,7 +86,7 @@ Para o histórico ter dados, `ExecutionScreen` agora também **registra**
 o resultado ao final de cada série via `POST /sessions`
 (`recordSession` em [sessionsService.ts](src/services/sessionsService.ts)),
 enviando só o score calculado localmente — nunca o vídeo (mesma decisão
-de privacidade/performance do `ARCHITECTURE.md` seção 5). Falhas de rede
+de privacidade/performance do [README.md raiz](../README.md#decisões-de-performance-alvo-2gb-ram-hardware-2015)). Falhas de rede
 nesse envio não bloqueiam o feedback imediato ao usuário.
 
 ## Perfil e Configurações
@@ -101,14 +98,13 @@ nome/e-mail, calcula "Treinos realizados" e "Pontuação média" a partir
 de `GET /sessions` via [profileStats.ts](src/services/profileStats.ts)
 (extraído da tela para ser testado isoladamente — mesmo padrão de
 `poseScoring.ts` — ver [profileStats.test.ts](src/services/__tests__/profileStats.test.ts);
-sem precisar de endpoint agregado no backend) e expõe o `signOut` —
-conforme wireframe da seção 3 de `UX_PLAN.md`.
+sem precisar de endpoint agregado no backend) e expõe o `signOut`.
 
 `SettingsScreen` ([código](src/screens/SettingsScreen.tsx)) guarda
 preferências **só no dispositivo** via `AsyncStorage`
 ([preferencesStorage.ts](src/services/preferencesStorage.ts)): qualidade
 da câmera (Alta/Padrão/Economia — liga direto com a decisão de
-performance do `ARCHITECTURE.md` seção 5), som de feedback e modo
+performance do [README.md raiz](../README.md#decisões-de-performance-alvo-2gb-ram-hardware-2015)), som de feedback e modo
 escuro. Cada alteração é salva imediatamente, sem botão de "salvar".
 Testado com o mock oficial de `AsyncStorage` em
 [preferencesStorage.test.ts](src/services/__tests__/preferencesStorage.test.ts)

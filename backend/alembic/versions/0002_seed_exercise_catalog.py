@@ -3,7 +3,7 @@
 Sem isto, uma instalação nova fica com `GET /exercises` vazio — o app
 não tem o que listar em `ExerciseListScreen` nem como gravar sessões
 (`exercise_id` é uma FK obrigatória). Estes são os exercícios "base"
-citados como exemplo em ARCHITECTURE.md/UX_PLAN.md; o catálogo real
+citados como exemplo no README.md raiz; o catálogo real
 cresce depois via processo administrativo (ver
 backend/pipeline/publish_reference.py), não por migration.
 

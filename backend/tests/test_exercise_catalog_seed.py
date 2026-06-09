@@ -1,7 +1,7 @@
 """Sanidade dos dados do seed inicial do catálogo (migration 0002).
 
 Não testa a migration em si rodando Alembic (faria mais sentido na suíte
-de integração contra Postgres real, ver INTEGRATION_TESTING_PLAN.md) —
+de integração contra Postgres real, ver README.md "Testes") —
 só garante que a lista de exercícios seedados é internamente consistente,
 evitando erros de digitação/duplicação que só apareceriam ao rodar
 `alembic upgrade head` contra um banco de verdade.

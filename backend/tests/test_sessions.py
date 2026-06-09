@@ -30,7 +30,7 @@ def test_record_session_stores_only_score_and_metadata(client, auth_headers, db_
     assert body["exercise_id"] == "agachamento"
     assert body["score"] == 87
     # O contrato não expõe nada além de id/exercise_id/score/executed_at —
-    # garante que vídeo bruto nunca faz parte da resposta (ARCHITECTURE.md seção 5).
+    # garante que vídeo bruto nunca faz parte da resposta (README.md seção 5).
     assert set(body.keys()) == {"id", "exercise_id", "score", "executed_at"}
 
 

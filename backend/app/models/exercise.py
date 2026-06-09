@@ -16,4 +16,4 @@ class Exercise(Base, TimestampMixin):
 
     reference_model_uri: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     """Aponta para o storage de mídia (S3/CDN) onde fica a sequência de pose
-    de referência pré-processada — distribuída e cacheada no app (ARCHITECTURE.md)."""
+    de referência pré-processada — distribuída e cacheada no app (README.md)."""

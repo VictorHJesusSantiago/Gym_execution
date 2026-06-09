@@ -12,7 +12,7 @@ export type PoseSessionStatus = 'idle' | 'loading' | 'recording' | 'finished';
  * `detector` e `referenceFrames` são injetados de fora (inversão de
  * dependência), assim este hook não conhece a lib de CV concreta
  * (MediaPipe/TFLite) nem a origem dos dados de referência (cache local
- * baixado do backend, conforme ARCHITECTURE.md).
+ * baixado do backend, conforme README.md).
  */
 export function usePoseSession(detector: PoseDetector, referenceFrames: PoseFrame[]) {
   const [status, setStatus] = useState<PoseSessionStatus>('idle');

@@ -2,7 +2,7 @@ export type ProfileStats = { trainingCount: number; averageScore: number | null 
 
 /**
  * Agrega "Treinos realizados" e "Pontuação média" (wireframe de Perfil em
- * UX_PLAN.md) a partir dos scores do histórico — sem precisar de um
+ * README.md) a partir dos scores do histórico — sem precisar de um
  * endpoint agregado dedicado no backend. Extraída da `ProfileScreen` para
  * poder ser testada isoladamente, no mesmo padrão de `poseScoring.ts`.
  */

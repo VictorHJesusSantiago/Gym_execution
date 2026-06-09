@@ -27,7 +27,7 @@ function formatDateTime(isoDate: string): string {
 /**
  * Lista o histórico de sessões do usuário (GET /sessions), reaproveitando
  * o mesmo padrão visual de `ExerciseListScreen` (FlatList + card) — ver
- * UX_PLAN.md seção 3 ("Reaproveita o mesmo padrão visual de lista").
+ * README.md seção 3 ("Reaproveita o mesmo padrão visual de lista").
  */
 export function HistoryScreen() {
   const { token } = useAuth();
@@ -54,7 +54,7 @@ export function HistoryScreen() {
 
   /**
    * Busca a próxima página e acrescenta ao final — acionado por
-   * `onEndReached` da FlatList (UX_PLAN.md seção 3, "lista paginada").
+   * `onEndReached` da FlatList (README.md seção 3, "lista paginada").
    */
   const loadMore = useCallback(async () => {
     if (!token || loading || loadingMore || !hasMore) return;
