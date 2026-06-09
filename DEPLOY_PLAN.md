@@ -6,13 +6,17 @@ que hoje só roda os testes) até o deploy — usando ferramentas entre as
 mais pedidas em vagas de plataforma/DevOps (Docker, GitHub Actions,
 Postgres/Redis gerenciados, EAS para apps Expo).
 
-**Status**: plano + arquivos de build prontos
-([backend/Dockerfile](backend/Dockerfile), [docker-compose.yml](docker-compose.yml)
-para uso local). **Nada é construído, publicado ou implantado agora** —
-isso envolve criar contas em provedores externos, gerar credenciais e
-rodar `docker build`/`eas build`, decisões que cabem a quem for operar o
-projeto e que ficam fora do escopo de "só preparar o terreno" sem
-ultrapassar a cota combinada.
+**Status**: a parte local/sem conta foi validada — `docker build -t
+gym-execution-api:local backend/` builda com sucesso, e
+`docker run --network <rede do compose> --env-file backend/.env
+gym-execution-api:local` sobe a API, roda `alembic upgrade head` contra o
+Postgres do `docker-compose.yml` e responde em `/health`, `/auth/register`
+e `/auth/login` (testado localmente, container removido após o teste).
+`npx expo export --platform web` (seção 4) também roda com sucesso e gera
+`app/dist/` (não commitado). **Nada foi publicado ou implantado** — isso
+envolve criar contas em provedores externos, gerar credenciais e rodar
+`eas build`/publicar imagens, decisões que cabem a quem for operar o
+projeto e que ficam fora do escopo de "só preparar o terreno".
 
 ## 1. Visão geral da topologia de produção
 

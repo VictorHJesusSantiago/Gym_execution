@@ -9,9 +9,11 @@ se comporta igual nos dois, mas tipos mais específicos (JSONB, arrays,
 constraints/triggers a nível de banco) só seriam validados contra o
 Postgres de verdade.
 
-Este documento é só o plano + arquivos prontos — **nada é instalado ou
-executado agora** (ver aviso de cota/supply-chain no topo do projeto).
-Quem for rodar decide quando instalar, com a mesma revisão de sempre.
+> **Status**: passos 1-2 da seção 5 foram executados e validados localmente
+> — `docker compose up -d` sobe Postgres 16.4/Redis 7.4, e
+> `RUN_INTEGRATION_TESTS=1 INTEGRATION_DATABASE_URL=postgresql+psycopg2://gym:gym@localhost:5432/gym_execution_test pytest -m integration -k postgres`
+> passou (1 passed). O passo 3 (job de CI) segue pendente — depende de
+> infra de CI própria, conforme nota no final da seção 5.
 
 ## 1. Estratégia escolhida: docker-compose + suíte separada
 
@@ -121,9 +123,11 @@ Uso local:
 
 ```bash
 docker compose up -d
+# banco isolado p/ integração — `createdb` requer o cliente psql no host;
+# alternativa que só usa o próprio container:
+docker exec gym_execution-db-1 psql -U gym -d gym_execution -c "CREATE DATABASE gym_execution_test;"
 cd backend
-createdb -h localhost -U gym gym_execution_test   # banco isolado p/ integração
-RUN_INTEGRATION_TESTS=1 pytest -m integration -k postgres
+RUN_INTEGRATION_TESTS=1 INTEGRATION_DATABASE_URL=postgresql+psycopg2://gym:gym@localhost:5432/gym_execution_test pytest -m integration -k postgres
 ```
 
 > ⚠️ Imagens oficiais (`postgres`, `redis`) do Docker Hub, fixadas por
@@ -181,11 +185,11 @@ travar o fluxo do dia a dia.
 
 ## 5. Resumo do que falta para "ligar" este plano
 
-1. Criar `docker-compose.yml` na raiz (conteúdo da seção 3).
-2. Criar `backend/tests/test_integration_postgres.py` (conteúdo da seção 2)
-   e registrar o marker `integration` em `backend/pytest.ini`
-   (`markers = integration: requer Postgres real, ver INTEGRATION_TESTING_PLAN.md`).
-3. Adicionar o job opcional ao CI (seção 4) quando o projeto tiver infra
+1. ✅ Criar `docker-compose.yml` na raiz (conteúdo da seção 3) — feito.
+2. ✅ Criar `backend/tests/test_integration_postgres.py` (conteúdo da seção 2)
+   e registrar o marker `integration` em `backend/pytest.ini` — feito e
+   validado contra Postgres 16.4 real (ver nota de status no topo).
+3. ⏳ Adicionar o job opcional ao CI (seção 4) quando o projeto tiver infra
    de CI própria (self-hosted runners ou orçamento de Actions) para
    rodá-lo com regularidade.
 

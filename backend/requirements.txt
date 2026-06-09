@@ -7,6 +7,9 @@
 # Python 3.13/3.14 — só compila via Rust/PyO3, que não suporta essas
 # versões) para 2.9.2, que tem wheel oficial para cp313/cp314 e mantém
 # compatibilidade com fastapi==0.111.0/pydantic-settings==2.3.4.
+#
+# `psycopg2-binary` foi ajustado de 2.9.9 (sem wheel para cp313/cp314)
+# para 2.9.12, que tem wheel oficial para essas versões.
 
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
@@ -14,7 +17,7 @@ pydantic==2.9.2
 pydantic-settings==2.3.4
 sqlalchemy==2.0.31
 alembic==1.13.2
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.12
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-jose[cryptography]==3.3.0

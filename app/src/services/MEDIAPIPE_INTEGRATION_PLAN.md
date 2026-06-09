@@ -1,3 +1,15 @@
+> **Status**: avaliado para execução — permanece como plano/skeleton.
+> Os passos 2-7 (seção 6) exigem `expo-dev-client`/build nativo (Expo Go
+> não roda módulos nativos customizados como `react-native-fast-tflite`/
+> `react-native-vision-camera`) e validação em dispositivo físico de baixo
+> desempenho, nenhum dos quais está disponível neste ambiente (sem
+> Android Studio/Xcode/emulador/device). Adicionar essas dependências
+> nativas sem poder buildar/testar quebraria o fluxo `expo start` (Expo
+> Go) atual sem garantia de que a integração funciona. A interface
+> `PoseDetector` e o adapter `moveNetAdapter.ts` (seção 3) já estão
+> implementados e testados — esta é a parte que de fato podia ser
+> concluída sem build nativo.
+
 # Plano: substituir o `MockPoseDetector` pela integração real (MediaPipe/TFLite)
 
 Este documento detalha **como** trocar o detector simulado
