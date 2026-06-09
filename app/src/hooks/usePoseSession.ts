@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { PoseDetector, PoseFrame } from '../services/poseTypes';
+import { CameraFrameInput, PoseDetector, PoseFrame } from '../services/poseTypes';
 import { scoreExecution } from '../services/poseScoring';
 
 export type PoseSessionStatus = 'idle' | 'loading' | 'recording' | 'finished';
@@ -26,11 +26,11 @@ export function usePoseSession(detector: PoseDetector, referenceFrames: PoseFram
     setStatus('recording');
   }, [detector]);
 
-  /** Chamado a cada frame de câmera processado (ex: via onFrame do CameraView). */
+  /** Chamado a cada foto capturada da câmera (ver ExecutionScreen). */
   const captureFrame = useCallback(
-    async (timestampMs: number) => {
+    async (timestampMs: number, cameraFrame?: CameraFrameInput) => {
       if (status !== 'recording') return;
-      const frame = await detector.detect(timestampMs);
+      const frame = await detector.detect(timestampMs, cameraFrame);
       if (frame) framesRef.current.push(frame);
     },
     [detector, status]

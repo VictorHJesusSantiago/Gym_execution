@@ -16,6 +16,16 @@
     },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O app usa a câmera para analisar sua execução do exercício em tempo real.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "react-native-fast-tflite"
+    ]
   }
 }

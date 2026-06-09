@@ -32,6 +32,18 @@ export const LANDMARK_INDEX = {
 } as const;
 
 /**
+ * Foto capturada da câmera (`expo-camera`'s `takePictureAsync`), repassada
+ * ao detector para inferência. Em iOS/Android `uri` é um caminho de
+ * arquivo local; na web é uma string base64 (usável como `src` de uma
+ * `<img>`/`HTMLImageElement`).
+ */
+export type CameraFrameInput = {
+  uri: string;
+  width: number;
+  height: number;
+};
+
+/**
  * Contrato que qualquer detector de pose deve cumprir.
  * A implementação concreta (ex: MediaPipe Pose via TFLite) entra depois,
  * sem alterar quem consome esta interface.
@@ -40,7 +52,7 @@ export interface PoseDetector {
   /** Inicializa o modelo (carrega pesos quantizados, aloca buffers). */
   load(): Promise<void>;
   /** Processa um frame de câmera e retorna os landmarks detectados. */
-  detect(frameTimestampMs: number): Promise<PoseFrame | null>;
+  detect(frameTimestampMs: number, frame?: CameraFrameInput): Promise<PoseFrame | null>;
   /** Libera recursos do modelo. */
   dispose(): void;
 }
