@@ -1,7 +1,7 @@
 # Versões fixadas (pinned) propositalmente.
 # Antes de instalar: `pip install -r requirements.txt --require-hashes` (gerar hashes
 # com pip-compile/pip-audit) e conferir nomes contra o PyPI oficial para evitar
-# typosquatting — mesmo cuidado citado em ARCHITECTURE.md.
+# typosquatting — mesmo cuidado citado no README.md raiz.
 #
 # `pydantic` foi ajustado de 2.7.4 (não tem wheel pré-compilada para
 # Python 3.13/3.14 — só compila via Rust/PyO3, que não suporta essas

@@ -3,8 +3,8 @@ import { Landmark, PoseFrame } from './poseTypes';
 /**
  * Adaptador MoveNet (formato COCO, 17 keypoints) → MediaPipe Pose (33
  * landmarks), conforme a "segunda opção" descrita em
- * MEDIAPIPE_INTEGRATION_PLAN.md seção "Atenção ao mapeamento de
- * keypoints": concentrar a tradução em um único ponto, preservando
+ * README.md ("Módulo de visão computacional") seção "Atenção ao mapeamento
+ * de keypoints": concentrar a tradução em um único ponto, preservando
  * `poseScoring.ts`/`LANDMARK_INDEX` (que seguem o índice MediaPipe) sem
  * qualquer alteração — qualquer detector baseado em MoveNet (ex.:
  * MoveNet Lightning INT8, recomendado para o hardware-alvo) passa por
@@ -73,7 +73,7 @@ function placeholderLandmark(): Landmark {
  *
  * `keypoints[i]` deve corresponder ao índice `i` de `COCO_KEYPOINT_INDEX`
  * — é o formato em que `react-native-fast-tflite`/MoveNet retornam a
- * saída do modelo (ver MEDIAPIPE_INTEGRATION_PLAN.md seção 3).
+ * saída do modelo (ver poseDetector.ts).
  */
 export function moveNetToMediaPipeFrame(
   timestampMs: number,

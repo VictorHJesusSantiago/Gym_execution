@@ -97,7 +97,7 @@ jobs:
           RUN_INTEGRATION_TESTS: "1"
           INTEGRATION_DATABASE_URL: postgresql+psycopg2://gym:gym@localhost:5432/gym_execution_test
 
-  # Jobs de deploy abaixo (DEPLOY_PLAN.md seção 5) só rodam em push para
+  # Jobs de deploy abaixo (README.md raiz, seção "Deploy") só rodam em push para
   # `main` (nunca em PR — evita publicar artefatos de branches não
   # revisadas) e dependem dos testes correspondentes terem passado.
 
@@ -134,11 +134,11 @@ jobs:
       - name: Acionar deploy no provedor escolhido
         run: |
           # TODO: nenhum provedor de hospedagem foi escolhido/contratado ainda
-          # (ver DEPLOY_PLAN.md seção 3 — Railway/Render/Fly.io). Quando houver
-          # conta + secrets configurados, substituir este passo pela action/CLI
-          # do provedor, ex.: 'flyctl deploy --image ghcr.io/...'.
+          # (ver README.md raiz, seção "Deploy" — Railway/Render/Fly.io). Quando
+          # houver conta + secrets configurados, substituir este passo pela
+          # action/CLI do provedor, ex.: 'flyctl deploy --image ghcr.io/...'.
           # Credenciais via secrets do repositório, nunca hardcoded.
-          echo "Nenhum provedor configurado — job placeholder (ver DEPLOY_PLAN.md)."
+          echo "Nenhum provedor configurado — job placeholder (ver README.md raiz, seção Deploy)."
 
   build-app-web:
     name: Build estático do app (web)
@@ -165,4 +165,4 @@ jobs:
         run: |
           # TODO: nenhuma hospedagem estática foi escolhida/contratada ainda
           # (Cloudflare Pages/Netlify/Vercel). Substituir por essa action.
-          echo "Nenhuma hospedagem estática configurada — job placeholder (ver DEPLOY_PLAN.md)."
+          echo "Nenhuma hospedagem estática configurada — job placeholder (ver README.md raiz, seção Deploy)."

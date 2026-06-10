@@ -111,32 +111,44 @@ Testado com o mock oficial de `AsyncStorage` em
 (padrões, persistência, merge de dados parciais e recuperação de
 conteúdo corrompido).
 
-## Módulo de visão computacional (protótipo lógico)
+## Módulo de visão computacional
 
-A `ExecutionScreen` já roda o fluxo completo descrito em `ARCHITECTURE.md`
-(seção 4) usando um **detector simulado** (`MockPoseDetector`):
+A `ExecutionScreen` roda o fluxo completo descrito no
+[README.md raiz](../README.md#arquitetura) com detectores **reais**, via
+a interface `PoseDetector` ([poseTypes.ts](src/services/poseTypes.ts)):
 
-1. Carrega o "modelo" → 2. Amostra frames periodicamente → 3. Acumula
-landmarks → 4. Compara com a referência via `scoreExecution` (ângulos
-articulares + Dynamic Time Warping) → 5. Mostra a porcentagem na tela
-de resultado.
+1. Carrega o modelo → 2. Captura uma foto a cada `SAMPLE_INTERVAL_MS` via
+`CameraView.takePictureAsync` (`expo-camera`) → 3. Roda o detector e
+acumula os `PoseFrame` → 4. Compara com a referência via `scoreExecution`
+(ângulos articulares + Dynamic Time Warping) → 5. Mostra a porcentagem na
+tela de resultado.
 
-**O que falta para ser real** (cada item é um próximo passo independente,
-que envolve instalar/buildar pacotes nativos — fazer com cautela e
-revisão de supply-chain):
+A implementação é escolhida automaticamente por plataforma (`poseDetector.ts`
+vs `poseDetector.web.ts`, resolvido pelo Metro):
 
-- Substituir `MockPoseDetector` por uma implementação real da interface
-  `PoseDetector` usando `expo-camera`/`react-native-vision-camera` +
-  MediaPipe Pose / TensorFlow Lite (MoveNet) — plano detalhado
-  (bibliotecas, esqueleto de código, performance e cuidados de
-  supply-chain) em [MEDIAPIPE_INTEGRATION_PLAN.md](src/services/MEDIAPIPE_INTEGRATION_PLAN.md).
-  A parte que **não depende de pacotes nativos** já foi adiantada: a
-  conversão do formato de saída do MoveNet (17 keypoints COCO) para o
-  formato MediaPipe (33 landmarks) que `poseScoring.ts` espera —
-  [moveNetAdapter.ts](src/services/moveNetAdapter.ts) + testes em
+- **Web**: [poseDetector.web.ts](src/services/poseDetector.web.ts) usa
+  `@mediapipe/tasks-vision` (WASM, modelo `pose_landmarker_lite` oficial do
+  Google) — `NormalizedLandmark` é diretamente compatível com `Landmark`.
+- **iOS/Android**: [poseDetector.ts](src/services/poseDetector.ts) usa
+  `react-native-fast-tflite` com **MoveNet Lightning (INT8)**
+  (`assets/models/movenet_lightning_int8.tflite`, ~2.9MB, baixado do TF Hub
+  oficial). A foto é recortada num quadrado central, redimensionada para
+  192x192 e decodificada com `jpeg-js` (puro JS, sem dependência nativa
+  extra) antes de virar o tensor de entrada. A saída (17 keypoints COCO) é
+  convertida para o formato MediaPipe (33 landmarks) por
+  [moveNetAdapter.ts](src/services/moveNetAdapter.ts) — testado em
   [moveNetAdapter.test.ts](src/services/__tests__/moveNetAdapter.test.ts).
-- Substituir `getReferenceFrames` por consumo real da API do backend
-  (vídeos de referência processados, cacheados localmente).
+
+> ⚠️ **Não testado em dispositivo**: este ambiente não tem
+> Android Studio/Xcode/emulador/device, então a integração nativa
+> (`react-native-fast-tflite`, `expo-camera`, `expo-image-manipulator`)
+> não pôde ser validada em build real — exige `expo-dev-client`
+> (já incluído nas dependências, ver [eas.json](eas.json)), pois o Expo Go
+> não roda módulos nativos customizados. `tsc --noEmit` e os testes Jest
+> passam, validando os tipos contra as APIs reais das libs instaladas.
+
+Próximo passo possível: substituir `getReferenceFrames` por consumo real
+da API do backend (vídeos de referência processados, cacheados localmente).
 
 ## Instalação (faça você mesmo, com revisão antes de instalar)
 
@@ -154,8 +166,10 @@ npx expo start
 
 ## Próximos passos do roadmap
 
-Todas as telas planejadas em `UX_PLAN.md` estão implementadas. O que
-resta é o item já sinalizado como dependente de pacotes nativos:
-
-- Integração real de câmera + inferência de pose, conforme
-  `MEDIAPIPE_INTEGRATION_PLAN.md`.
+Todas as telas e a integração de câmera/pose estão implementadas (ver
+seção "Módulo de visão computacional"). Resta validar em dispositivo
+físico de baixo desempenho — medir uso de memória/CPU e taxa de quadros,
+ajustando `SAMPLE_INTERVAL_MS` (`ExecutionScreen.tsx`) e a resolução de
+captura conforme necessário — e calibrar `MAX_TOLERATED_ANGLE_DIFF_DEGREES`
+em [poseScoring.ts](src/services/poseScoring.ts) com execuções reais
+(correta vs. incorreta).
