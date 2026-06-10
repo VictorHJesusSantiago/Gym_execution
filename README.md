@@ -1,257 +1,308 @@
-# Gym Execution
+<div align="center">
 
-Aplicativo híbrido (mobile + web) de academia com visão computacional:
-grava a execução de exercícios pela câmera do celular e dá um percentual
-de acerto (geral e específico por exercício), processando tudo
-**no próprio dispositivo** — vídeo bruto nunca sai do telefone.
+# 🏋️‍♂️ Gym Execution
 
-## Arquitetura
+### AI-powered, on-device workout form analysis — your phone is the only "judge" you need.
 
-### Objetivo
+[![English](https://img.shields.io/badge/🌐_Language-English-2563EB?style=for-the-badge)](README.md)
+[![Português](https://img.shields.io/badge/🌐_Idioma-Português-10B981?style=for-the-badge)](README.pt-BR.md)
+[![Español](https://img.shields.io/badge/🌐_Idioma-Español-F59E0B?style=for-the-badge)](README.es.md)
 
-App híbrido (mobile + web) que grava o usuário executando exercícios de
-musculação/treino e retorna uma porcentagem de acerto da execução,
-comparando o movimento capturado com padrões de referência (gerais e
-específicos por exercício). Roda de forma fluida em aparelhos a partir de
-2GB de RAM (~2015+).
+<br/>
 
-### Stack (alinhada às ferramentas mais pedidas no mercado de TI)
+![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=FFD43B)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![TensorFlow Lite](https://img.shields.io/badge/TensorFlow_Lite-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+![MediaPipe](https://img.shields.io/badge/MediaPipe-0097A7?style=for-the-badge&logo=google&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
 
-| Camada | Ferramenta | Justificativa |
+</div>
+
+---
+
+A hybrid (mobile + web) gym app that **records the user performing an
+exercise with the phone camera** and returns a **correctness score**
+(general + exercise-specific), comparing the captured movement against
+reference patterns — **all processed on-device**. Raw video never leaves
+the phone; only the final score is sent to the backend.
+
+## 📑 Table of Contents
+
+- [📐 Business Rules](#-business-rules)
+- [✅ Functional Requirements](#-functional-requirements)
+- [⚙️ Non-Functional Requirements](#️-non-functional-requirements)
+- [🏗️ Architecture](#️-architecture)
+  - [Component Diagram](#component-diagram)
+  - [Execution Flow (Sequence Diagram)](#execution-flow-sequence-diagram)
+  - [Data Model (ER Diagram)](#data-model-er-diagram)
+- [🧰 Tech Stack](#-tech-stack)
+- [📂 Repository Structure](#-repository-structure)
+- [🚀 Getting Started](#-getting-started)
+- [🔌 API Endpoints](#-api-endpoints)
+- [🧪 Testing & CI/CD](#-testing--cicd)
+- [🚢 Deploy](#-deploy)
+- [🔒 Security & Supply Chain](#-security--supply-chain)
+
+## 📐 Business Rules
+
+- 🔑 A user must **register and log in** (JWT) to access any feature
+  beyond authentication.
+- 🏃 Each **execution** (a "set") is performed for **exactly one
+  exercise**, picked from a shared **catalog** (seeded centrally, not
+  per-user).
+- 📊 Every execution produces a **single score (0–100)**, computed by
+  comparing the captured pose sequence against that exercise's
+  **reference pose sequence** (joint angles + Dynamic Time Warping).
+- 🔐 **Privacy by design**: raw camera frames/video are **never**
+  uploaded — only the computed score and metadata (exercise, timestamp)
+  are persisted in the user's history.
+- 📜 A user can only see **their own** training history
+  (`GET /sessions` is scoped to the authenticated user).
+- 🎬 Reference pose sequences are produced **offline**, by an admin
+  pipeline that processes a professional's reference video and publishes
+  the result to `exercises.reference_model_uri` via an
+  admin-protected endpoint (`X-Admin-Api-Key`).
+- 🚦 Auth endpoints (`/auth/register`, `/auth/login`) are **rate-limited**
+  to mitigate brute-force/credential-stuffing.
+- ⚙️ User preferences (camera quality, sound feedback, dark mode) are
+  **device-local only** — never synced to the backend.
+
+## ✅ Functional Requirements
+
+| # | Requirement |
+|---|---|
+| FR1 | User registration and login (email + password → JWT) |
+| FR2 | Browse the **exercise catalog** (name, muscle group, description) |
+| FR3 | Capture an exercise execution via **camera** and detect body pose **on-device** |
+| FR4 | Compute a **% score** comparing the execution to the exercise's reference sequence |
+| FR5 | Show the result immediately at the end of the set |
+| FR6 | Persist the result to the user's **paginated history** |
+| FR7 | View/edit **profile** (name, email) and aggregated stats (sessions completed, average score) |
+| FR8 | Configure **local preferences**: camera quality, feedback sound, dark mode |
+| FR9 | Admin: publish a **reference pose sequence** for an exercise |
+| FR10 | Logout / session management via secure token storage |
+
+## ⚙️ Non-Functional Requirements
+
+| # | Category | Requirement |
 |---|---|---|
-| App híbrido | **React Native + Expo** | Um único código-base para Android/iOS/Web; stack muito demandada; bom suporte a câmera |
-| Visão computacional (no dispositivo) | **MediaPipe Pose (web, `@mediapipe/tasks-vision`) / MoveNet via TensorFlow Lite (mobile, `react-native-fast-tflite`)** | Inferência local, leve, sem depender de internet — essencial em hardware fraco |
-| Treinamento de modelo (servidor) | **Python + PyTorch**, exportado para TFLite/ONNX | Separa processamento pesado (nuvem) de inferência leve (celular) |
-| Backend / API | **Python + FastAPI** | Leve, rápida, tipagem com Pydantic, muito pedida no mercado |
-| Banco de dados | **PostgreSQL** | Relacional, robusto, padrão de mercado para dados de usuários/treinos |
-| Cache / sessões | **Redis** | Reduz latência em consultas repetidas (ex: vídeos de referência) |
-| Armazenamento de mídia | **S3-compatível (ex: AWS S3 / MinIO self-hosted)** + CDN | Vídeos de referência e gravações, com cache para economizar dados móveis |
-| Containerização / deploy | **Docker + GitHub Actions (CI/CD)** | Padrão de mercado, facilita deploy reproduzível |
-| Versionamento | **Git/GitHub** | Universal |
-| Testes | **Pytest** (backend) / **Jest** (frontend) | Padrão em vagas de qualquer stack |
+| NFR1 | **Performance** | Smooth on devices with **2GB RAM (~2015+)**: quantized (INT8) on-device models, ~10 fps sampling (`SAMPLE_INTERVAL_MS`), reduced capture resolution |
+| NFR2 | **Privacy** | No raw video/image leaves the device; only numeric scores are transmitted |
+| NFR3 | **Security** | JWT in secure storage (`expo-secure-store`), password hashing, rate limiting on auth, admin endpoints behind `X-Admin-Api-Key` |
+| NFR4 | **Portability** | Single codebase (React Native + Expo) targeting **Android, iOS and Web** |
+| NFR5 | **Availability/Offline-first CV** | Pose detection works without network connectivity (model bundled/cached on-device) |
+| NFR6 | **Maintainability** | End-to-end typing (TypeScript + Pydantic), unit-tested core algorithms (`pytest`, `Jest`) |
+| NFR7 | **Scalability** | Stateless FastAPI + PostgreSQL/Redis, containerized, ready for managed hosting |
+| NFR8 | **Supply-chain security** | Pinned dependency versions, official registries only, lockfile-based installs (`npm ci`, `pip --require-hashes`) |
+| NFR9 | **CI/CD** | Automated test suites + Docker image build + web export on every push to `main` |
 
-> ⚠️ Cuidado com supply-chain: instalar pacotes apenas de fontes oficiais
-> (PyPI/npm), conferir nomes (typosquatting), revisar `package-lock.json` /
-> `requirements.txt`/hashes, e preferir versões fixadas (pinned) em produção
-> — ver seção "Cuidado com supply-chain attacks" no final deste arquivo.
+## 🏗️ Architecture
 
-### Componentes
+### Component Diagram
 
-```
-┌─────────────────────────────┐
-│   App (React Native/Expo)   │
-│  - Captura de vídeo (câmera)│
-│  - Inferência local          │
-│    (MediaPipe / MoveNet)     │
-│  - UI de feedback (% score) │
-└──────────────┬──────────────┘
-               │ HTTPS (REST/JSON)
-┌──────────────▼──────────────┐
-│      Backend (FastAPI)      │
-│  - Autenticação de usuário  │
-│  - Histórico de treinos     │
-│  - Catálogo de exercícios   │
-│  - Distribuição de modelos  │
-│    de referência (TFLite)   │
-└──────┬─────────────┬────────┘
-       │             │
-┌──────▼─────┐ ┌─────▼──────┐
-│ PostgreSQL │ │   Redis    │
-│ (dados)    │ │  (cache)   │
-└────────────┘ └────────────┘
-       │
-┌──────▼─────────────┐
-│ Storage de mídia    │
-│ (S3 / MinIO + CDN)  │
-│ - vídeos de         │
-│   referência        │
-│ - clipes do usuário │
-│   (opcional/local)  │
-└─────────────────────┘
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#2563EB','primaryTextColor':'#fff','primaryBorderColor':'#1E40AF','lineColor':'#94A3B8','secondaryColor':'#10B981','tertiaryColor':'#F59E0B'}}}%%
+graph TD
+    classDef app fill:#2563EB,color:#fff,stroke:#1E3A8A,stroke-width:2px;
+    classDef api fill:#10B981,color:#fff,stroke:#065F46,stroke-width:2px;
+    classDef data fill:#F59E0B,color:#fff,stroke:#92400E,stroke-width:2px;
+    classDef storage fill:#8B5CF6,color:#fff,stroke:#4C1D95,stroke-width:2px;
+    classDef ci fill:#475569,color:#fff,stroke:#1E293B,stroke-width:2px;
+
+    A["📱 App<br/>React Native + Expo<br/>Camera + on-device CV<br/>(MediaPipe / MoveNet TFLite)"]:::app
+    B["⚡ Backend API<br/>FastAPI<br/>Auth · Exercises · Sessions"]:::api
+    C[("🐘 PostgreSQL<br/>users, exercises,<br/>training_sessions")]:::data
+    D[("🔴 Redis<br/>cache")]:::data
+    E["☁️ Media Storage<br/>S3 / MinIO + CDN<br/>reference pose sequences"]:::storage
+    F["🎬 Offline Pipeline<br/>extract_pose_sequence.py<br/>publish_reference.py"]:::storage
+    G["🤖 CI/CD<br/>GitHub Actions<br/>tests · Docker image · web export"]:::ci
+
+    A -- "HTTPS REST/JSON\n(score only)" --> B
+    B --> C
+    B --> D
+    B -- "reference_model_uri" --> E
+    A -- "download & cache\nreference model" --> E
+    F -- "publish (admin API)" --> B
+    F --> E
+    G -. "build & push" .-> B
+    G -. "export web" .-> A
 ```
 
-### Fluxo principal (execução de um exercício)
+### Execution Flow (Sequence Diagram)
 
-1. Usuário seleciona um exercício no app → backend retorna metadados e o
-   modelo de referência (TFLite) já cacheado/baixado localmente.
-2. App ativa a câmera e roda a detecção de pose **localmente**
-   (MediaPipe/MoveNet), extraindo pontos-chave (articulações) quadro a quadro.
-3. A sequência de poses é comparada com o padrão de referência (algoritmo de
-   similaridade — distância angular entre articulações + Dynamic Time
-   Warping para alinhar no tempo) **no próprio dispositivo**, evitando
-   enviar vídeo bruto.
-4. App calcula uma porcentagem de execução correta e mostra feedback ao
-   final da série.
-5. Apenas o resultado (score, métricas) é enviado ao backend para
-   histórico — minimizando tráfego de dados.
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#2563EB','primaryTextColor':'#fff','primaryBorderColor':'#1E40AF','actorBkg':'#10B981','actorTextColor':'#fff','signalColor':'#475569','signalTextColor':'#0f172a'}}}%%
+sequenceDiagram
+    actor U as 🏃 User
+    participant App as 📱 App
+    participant CV as 🧠 On-device CV
+    participant API as ⚡ FastAPI
 
-### Decisões de performance (alvo: 2GB RAM, hardware ~2015)
+    U->>App: Select exercise
+    App->>API: GET /exercises/{id}
+    API-->>App: Exercise + reference_model_uri
+    App->>App: Download/cache reference sequence
+    U->>App: Tap "Start"
+    App->>CV: load() — load quantized model
+    loop ~10 fps while recording
+        App->>CV: detect(frame)
+        CV-->>App: PoseFrame (33 landmarks)
+    end
+    U->>App: Tap "Finish set"
+    App->>App: scoreExecution(frames, reference)<br/>joint angles + DTW
+    App-->>U: Show % score
+    App->>API: POST /sessions { exerciseId, score, executedAt }
+    API-->>App: 201 Created
+```
 
-- **Inferência on-device**: evita latência de rede e custo de upload de vídeo.
-- **Modelos quantizados (INT8)** via TensorFlow Lite: reduzem uso de memória
-  e CPU sem perda significativa de precisão para detecção de pose.
-- **Resolução de captura reduzida** e amostragem a ~10 fps
-  (`SAMPLE_INTERVAL_MS` em `ExecutionScreen.tsx`).
-- **Sem processamento de vídeo bruto no servidor** — servidor só recebe
-  métricas/scores.
+### Data Model (ER Diagram)
 
-## Estrutura do repositório
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#2563EB','primaryTextColor':'#fff','primaryBorderColor':'#1E40AF','lineColor':'#94A3B8'}}}%%
+erDiagram
+    USER ||--o{ TRAINING_SESSION : performs
+    EXERCISE ||--o{ TRAINING_SESSION : "is target of"
 
-| Diretório | O quê | Documentação |
+    USER {
+        string id PK
+        string name
+        string email UK
+        string password_hash
+    }
+    EXERCISE {
+        string id PK
+        string name
+        string muscle_group
+        string description
+        string reference_model_uri "nullable"
+    }
+    TRAINING_SESSION {
+        string id PK
+        string user_id FK
+        string exercise_id FK
+        int score "0-100"
+        datetime executed_at
+    }
+```
+
+## 🧰 Tech Stack
+
+| Layer | Technology | Why |
 |---|---|---|
-| [app/](app/) | App React Native + Expo (mobile + web), telas, captura/scoring de pose | [app/README.md](app/README.md) |
-| [backend/](backend/) | API FastAPI: autenticação, catálogo de exercícios, histórico de sessões | [backend/README.md](backend/README.md) |
-| [backend/pipeline/](backend/pipeline/) | Pipeline offline de ingestão de vídeos de referência → sequências de pose | [backend/pipeline/README.md](backend/pipeline/README.md) |
+| 📱 Hybrid app | **React Native + Expo (SDK 51)**, TypeScript | Single codebase for Android/iOS/Web, great camera support |
+| 🧠 On-device CV (web) | **`@mediapipe/tasks-vision`** (WASM) | Google's official Pose Landmarker, runs in the browser |
+| 🧠 On-device CV (mobile) | **MoveNet Lightning INT8** via **`react-native-fast-tflite`** | ~3MB quantized model, fast on low-end devices |
+| 🖼️ Image preprocessing (mobile) | **`expo-camera`**, **`expo-image-manipulator`**, **`jpeg-js`** | Capture, crop/resize, decode to RGB tensor |
+| ⚡ Backend / API | **Python 3.12 + FastAPI** | Fast, typed (Pydantic), industry standard |
+| 🗄️ Database | **PostgreSQL 16** | Relational, robust, standard for user/training data |
+| 🚀 Cache | **Redis 7** | Low-latency repeated lookups |
+| 📦 Media storage | **S3-compatible (AWS S3 / MinIO) + CDN** | Reference videos & cached pose sequences |
+| 🐳 Containerization | **Docker** (multi-stage, non-root) | Reproducible deploys |
+| 🤖 CI/CD | **GitHub Actions** | Tests, Docker image publish (ghcr.io), web export |
+| 📲 Mobile build/distribution | **EAS (Expo Application Services)** | Native builds (`expo-dev-client` required for TFLite) |
+| 🧪 Testing | **Pytest** (backend) / **Jest** (frontend) | Industry standard |
+| 🛠️ DB migrations | **Alembic** | Versioned schema changes |
+| 🛡️ Rate limiting | **slowapi** | Protects auth endpoints |
 
-## Status de implementação
+> ⚠️ **Supply-chain caution**: install only from official registries
+> (PyPI/npm), verify exact package names (avoid typosquatting), review
+> generated lockfiles, and prefer pinned versions in production. See
+> [Security & Supply Chain](#-security--supply-chain).
 
-- ✅ App React Native/Expo: navegação pública/autenticada, telas de
-  conta/acompanhamento (Login, Cadastro, Histórico paginado, Perfil,
-  Configurações) — ver [app/README.md](app/README.md).
-- ✅ Algoritmo de scoring (ângulos articulares + Dynamic Time Warping,
-  `app/src/services/poseScoring.ts`).
-- ✅ Detecção de pose real: `@mediapipe/tasks-vision` na versão web e
-  `MoveNetPoseDetector` (TensorFlow Lite via `react-native-fast-tflite`
-  + `expo-camera`) no mobile — ver "Módulo de visão computacional" em
-  [app/README.md](app/README.md).
-- ✅ Backend FastAPI (auth, usuários, catálogo de exercícios, histórico),
-  com migrations Alembic e suíte `pytest` (SQLite em memória + teste de
-  integração contra Postgres real) — ver [backend/README.md](backend/README.md).
-- ✅ Rate limiting (`slowapi`) em `/auth/register` e `/auth/login`.
-- ✅ Containerização (`backend/Dockerfile`, `docker-compose.yml`),
-  validada localmente: build da imagem + `docker run` contra
-  Postgres/Redis reais (migrations + `/health` + auth funcionando).
-- ✅ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)): testes do
-  backend e do app a cada push/PR; job opcional de testes de integração
-  contra Postgres (`schedule`/`workflow_dispatch`); jobs de build da
-  imagem Docker (ghcr.io) e do export web, com deploy ainda como
-  placeholder (ver seção "Deploy" abaixo).
+## 📂 Repository Structure
 
-## Deploy
+| Directory | What | Docs |
+|---|---|---|
+| [`app/`](app/) | React Native + Expo app (mobile + web): screens, camera capture, pose scoring | [app/README.md](app/README.md) |
+| [`backend/`](backend/) | FastAPI API: auth, exercise catalog, session history | [backend/README.md](backend/README.md) |
+| [`backend/pipeline/`](backend/pipeline/) | Offline pipeline: reference video → pose sequence → publish | [backend/pipeline/README.md](backend/pipeline/README.md) |
+| [`.github/workflows/`](.github/workflows/) | CI/CD pipelines (tests, image build, web export) | — |
 
-### Backend: containerização
-
-[backend/Dockerfile](backend/Dockerfile) — build multi-stage (compila
-dependências numa camada, copia só o necessário para a imagem final),
-roda como usuário não-root, expõe `:8000`. [backend/.dockerignore](backend/.dockerignore)
-evita copiar `.venv/`, testes, `.env` etc. para dentro da imagem.
-`alembic upgrade head` roda no entrypoint do container (`CMD` do
-Dockerfile) — simples e correto para uma API com uma única réplica ativa
-por vez.
+## 🚀 Getting Started
 
 ```bash
-docker build -t gym-execution-api:local backend/
-docker run --rm -p 8000:8000 --env-file backend/.env gym-execution-api:local
-```
-
-> ⚠️ Supply-chain: a imagem base `python:3.12-slim` vem do Docker Hub
-> oficial. Para builds reprodutíveis, fixe por digest
-> (`python:3.12-slim@sha256:...`) e rode um scanner de vulnerabilidades
-> (ex.: `docker scout` ou Trivy/Grype) antes de publicar.
-
-### Onde hospedar o backend
-
-Recomendação: uma plataforma com Postgres/Redis gerenciados e deploy a
-partir de imagem Docker — reduz a superfície operacional. Opções
-populares: **Railway**, **Render** ou **Fly.io**. Critérios:
-
-- Suporte a Postgres/Redis gerenciados com backup automático.
-- Deploy via imagem Docker publicada por CI (não via `git push` direto —
-  mantém o histórico de builds auditável).
-- Variáveis de ambiente/segredos configuráveis fora do repositório
-  (nunca commitar `.env` — ver [.gitignore](.gitignore) e `.env.example`).
-
-**Status**: nenhum provedor foi escolhido/contratado ainda — o job
-`deploy-backend` em `ci.yml` é um placeholder que loga essa pendência;
-substituir pelo CLI/action do provedor escolhido quando houver conta e
-secrets configurados.
-
-### App: build e distribuição (Expo/EAS)
-
-- **Mobile** (`eas build`, configurado em [app/eas.json](app/eas.json)):
-  gera binários assinados (`.apk`/`.aab` Android, `.ipa` iOS) a partir do
-  mesmo código-fonte. Publicação nas lojas via `eas submit`. Requer
-  `expo-dev-client` (já incluso, ver `app/package.json`) porque o app usa
-  módulos nativos customizados (`react-native-fast-tflite`) — não roda no
-  Expo Go.
-- **Web** (`npx expo export --platform web`): gera um build estático
-  (HTML/JS/CSS), validado localmente com sucesso. Pode ser hospedado em
-  qualquer serviço de site estático (Cloudflare Pages, Netlify, Vercel,
-  S3+CDN) — o job `build-app-web` em `ci.yml` já gera esse artefato; falta
-  só escolher a hospedagem (placeholder no job).
-- **Atualizações incrementais** (`eas update`): publica mudanças de JS
-  sem passar pela revisão das lojas.
-
-> ⚠️ Supply-chain: `eas-cli` é um pacote oficial da Expo — mesmo cuidado
-> de conferir o nome exato no npm antes de instalar globalmente
-> (`npm install -g eas-cli`).
-
-### CI/CD (GitHub Actions)
-
-[.github/workflows/ci.yml](.github/workflows/ci.yml) roda, a cada
-push/PR para `main`: testes do backend (`pytest`) e do app (`jest`). Em
-push para `main`, dois jobs adicionais publicam artefatos:
-`build-and-push-backend-image` (publica `ghcr.io/<repo>/api:<sha>`) e
-`build-app-web` (gera o export estático). Os jobs `deploy-backend` e a
-etapa de "publicar em hospedagem estática" são placeholders até um
-provedor ser escolhido (ver seções acima). Um job opcional
-`backend-integration-tests` roda em `schedule` (segunda-feira) ou
-`workflow_dispatch`, contra um Postgres real de serviço.
-
-### Segredos e variáveis de ambiente em produção
-
-- Nunca commitar `.env` (ver [.gitignore](.gitignore) — já configurado).
-- `JWT_SECRET_KEY` e `ADMIN_API_KEY` de produção devem ser gerados com
-  `python -c "import secrets; print(secrets.token_urlsafe(64))"` e
-  armazenados nos *secrets* do provedor de hospedagem e do GitHub
-  Actions — nunca reaproveitar os valores de desenvolvimento.
-- `EXPO_PUBLIC_API_BASE_URL` do app de produção deve apontar para a URL
-  pública da API hospedada (não `localhost`).
-
-## Começando
-
-Cada sub-projeto documenta sua própria instalação (com o cuidado de
-supply-chain descrito abaixo). Resumo:
-
-```bash
-# Backend (API)
+# 1) Backend (API)
 cd backend
-cp .env.example .env   # preencher com valores locais
+cp .env.example .env            # fill in local values
 python -m venv .venv && . .venv/Scripts/activate
 pip install -r requirements.txt
 alembic upgrade head
 uvicorn app.main:app --reload
 
-# App (em outro terminal)
+# 2) App (in another terminal)
 cd app
-cp .env.example .env   # apontar EXPO_PUBLIC_API_BASE_URL para a API acima
+cp .env.example .env            # point EXPO_PUBLIC_API_BASE_URL to the API above
 npm ci
 npx expo start
 ```
 
-## Testes e integração contínua
+Optional local infrastructure (Postgres + Redis) via Docker:
 
-- Backend: `cd backend && pytest` ([detalhes](backend/README.md#testes))
-- App: `cd app && npm test` ([detalhes](app/README.md))
+```bash
+docker compose up -d
+```
 
-O workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) roda as
-duas suítes a cada push/PR para `main`, usando só actions oficiais
-(`actions/*`, `docker/*`) fixadas por versão — mesma postura de cautela
-com supply-chain do resto do projeto.
+## 🔌 API Endpoints
 
-> **Nota**: o workflow do app usa `npm ci`, que exige um
-> `package-lock.json` commitado. Gere-o na primeira instalação
-> (`npm install` cria/atualiza o lockfile) e commite-o junto.
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| `POST` | `/auth/register` | Register a new user | — |
+| `POST` | `/auth/login` | Login, returns JWT | — |
+| `GET` | `/exercises` | List the exercise catalog | 🔑 |
+| `GET` | `/exercises/{id}` | Get exercise details | 🔑 |
+| `PUT` | `/exercises/{id}/reference-model` | Publish a reference pose sequence URI | 🛡️ Admin |
+| `GET` | `/sessions` | List the user's training sessions (paginated) | 🔑 |
+| `POST` | `/sessions` | Record a training session result | 🔑 |
+| `GET` | `/users/me` | Get current user profile | 🔑 |
+| `PUT` | `/users/me` | Update current user profile | 🔑 |
 
-## Cuidado com supply-chain attacks
+## 🧪 Testing & CI/CD
 
-Como já aconteceu com pacotes do pip, npm e outros gerenciadores: antes
-de instalar qualquer dependência, confira se o nome corresponde
-exatamente ao pacote oficial (sem typosquatting), revise o lockfile
-gerado e prefira instaladores que respeitam o lockfile (`npm ci`,
-`pip install -r requirements.txt --require-hashes`). Detalhes específicos
-de cada stack estão nos READMEs de [app/](app/README.md) e
-[backend/](backend/README.md).
+```bash
+# Backend
+cd backend && pytest
 
-`.env` reais nunca devem ser commitados — use `.env.example` como
-referência (ambos os diretórios têm um) e confira o [.gitignore](.gitignore).
+# App
+cd app && npm test
+```
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs both suites on
+every push/PR to `main`, builds & publishes the API Docker image to
+`ghcr.io`, exports the web app, and (on schedule/manual trigger) runs an
+integration suite against a real PostgreSQL service.
+
+## 🚢 Deploy
+
+- **Backend**: containerized via [`backend/Dockerfile`](backend/Dockerfile)
+  (multi-stage, non-root, runs `alembic upgrade head` on start). Designed
+  for a managed Postgres/Redis host (Railway, Render, Fly.io) — provider
+  not yet chosen (`deploy-backend` job is a placeholder).
+- **App (mobile)**: native builds via **EAS** (`app/eas.json`), requires
+  `expo-dev-client` due to native CV modules.
+- **App (web)**: static export via `npx expo export --platform web`,
+  ready for any static host (Cloudflare Pages, Netlify, Vercel, S3+CDN).
+
+Full details in the [app](app/README.md) and [backend](backend/README.md)
+READMEs.
+
+## 🔒 Security & Supply Chain
+
+- ⚠️ As seen with malicious npm/PyPI packages: before installing any
+  dependency, verify the **exact name** matches the official package (no
+  typosquatting), review the generated lockfile, and prefer
+  lockfile-respecting installers (`npm ci`,
+  `pip install -r requirements.txt --require-hashes`).
+- 🔐 `.env` files are **never** committed — see `.env.example` in
+  `app/` and `backend/`, and [`.gitignore`](.gitignore).
+- 🔑 Production `JWT_SECRET_KEY`/`ADMIN_API_KEY` must be generated fresh
+  (`python -c "import secrets; print(secrets.token_urlsafe(64))"`) and
+  stored as deployment/CI secrets — never reused from development.
+- 📦 ML models (`.tflite`/`.task`) are downloaded only from official
+  sources (TensorFlow Hub, Google AI Edge / MediaPipe), with checksums
+  verified when available.
