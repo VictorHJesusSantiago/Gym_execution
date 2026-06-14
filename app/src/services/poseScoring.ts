@@ -157,3 +157,110 @@ export function computeAsymmetry(frames: PoseFrame[]): AsymmetryResult | null {
 
   return { overallPercent, byJoint };
 }
+
+/**
+ * Diferença minima (graus) entre o maior e o menor valor de uma articulação
+ * ao longo da execução para considerá-la o "sinal primário" do movimento —
+ * abaixo disso, tratamos como ruído/parado e não segmentamos repetições.
+ */
+const MIN_MOTION_RANGE_DEGREES = 10;
+
+/**
+ * Margem (em % da amplitude do sinal primário) usada como histerese para
+ * decidir quando o usuário "saiu" da posição alta/baixa do movimento —
+ * evita contar tremulações perto do meio do percurso como repetições.
+ */
+const REP_HYSTERESIS_PERCENT = 0.15;
+
+/**
+ * Divide os frames capturados em uma repetição por ciclo completo
+ * (alto → baixo → alto) da articulação com maior amplitude de movimento
+ * (ex.: joelho no agachamento, cotovelo na flexão). Frames de um ciclo
+ * incompleto no final são descartados.
+ */
+function segmentRepetitions(frames: PoseFrame[]): PoseFrame[][] {
+  if (frames.length === 0) return [];
+
+  const angles = frames.map(extractJointAngles);
+  const keys = Object.keys(angles[0]) as (keyof JointAngles)[];
+
+  let signal: number[] | null = null;
+  let bestRange = MIN_MOTION_RANGE_DEGREES;
+  for (const key of keys) {
+    const values = angles.map((a) => a[key]);
+    const range = Math.max(...values) - Math.min(...values);
+    if (range > bestRange) {
+      bestRange = range;
+      signal = values;
+    }
+  }
+  if (!signal) return [];
+
+  const min = Math.min(...signal);
+  const max = Math.max(...signal);
+  const mid = (min + max) / 2;
+  const margin = (max - min) * REP_HYSTERESIS_PERCENT;
+
+  const segments: PoseFrame[][] = [];
+  let current: PoseFrame[] = [];
+  let state: 'high' | 'low' = 'high';
+
+  for (let i = 0; i < frames.length; i++) {
+    current.push(frames[i]);
+    const value = signal[i];
+    if (state === 'high' && value < mid - margin) {
+      state = 'low';
+    } else if (state === 'low' && value > mid + margin) {
+      segments.push(current);
+      current = [];
+      state = 'high';
+    }
+  }
+
+  return segments;
+}
+
+/**
+ * Conta repetições automaticamente a partir da oscilação da articulação que
+ * mais se move durante a execução (sem precisar de configuração por
+ * exercício).
+ */
+export function countRepetitions(frames: PoseFrame[]): number {
+  return segmentRepetitions(frames).length;
+}
+
+/**
+ * Abaixo desse percentual de similaridade entre a última e a primeira
+ * repetição, consideramos que a forma "degradou" ao longo da série
+ * (possível sinal de fadiga).
+ */
+export const FATIGUE_CONSISTENCY_THRESHOLD_PERCENT = 70;
+
+export type FatigueResult = {
+  /** Repetições completas detectadas. */
+  repCount: number;
+  /** O quão parecida a última repetição é da primeira (0-100). */
+  consistencyPercent: number;
+  /** `true` quando a forma da última repetição mudou significativamente em relação à primeira. */
+  degraded: boolean;
+};
+
+/**
+ * Compara a última repetição com a primeira usando o mesmo algoritmo de
+ * `scoreExecution` (a primeira repetição serve de "referência") — uma queda
+ * grande de similaridade sugere que a forma piorou ao longo da série,
+ * possível indício de fadiga. Retorna `null` se menos de 2 repetições
+ * completas foram detectadas.
+ */
+export function detectFatigue(frames: PoseFrame[]): FatigueResult | null {
+  const segments = segmentRepetitions(frames);
+  if (segments.length < 2) return null;
+
+  const consistencyPercent = scoreExecution(segments[segments.length - 1], segments[0]);
+
+  return {
+    repCount: segments.length,
+    consistencyPercent,
+    degraded: consistencyPercent < FATIGUE_CONSISTENCY_THRESHOLD_PERCENT,
+  };
+}

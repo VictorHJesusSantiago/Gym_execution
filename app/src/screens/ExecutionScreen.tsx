@@ -38,7 +38,10 @@ export function ExecutionScreen({ route, navigation }: Props) {
   const { token } = useAuth();
   const detector = useMemo(() => new PlatformPoseDetector(), []);
   const referenceFrames = useMemo(() => getReferenceFrames(exerciseId), [exerciseId]);
-  const { status, score, asymmetry, start, captureFrame, finish } = usePoseSession(detector, referenceFrames);
+  const { status, score, asymmetry, repCount, fatigue, start, captureFrame, finish } = usePoseSession(
+    detector,
+    referenceFrames
+  );
 
   const [weightInput, setWeightInput] = useState('');
   const [permission, requestPermission] = useCameraPermissions();
@@ -121,8 +124,8 @@ export function ExecutionScreen({ route, navigation }: Props) {
       });
     }
 
-    navigation.replace('Result', { score, exerciseId, asymmetry });
-  }, [status, score, asymmetry, exerciseId, navigation, token, weightInput]);
+    navigation.replace('Result', { score, exerciseId, asymmetry, repCount, fatigue });
+  }, [status, score, asymmetry, repCount, fatigue, exerciseId, navigation, token, weightInput]);
 
   if (!permission) {
     return (

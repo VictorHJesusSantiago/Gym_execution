@@ -1,4 +1,4 @@
-import { computeAsymmetry, extractJointAngles, scoreExecution } from '../poseScoring';
+import { computeAsymmetry, countRepetitions, detectFatigue, extractJointAngles, scoreExecution } from '../poseScoring';
 import { LANDMARK_INDEX, Landmark, PoseFrame } from '../poseTypes';
 
 /**
@@ -57,6 +57,26 @@ function frameWithKneeAngles(timestampMs: number, leftAngleDegrees: number, righ
     [LANDMARK_INDEX.rightKnee]: { x: 0.5, y: 0.5, visibility: 1 },
     [LANDMARK_INDEX.rightAnkle]: toAnkle(rightAngleDegrees),
   });
+}
+
+/**
+ * Combina a construção de `frameWithKneeAngles` (joelhos simétricos, no
+ * ângulo informado) com um ângulo de cotovelo adicional (também simétrico),
+ * usando a mesma técnica geométrica de `frameWithLeftElbowAngle` — usado
+ * para variar a "forma" da parte superior do corpo entre repetições mantendo
+ * o joelho como sinal dominante para a segmentação.
+ */
+function frameWithKneeAndElbowAngles(timestampMs: number, kneeAngleDegrees: number, elbowAngleDegrees: number): PoseFrame {
+  const frame = frameWithKneeAngles(timestampMs, kneeAngleDegrees, kneeAngleDegrees);
+  const radians = (elbowAngleDegrees * Math.PI) / 180;
+  const wrist: Landmark = { x: 0.5 + Math.sin(radians) * 0.5, y: 0.5 - Math.cos(radians) * 0.5, visibility: 1 };
+  frame.landmarks[LANDMARK_INDEX.leftShoulder] = { x: 0.5, y: 0.0, visibility: 1 };
+  frame.landmarks[LANDMARK_INDEX.leftElbow] = { x: 0.5, y: 0.5, visibility: 1 };
+  frame.landmarks[LANDMARK_INDEX.leftWrist] = wrist;
+  frame.landmarks[LANDMARK_INDEX.rightShoulder] = { x: 0.5, y: 0.0, visibility: 1 };
+  frame.landmarks[LANDMARK_INDEX.rightElbow] = { x: 0.5, y: 0.5, visibility: 1 };
+  frame.landmarks[LANDMARK_INDEX.rightWrist] = wrist;
+  return frame;
 }
 
 describe('extractJointAngles', () => {
@@ -142,5 +162,65 @@ describe('computeAsymmetry', () => {
     expect(result?.byJoint.elbow).toBe(0);
     expect(result?.byJoint.hip).toBe(0);
     expect(result?.overallPercent).toBe(Math.round(100 / 3));
+  });
+});
+
+describe('countRepetitions', () => {
+  it('retorna 0 para uma sequência vazia', () => {
+    expect(countRepetitions([])).toBe(0);
+  });
+
+  it('retorna 0 quando a articulação não se move o suficiente (ruído)', () => {
+    const frames = [frameWithKneeAngles(0, 90, 90), frameWithKneeAngles(100, 92, 92), frameWithKneeAngles(200, 90, 90)];
+
+    expect(countRepetitions(frames)).toBe(0);
+  });
+
+  it('conta 2 repetições em dois ciclos completos de agachamento (alto-baixo-alto)', () => {
+    const angles = [90, 0, 90, 0, 90];
+    const frames = angles.map((angle, i) => frameWithKneeAngles(i * 100, angle, angle));
+
+    expect(countRepetitions(frames)).toBe(2);
+  });
+
+  it('não conta o ciclo final incompleto', () => {
+    // 2 ciclos completos + descida final sem retornar ao topo
+    const angles = [90, 0, 90, 0, 90, 0];
+    const frames = angles.map((angle, i) => frameWithKneeAngles(i * 100, angle, angle));
+
+    expect(countRepetitions(frames)).toBe(2);
+  });
+});
+
+describe('detectFatigue', () => {
+  it('retorna null quando menos de 2 repetições são detectadas', () => {
+    const frames = [frameWithKneeAngles(0, 90, 90), frameWithKneeAngles(100, 0, 0)];
+
+    expect(detectFatigue(frames)).toBeNull();
+  });
+
+  it('sinaliza degradação quando a forma da última repetição difere muito da primeira', () => {
+    // 4 repetições idênticas no joelho (sobe/desce); o cotovelo só muda na última
+    const kneeAngles = [0, 90, 0, 90, 0, 90, 0, 90];
+    const elbowAngles = [0, 0, 0, 0, 0, 0, 60, 60];
+    const frames = kneeAngles.map((knee, i) => frameWithKneeAndElbowAngles(i * 100, knee, elbowAngles[i]));
+
+    const result = detectFatigue(frames);
+
+    expect(result?.repCount).toBe(4);
+    expect(result?.consistencyPercent).toBeLessThan(70);
+    expect(result?.degraded).toBe(true);
+  });
+
+  it('não sinaliza degradação quando a forma se mantém consistente entre repetições', () => {
+    // 4 repetições idênticas no joelho, sem variação no cotovelo
+    const kneeAngles = [0, 90, 0, 90, 0, 90, 0, 90];
+    const frames = kneeAngles.map((angle, i) => frameWithKneeAngles(i * 100, angle, angle));
+
+    const result = detectFatigue(frames);
+
+    expect(result?.repCount).toBe(4);
+    expect(result?.consistencyPercent).toBeGreaterThanOrEqual(70);
+    expect(result?.degraded).toBe(false);
   });
 });

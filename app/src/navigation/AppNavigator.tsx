@@ -11,7 +11,7 @@ import { ResultScreen } from '../screens/ResultScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
-import type { AsymmetryResult } from '../services/poseScoring';
+import type { AsymmetryResult, FatigueResult } from '../services/poseScoring';
 
 export type PublicStackParamList = {
   Login: undefined;
@@ -22,7 +22,13 @@ export type AuthenticatedStackParamList = {
   Home: undefined;
   ExerciseList: undefined;
   Execution: { exerciseId: string };
-  Result: { score: number; exerciseId: string; asymmetry?: AsymmetryResult | null };
+  Result: {
+    score: number;
+    exerciseId: string;
+    asymmetry?: AsymmetryResult | null;
+    repCount?: number | null;
+    fatigue?: FatigueResult | null;
+  };
   History: undefined;
   Profile: undefined;
   Settings: undefined;

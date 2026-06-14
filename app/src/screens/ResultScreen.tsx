@@ -12,7 +12,7 @@ const JOINT_LABELS: Record<AsymmetricJoint, string> = {
 };
 
 export function ResultScreen({ route, navigation }: Props) {
-  const { score, exerciseId, asymmetry } = route.params;
+  const { score, exerciseId, asymmetry, repCount, fatigue } = route.params;
 
   const asymmetricJoints = asymmetry
     ? (Object.entries(asymmetry.byJoint) as Array<[AsymmetricJoint, number]>).filter(
@@ -25,10 +25,19 @@ export function ResultScreen({ route, navigation }: Props) {
       <Text style={styles.label}>Execução do exercício "{exerciseId}"</Text>
       <Text style={styles.score}>{score}%</Text>
       <Text style={styles.hint}>de acordo com o padrão de referência</Text>
+      {repCount != null && repCount > 0 && (
+        <Text style={styles.repCount}>Repetições detectadas: {repCount}</Text>
+      )}
       {asymmetricJoints.length > 0 && (
         <Text style={styles.asymmetryWarning}>
           Possível assimetria entre os lados do corpo:{' '}
           {asymmetricJoints.map(([joint, percent]) => `${JOINT_LABELS[joint]} (${percent}%)`).join(', ')}.
+        </Text>
+      )}
+      {fatigue?.degraded && (
+        <Text style={styles.fatigueWarning}>
+          A forma da última repetição ficou diferente da primeira ({fatigue.consistencyPercent}% de consistência) —
+          possível sinal de fadiga.
         </Text>
       )}
       <Text style={styles.disclaimer}>
@@ -47,7 +56,9 @@ const styles = StyleSheet.create({
   score: { fontSize: 48, fontWeight: '800', color: '#2563eb' },
   hint: { fontSize: 14, color: '#94a3b8', marginBottom: 16 },
   disclaimer: { fontSize: 12, color: '#b45309', textAlign: 'center', marginBottom: 16, maxWidth: 280 },
+  repCount: { fontSize: 14, color: '#334155', marginBottom: 4 },
   asymmetryWarning: { fontSize: 13, color: '#dc2626', textAlign: 'center', marginBottom: 8, maxWidth: 280 },
+  fatigueWarning: { fontSize: 13, color: '#b45309', textAlign: 'center', marginBottom: 8, maxWidth: 280 },
   button: { backgroundColor: '#2563eb', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

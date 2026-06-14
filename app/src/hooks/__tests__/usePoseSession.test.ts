@@ -1,12 +1,14 @@
 jest.mock('../../services/poseScoring', () => ({
   scoreExecution: jest.fn(() => 77),
   computeAsymmetry: jest.fn(() => ({ overallPercent: 5, byJoint: { elbow: 0, knee: 5, hip: 0 } })),
+  countRepetitions: jest.fn(() => 8),
+  detectFatigue: jest.fn(() => ({ repCount: 8, consistencyPercent: 60, degraded: true })),
 }));
 
 import { createElement } from 'react';
 import { act, create } from 'react-test-renderer';
 import { usePoseSession } from '../usePoseSession';
-import { computeAsymmetry, scoreExecution } from '../../services/poseScoring';
+import { computeAsymmetry, countRepetitions, detectFatigue, scoreExecution } from '../../services/poseScoring';
 import type { CameraFrameInput, PoseDetector, PoseFrame } from '../../services/poseTypes';
 
 const FRAME: CameraFrameInput = { uri: 'file://frame.jpg', width: 192, height: 192 };
@@ -40,14 +42,18 @@ describe('usePoseSession', () => {
   beforeEach(() => {
     (scoreExecution as jest.Mock).mockClear();
     (computeAsymmetry as jest.Mock).mockClear();
+    (countRepetitions as jest.Mock).mockClear();
+    (detectFatigue as jest.Mock).mockClear();
   });
 
-  it('inicia em idle sem score nem assimetria calculados', () => {
+  it('inicia em idle sem score, assimetria, repetições ou fadiga calculados', () => {
     const result = renderPoseSession(createDetector(), REFERENCE_FRAMES);
 
     expect(result.current.status).toBe('idle');
     expect(result.current.score).toBeNull();
     expect(result.current.asymmetry).toBeNull();
+    expect(result.current.repCount).toBeNull();
+    expect(result.current.fatigue).toBeNull();
   });
 
   it('start() carrega o detector e passa para recording', async () => {
@@ -111,8 +117,12 @@ describe('usePoseSession', () => {
 
     expect(scoreExecution).toHaveBeenCalledTimes(1);
     expect(computeAsymmetry).toHaveBeenCalledTimes(1);
+    expect(countRepetitions).toHaveBeenCalledTimes(1);
+    expect(detectFatigue).toHaveBeenCalledTimes(1);
     expect(result.current.score).toBe(77);
     expect(result.current.asymmetry).toEqual({ overallPercent: 5, byJoint: { elbow: 0, knee: 5, hip: 0 } });
+    expect(result.current.repCount).toBe(8);
+    expect(result.current.fatigue).toEqual({ repCount: 8, consistencyPercent: 60, degraded: true });
     expect(result.current.status).toBe('finished');
     expect(detector.dispose).toHaveBeenCalledTimes(1);
   });
@@ -127,9 +137,13 @@ describe('usePoseSession', () => {
 
     expect(scoreExecution).not.toHaveBeenCalled();
     expect(computeAsymmetry).not.toHaveBeenCalled();
+    expect(countRepetitions).not.toHaveBeenCalled();
+    expect(detectFatigue).not.toHaveBeenCalled();
     expect(result.current.status).toBe('idle');
     expect(result.current.score).toBeNull();
     expect(result.current.asymmetry).toBeNull();
+    expect(result.current.repCount).toBeNull();
+    expect(result.current.fatigue).toBeNull();
     expect(detector.dispose).not.toHaveBeenCalled();
   });
 });

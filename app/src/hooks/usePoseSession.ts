@@ -1,6 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
 import { CameraFrameInput, PoseDetector, PoseFrame } from '../services/poseTypes';
-import { AsymmetryResult, computeAsymmetry, scoreExecution } from '../services/poseScoring';
+import {
+  AsymmetryResult,
+  computeAsymmetry,
+  countRepetitions,
+  detectFatigue,
+  FatigueResult,
+  scoreExecution,
+} from '../services/poseScoring';
 
 export type PoseSessionStatus = 'idle' | 'loading' | 'recording' | 'finished';
 
@@ -25,6 +32,8 @@ export function usePoseSession(detector: PoseDetector, referenceFrames: PoseFram
   const [status, setStatus] = useState<PoseSessionStatus>('idle');
   const [score, setScore] = useState<number | null>(null);
   const [asymmetry, setAsymmetry] = useState<AsymmetryResult | null>(null);
+  const [repCount, setRepCount] = useState<number | null>(null);
+  const [fatigue, setFatigue] = useState<FatigueResult | null>(null);
   const framesRef = useRef<PoseFrame[]>([]);
 
   const start = useCallback(async () => {
@@ -49,9 +58,11 @@ export function usePoseSession(detector: PoseDetector, referenceFrames: PoseFram
     const finalScore = scoreExecution(framesRef.current, referenceFrames);
     setScore(finalScore);
     setAsymmetry(computeAsymmetry(framesRef.current));
+    setRepCount(countRepetitions(framesRef.current));
+    setFatigue(detectFatigue(framesRef.current));
     setStatus('finished');
     detector.dispose();
   }, [detector, referenceFrames, status]);
 
-  return { status, score, asymmetry, start, captureFrame, finish };
+  return { status, score, asymmetry, repCount, fatigue, start, captureFrame, finish };
 }
