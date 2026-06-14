@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import * as authService from '../services/authService';
 import { clearToken, loadToken, saveToken } from '../services/authStorage';
+import { setUnauthorizedHandler } from '../services/apiClient';
 
 export type AuthStatus = 'loading' | 'signedOut' | 'signedIn';
 
@@ -34,6 +35,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  async function forceSignOut() {
+    await clearToken();
+    setToken(null);
+    setStatus('signedOut');
+  }
+
+  useEffect(() => {
+    // Registra o handler global de 401 (ver apiClient.ts): uma chamada
+    // autenticada rejeitada por token expirado/inválido encerra a sessão
+    // local automaticamente, em vez de deixar a tela travada num erro.
+    setUnauthorizedHandler(() => {
+      forceSignOut().catch(() => {});
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
   async function signIn(email: string, password: string) {
     const { access_token: accessToken } = await authService.login(email, password);
     await saveToken(accessToken);
@@ -47,9 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
-    await clearToken();
-    setToken(null);
-    setStatus('signedOut');
+    await forceSignOut();
   }
 
   const value = useMemo(() => ({ status, token, signIn, signUp, signOut }), [status, token]);
