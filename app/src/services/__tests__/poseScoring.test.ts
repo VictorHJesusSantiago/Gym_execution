@@ -1,4 +1,11 @@
-import { computeAsymmetry, countRepetitions, detectFatigue, extractJointAngles, scoreExecution } from '../poseScoring';
+import {
+  computeAsymmetry,
+  countRepetitions,
+  detectFatigue,
+  extractJointAngles,
+  getRealtimeFeedback,
+  scoreExecution,
+} from '../poseScoring';
 import { LANDMARK_INDEX, Landmark, PoseFrame } from '../poseTypes';
 
 /**
@@ -222,5 +229,29 @@ describe('detectFatigue', () => {
     expect(result?.repCount).toBe(4);
     expect(result?.consistencyPercent).toBeGreaterThanOrEqual(70);
     expect(result?.degraded).toBe(false);
+  });
+});
+
+describe('getRealtimeFeedback', () => {
+  it('retorna null quando não há frames de referência', () => {
+    const frame = frameWithKneeAngles(0, 90, 90);
+
+    expect(getRealtimeFeedback(frame, [])).toBeNull();
+  });
+
+  it('retorna null quando o frame está dentro da tolerância da referência mais parecida', () => {
+    const reference = [frameWithKneeAngles(0, 90, 90)];
+    const frame = frameWithKneeAngles(100, 85, 85);
+
+    expect(getRealtimeFeedback(frame, reference)).toBeNull();
+  });
+
+  it('sinaliza a articulação que mais diverge da referência mais parecida', () => {
+    const reference = [frameWithKneeAngles(0, 90, 90)];
+    const frame = frameWithKneeAngles(100, 90, 30); // joelho direito 60° fora da referência
+
+    const feedback = getRealtimeFeedback(frame, reference);
+
+    expect(feedback).toEqual({ joint: 'rightKnee', message: 'Ajuste o joelho direito' });
   });
 });

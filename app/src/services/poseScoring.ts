@@ -57,7 +57,7 @@ export function extractJointAngles(frame: PoseFrame): JointAngles {
   return result;
 }
 
-function angleVectorDistance(a: JointAngles, b: JointAngles): number {
+export function angleVectorDistance(a: JointAngles, b: JointAngles): number {
   const keys = Object.keys(a) as (keyof JointAngles)[];
   const sumSquared = keys.reduce((acc, key) => acc + (a[key] - b[key]) ** 2, 0);
   return Math.sqrt(sumSquared / keys.length);
@@ -263,4 +263,58 @@ export function detectFatigue(frames: PoseFrame[]): FatigueResult | null {
     consistencyPercent,
     degraded: consistencyPercent < FATIGUE_CONSISTENCY_THRESHOLD_PERCENT,
   };
+}
+
+/** Diferença (graus) acima da qual avisamos sobre uma articulação durante a execução. */
+const REALTIME_FEEDBACK_THRESHOLD_DEGREES = 20;
+
+/** Dica curta exibida (e usada para acionar vibração) por articulação. */
+const JOINT_FEEDBACK_MESSAGES: Record<keyof JointAngles, string> = {
+  leftElbow: 'Ajuste o cotovelo esquerdo',
+  rightElbow: 'Ajuste o cotovelo direito',
+  leftKnee: 'Ajuste o joelho esquerdo',
+  rightKnee: 'Ajuste o joelho direito',
+  leftHip: 'Ajuste o quadril esquerdo',
+  rightHip: 'Ajuste o quadril direito',
+};
+
+export type RealtimeFeedback = {
+  joint: keyof JointAngles;
+  message: string;
+};
+
+/**
+ * Compara o frame atual com o frame de referência mais parecido (menor
+ * distância angular) e retorna uma dica curta para a articulação que mais
+ * diverge — usado para feedback em tempo real durante a execução (ver
+ * README.md seção 4). Retorna `null` quando não há referência ou quando o
+ * usuário está dentro da tolerância em todas as articulações.
+ */
+export function getRealtimeFeedback(frame: PoseFrame, referenceFrames: PoseFrame[]): RealtimeFeedback | null {
+  if (referenceFrames.length === 0) return null;
+
+  const current = extractJointAngles(frame);
+  const referenceAngles = referenceFrames.map(extractJointAngles);
+
+  let closest = referenceAngles[0];
+  let closestDistance = angleVectorDistance(current, closest);
+  for (let i = 1; i < referenceAngles.length; i++) {
+    const distance = angleVectorDistance(current, referenceAngles[i]);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closest = referenceAngles[i];
+    }
+  }
+
+  let worstJoint: keyof JointAngles | null = null;
+  let worstDiff = REALTIME_FEEDBACK_THRESHOLD_DEGREES;
+  for (const key of Object.keys(current) as (keyof JointAngles)[]) {
+    const diff = Math.abs(current[key] - closest[key]);
+    if (diff > worstDiff) {
+      worstDiff = diff;
+      worstJoint = key;
+    }
+  }
+
+  return worstJoint ? { joint: worstJoint, message: JOINT_FEEDBACK_MESSAGES[worstJoint] } : null;
 }
