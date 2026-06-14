@@ -25,6 +25,7 @@ def record_session(
         exercise_id=payload.exercise_id,
         score=payload.score,
         executed_at=payload.executed_at,
+        weight_kg=payload.weight_kg,
     )
     db.add(session)
     db.commit()

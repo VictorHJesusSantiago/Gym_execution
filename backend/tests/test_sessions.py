@@ -35,9 +35,48 @@ def test_record_session_stores_only_score_and_metadata(client, auth_headers, db_
     body = response.json()
     assert body["exercise_id"] == "agachamento"
     assert body["score"] == 87
-    # O contrato não expõe nada além de id/exercise_id/score/executed_at —
-    # garante que vídeo bruto nunca faz parte da resposta (README.md seção 5).
-    assert set(body.keys()) == {"id", "exercise_id", "score", "executed_at"}
+    assert body["weight_kg"] is None
+    # O contrato não expõe nada além de id/exercise_id/score/executed_at/
+    # weight_kg — garante que vídeo bruto nunca faz parte da resposta
+    # (README.md seção 5).
+    assert set(body.keys()) == {"id", "exercise_id", "score", "executed_at", "weight_kg"}
+
+
+def test_record_session_accepts_optional_weight_kg(client, auth_headers, db_session):
+    _create_exercise(db_session)
+    headers = auth_headers()
+
+    response = client.post(
+        "/sessions",
+        json={
+            "exercise_id": "agachamento",
+            "score": 87,
+            "executed_at": "2026-06-01T10:00:00Z",
+            "weight_kg": 42.5,
+        },
+        headers=headers,
+    )
+
+    assert response.status_code == 201
+    assert response.json()["weight_kg"] == 42.5
+
+
+def test_record_session_rejects_negative_weight_kg(client, auth_headers, db_session):
+    _create_exercise(db_session)
+    headers = auth_headers()
+
+    response = client.post(
+        "/sessions",
+        json={
+            "exercise_id": "agachamento",
+            "score": 87,
+            "executed_at": "2026-06-01T10:00:00Z",
+            "weight_kg": -5,
+        },
+        headers=headers,
+    )
+
+    assert response.status_code == 422
 
 
 def test_record_session_rejects_score_out_of_range(client, auth_headers, db_session):

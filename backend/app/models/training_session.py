@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, TimestampMixin, generate_uuid
@@ -18,3 +18,6 @@ class TrainingSession(Base, TimestampMixin):
     exercise_id: Mapped[str] = mapped_column(String, ForeignKey("exercises.id"), nullable=False, index=True)
     score: Mapped[int] = mapped_column(Integer, nullable=False)
     executed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    """Carga usada na série (opcional, informada pelo usuário) — permite
+    acompanhar progressão de carga ao longo do tempo no histórico."""

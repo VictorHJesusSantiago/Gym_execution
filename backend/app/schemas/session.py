@@ -15,6 +15,7 @@ class TrainingSessionCreate(BaseModel):
     exercise_id: str
     score: int = Field(ge=0, le=100)
     executed_at: datetime
+    weight_kg: float | None = Field(default=None, ge=0, le=1000)
 
     @field_validator("executed_at")
     @classmethod
@@ -30,5 +31,6 @@ class TrainingSessionPublic(BaseModel):
     exercise_id: str
     score: int
     executed_at: datetime
+    weight_kg: float | None = None
 
     model_config = {"from_attributes": True}
