@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
 import { usePoseSession } from '../hooks/usePoseSession';
 import { useAuth } from '../hooks/useAuth';
 import { PlatformPoseDetector } from '../services/poseDetector';
+import { enqueuePendingSession } from '../services/pendingSessionsQueue';
 import { getReferenceFrames } from '../services/referenceLibrary';
 import { recordSession } from '../services/sessionsService';
 
@@ -57,7 +59,15 @@ export function ExecutionScreen({ route, navigation }: Props) {
         cameraRef.current
           .takePictureAsync({ quality: 0.5, skipProcessing: true })
           .then((photo) => {
-            if (photo) return captureFrame(Date.now(), photo);
+            if (!photo) return;
+            return captureFrame(Date.now(), photo).finally(() => {
+              // Em iOS/Android `photo.uri` é um arquivo temporário no cache
+              // (na web é uma string base64) — sem isso, cada frame (~10/s)
+              // deixaria um JPEG órfão acumulando no armazenamento.
+              if (photo.uri.startsWith('file://')) {
+                FileSystem.deleteAsync(photo.uri, { idempotent: true }).catch(() => {});
+              }
+            });
           })
           .catch((err) => {
             // Falha isolada num frame (câmera ocupada, erro do detector) não
@@ -86,10 +96,17 @@ export function ExecutionScreen({ route, navigation }: Props) {
     // Envia só o resultado calculado localmente (nunca o vídeo) para o
     // histórico do usuário — ver README.md seção 5. Falha de rede
     // não deve bloquear o feedback imediato ao usuário, por isso seguimos
-    // para a tela de resultado mesmo que o registro falhe (log silencioso).
+    // para a tela de resultado mesmo que o registro falhe — nesse caso,
+    // o resultado entra na fila offline (pendingSessionsQueue) e é
+    // reenviado quando o usuário abrir o histórico.
     if (token) {
-      recordSession(token, exerciseId, score, new Date()).catch(() => {
-        // intencional: ver comentário acima — feedback local prevalece
+      const executedAt = new Date();
+      recordSession(token, exerciseId, score, executedAt).catch(() => {
+        enqueuePendingSession({
+          exerciseId,
+          score,
+          executedAt: executedAt.toISOString(),
+        }).catch(() => {});
       });
     }
 

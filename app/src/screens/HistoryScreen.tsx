@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import { drainPendingSessions } from '../services/pendingSessionsQueue';
 import {
   listMySessions,
   SESSIONS_PAGE_SIZE,
@@ -42,6 +43,10 @@ export function HistoryScreen() {
     if (!token) return;
     setError(null);
     try {
+      // Reenvia resultados que falharam ao gravar (ex.: offline durante a
+      // sessão, ver ExecutionScreen/pendingSessionsQueue) antes de carregar
+      // o histórico, para que apareçam na lista já nesta visita.
+      await drainPendingSessions(token).catch(() => {});
       const page = await listMySessions(token, { offset: 0 });
       setSessions(page);
       setHasMore(page.length === SESSIONS_PAGE_SIZE);

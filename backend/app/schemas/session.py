@@ -1,6 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+# Tolerância para clock skew entre dispositivo e servidor — além disso,
+# `executed_at` no futuro indica relógio do cliente errado ou payload
+# manipulado, e poluiria a ordenação do histórico (ORDER BY executed_at DESC).
+_FUTURE_TOLERANCE = timedelta(minutes=5)
 
 
 class TrainingSessionCreate(BaseModel):
@@ -10,6 +15,14 @@ class TrainingSessionCreate(BaseModel):
     exercise_id: str
     score: int = Field(ge=0, le=100)
     executed_at: datetime
+
+    @field_validator("executed_at")
+    @classmethod
+    def _executed_at_not_in_future(cls, value: datetime) -> datetime:
+        now = datetime.now(timezone.utc)
+        if value > now + _FUTURE_TOLERANCE:
+            raise ValueError("executed_at não pode estar no futuro")
+        return value
 
 
 class TrainingSessionPublic(BaseModel):

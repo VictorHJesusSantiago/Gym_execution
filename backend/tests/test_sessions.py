@@ -1,9 +1,15 @@
+from datetime import datetime, timedelta, timezone
+
 from app.models.exercise import Exercise
 
 
 def _create_exercise(db_session, exercise_id: str = "agachamento") -> None:
     db_session.add(Exercise(id=exercise_id, name="Agachamento", muscle_group="pernas"))
     db_session.commit()
+
+
+def _days_ago(days: int) -> str:
+    return (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
 
 
 def test_record_session_requires_authentication(client):
@@ -108,7 +114,7 @@ def test_list_my_sessions_defaults_to_first_twenty(client, auth_headers, db_sess
     for day in range(1, 26):
         client.post(
             "/sessions",
-            json={"exercise_id": "agachamento", "score": 50, "executed_at": f"2026-06-{day:02d}T10:00:00Z"},
+            json={"exercise_id": "agachamento", "score": 50, "executed_at": _days_ago(day)},
             headers=headers,
         )
 

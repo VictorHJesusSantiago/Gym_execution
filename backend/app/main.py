@@ -4,10 +4,17 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from .core.config import settings
+from .core.logging import configure_logging, log_requests_middleware
 from .core.rate_limit import limiter
 from .routers import auth, exercises, sessions, users
 
+configure_logging()
+
 app = FastAPI(title=settings.app_name)
+
+# Loga método/caminho/status/duração de cada requisição (ver
+# app/core/logging.py) — observabilidade mínima para depurar produção.
+app.middleware("http")(log_requests_middleware)
 
 # Necessário para o build web do Expo (servido de uma origem diferente da
 # API) conseguir chamar a API a partir do navegador — sem isso, o navegador

@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { decode as decodeJpeg } from 'jpeg-js';
 import { loadTensorflowModel, TensorflowModel } from 'react-native-fast-tflite';
@@ -64,6 +65,11 @@ async function frameToInputTensor(frame: CameraFrameInput): Promise<Uint8Array> 
     ],
     { base64: true, format: SaveFormat.JPEG, compress: 1 }
   );
+
+  // `manipulateAsync` grava o resultado em um arquivo temporário no cache —
+  // já temos os dados em `base64`, então apagamos o arquivo para não acumular
+  // um JPEG por frame capturado (~10/s) no armazenamento do dispositivo.
+  void FileSystem.deleteAsync(manipulated.uri, { idempotent: true }).catch(() => {});
 
   if (!manipulated.base64) {
     throw new Error('expo-image-manipulator não retornou os dados da imagem em base64.');
