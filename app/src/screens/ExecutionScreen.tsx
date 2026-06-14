@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
@@ -59,6 +59,12 @@ export function ExecutionScreen({ route, navigation }: Props) {
           .then((photo) => {
             if (photo) return captureFrame(Date.now(), photo);
           })
+          .catch((err) => {
+            // Falha isolada num frame (câmera ocupada, erro do detector) não
+            // deve derrubar o loop nem virar unhandled rejection — a próxima
+            // amostra tenta de novo.
+            console.warn('[ExecutionScreen] falha ao capturar/processar frame', err);
+          })
           .finally(() => {
             capturingRef.current = false;
           });
@@ -99,14 +105,23 @@ export function ExecutionScreen({ route, navigation }: Props) {
   }
 
   if (!permission.granted) {
+    // Quando o usuário já negou permanentemente (`canAskAgain === false`),
+    // `requestPermission()` não reabre o diálogo do sistema — só a tela de
+    // configurações do app permite reverter.
     return (
       <View style={styles.container}>
         <Text style={styles.text}>
           Precisamos da sua permissão para usar a câmera e analisar o exercício.
         </Text>
-        <Pressable style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Conceder permissão</Text>
-        </Pressable>
+        {permission.canAskAgain ? (
+          <Pressable style={styles.button} onPress={requestPermission}>
+            <Text style={styles.buttonText}>Conceder permissão</Text>
+          </Pressable>
+        ) : (
+          <Pressable style={styles.button} onPress={() => Linking.openSettings()}>
+            <Text style={styles.buttonText}>Abrir configurações do app</Text>
+          </Pressable>
+        )}
       </View>
     );
   }
@@ -120,6 +135,10 @@ export function ExecutionScreen({ route, navigation }: Props) {
         {status === 'finished' && 'Calculando resultado...'}
       </Text>
       <Text style={styles.exerciseId}>Exercício: {exerciseId}</Text>
+      <Text style={styles.disclaimer}>
+        Pontuação experimental: a comparação com a referência ainda não usa o
+        padrão real deste exercício.
+      </Text>
       <Pressable
         style={[styles.button, status !== 'recording' && styles.buttonDisabled]}
         onPress={handleFinish}
@@ -136,6 +155,7 @@ const styles = StyleSheet.create({
   camera: { width: '100%', aspectRatio: 3 / 4, borderRadius: 12, overflow: 'hidden' },
   text: { fontSize: 16, textAlign: 'center', color: '#555' },
   exerciseId: { fontSize: 14, color: '#94a3b8' },
+  disclaimer: { fontSize: 12, color: '#b45309', textAlign: 'center' },
   button: { backgroundColor: '#2563eb', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
   buttonDisabled: { backgroundColor: '#94a3b8' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },

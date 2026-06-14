@@ -33,8 +33,17 @@ export class PlatformPoseDetector implements PoseDetector {
     const inputTensor = await frameToInputTensor(frame);
     const outputs = await this.model.run([inputTensor]);
 
-    // A saída do MoveNet Lightning (INT8) é sempre float32 — ver parseKeypoints.
-    return moveNetToMediaPipeFrame(timestampMs, parseKeypoints(outputs[0] as Float32Array));
+    // A saída do MoveNet Lightning (INT8) é sempre float32 — mas validamos o
+    // shape antes de indexar: um modelo carregado incorretamente ou uma
+    // versão incompatível poderia retornar um tensor vazio/diferente, o que
+    // sem essa checagem lançaria um TypeError não tratado dentro do loop de
+    // captura (ver ExecutionScreen).
+    const output = outputs[0];
+    if (!(output instanceof Float32Array) || output.length < KEYPOINT_COUNT * 3) {
+      return null;
+    }
+
+    return moveNetToMediaPipeFrame(timestampMs, parseKeypoints(output));
   }
 
   dispose(): void {

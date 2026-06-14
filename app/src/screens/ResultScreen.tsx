@@ -12,6 +12,9 @@ export function ResultScreen({ route, navigation }: Props) {
       <Text style={styles.label}>Execução do exercício "{exerciseId}"</Text>
       <Text style={styles.score}>{score}%</Text>
       <Text style={styles.hint}>de acordo com o padrão de referência</Text>
+      <Text style={styles.disclaimer}>
+        Pontuação experimental — ainda não compara com o padrão real deste exercício.
+      </Text>
       <Pressable style={styles.button} onPress={() => navigation.popToTop()}>
         <Text style={styles.buttonText}>Voltar ao início</Text>
       </Pressable>
@@ -24,6 +27,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 16, color: '#555' },
   score: { fontSize: 48, fontWeight: '800', color: '#2563eb' },
   hint: { fontSize: 14, color: '#94a3b8', marginBottom: 16 },
+  disclaimer: { fontSize: 12, color: '#b45309', textAlign: 'center', marginBottom: 16, maxWidth: 280 },
   button: { backgroundColor: '#2563eb', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

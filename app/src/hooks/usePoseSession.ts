@@ -5,6 +5,13 @@ import { scoreExecution } from '../services/poseScoring';
 export type PoseSessionStatus = 'idle' | 'loading' | 'recording' | 'finished';
 
 /**
+ * Teto de frames acumulados por sessão (~10min a 10fps, ver SAMPLE_INTERVAL_MS
+ * em ExecutionScreen). Evita crescimento ilimitado de `framesRef` se o
+ * usuário esquecer de finalizar a série.
+ */
+const MAX_RECORDED_FRAMES = 6000;
+
+/**
  * Orquestra uma sessão de captura: carrega o detector, acumula os frames
  * de pose enquanto o usuário executa o exercício, e calcula o score final
  * comparando com a sequência de referência — tudo localmente.
@@ -31,7 +38,7 @@ export function usePoseSession(detector: PoseDetector, referenceFrames: PoseFram
     async (timestampMs: number, cameraFrame?: CameraFrameInput) => {
       if (status !== 'recording') return;
       const frame = await detector.detect(timestampMs, cameraFrame);
-      if (frame) framesRef.current.push(frame);
+      if (frame && framesRef.current.length < MAX_RECORDED_FRAMES) framesRef.current.push(frame);
     },
     [detector, status]
   );
