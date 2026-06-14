@@ -1,3 +1,4 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,6 +32,26 @@ class Settings(BaseSettings):
     """Chave usada por processos internos (ex.: pipeline de ingestão de
     referências, ver backend/pipeline/publish_reference.py) para chamar
     endpoints administrativos — não é uma conta de usuário comum."""
+
+    cors_allowed_origins: list[str] = ["http://localhost:8081", "http://localhost:19006"]
+    """Origens autorizadas a chamar a API a partir do navegador (build web do
+    Expo). Em produção, sobrescrever via env (`CORS_ALLOWED_ORIGINS` como JSON
+    array, ex.: '["https://app.exemplo.com"]") com o(s) domínio(s) reais —
+    nunca usar "*" junto de credenciais (Authorization: Bearer)."""
+
+    @model_validator(mode="after")
+    def _validate_production_secrets(self) -> "Settings":
+        """Falha no boot, em vez de rodar com segredos padrão conhecidos
+        publicamente (este repositório) — evita forjar tokens JWT/chave
+        administrativa por falta de configuração do `.env` em produção."""
+        if self.environment == "production":
+            for field_name in ("jwt_secret_key", "admin_api_key"):
+                if getattr(self, field_name) == "change-me-in-env":
+                    raise ValueError(
+                        f"{field_name} não configurado: defina via variável de ambiente "
+                        "antes de subir em produção."
+                    )
+        return self
 
 
 settings = Settings()

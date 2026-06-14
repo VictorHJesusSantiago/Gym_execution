@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime, timedelta, timezone
 
 from jose import jwt
 from passlib.context import CryptContext
 
 from .config import settings
+
+logger = logging.getLogger(__name__)
 
 # bcrypt: padrão de mercado para hash de senha — nunca armazenar senha em texto puro.
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -28,4 +31,7 @@ def decode_access_token(token: str) -> str | None:
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
         return payload.get("sub")
     except jwt.JWTError:
+        # Token malformado/expirado/assinatura inválida — não logar o token em
+        # si (PII/credencial), só o evento, para permitir detectar abuso.
+        logger.warning("Falha ao decodificar token de acesso")
         return None
