@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Linking, TextInput } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,6 +14,14 @@ import { recordSession } from '../services/sessionsService';
 type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Execution'>;
 
 const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem — suficiente para análise de pose, leve para 2GB RAM
+
+/** Converte o texto do campo de carga (aceita vírgula) num número não-negativo, ou `null` se vazio/inválido. */
+function parseWeightKg(input: string): number | null {
+  const normalized = input.trim().replace(',', '.');
+  if (!normalized) return null;
+  const value = Number(normalized);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
 
 /**
  * Tela de execução: liga o detector de pose real (`PlatformPoseDetector` —
@@ -30,8 +38,9 @@ export function ExecutionScreen({ route, navigation }: Props) {
   const { token } = useAuth();
   const detector = useMemo(() => new PlatformPoseDetector(), []);
   const referenceFrames = useMemo(() => getReferenceFrames(exerciseId), [exerciseId]);
-  const { status, score, start, captureFrame, finish } = usePoseSession(detector, referenceFrames);
+  const { status, score, asymmetry, start, captureFrame, finish } = usePoseSession(detector, referenceFrames);
 
+  const [weightInput, setWeightInput] = useState('');
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -101,17 +110,19 @@ export function ExecutionScreen({ route, navigation }: Props) {
     // reenviado quando o usuário abrir o histórico.
     if (token) {
       const executedAt = new Date();
-      recordSession(token, exerciseId, score, executedAt).catch(() => {
+      const weightKg = parseWeightKg(weightInput);
+      recordSession(token, exerciseId, score, executedAt, weightKg).catch(() => {
         enqueuePendingSession({
           exerciseId,
           score,
           executedAt: executedAt.toISOString(),
+          weightKg,
         }).catch(() => {});
       });
     }
 
-    navigation.replace('Result', { score, exerciseId });
-  }, [status, score, exerciseId, navigation, token]);
+    navigation.replace('Result', { score, exerciseId, asymmetry });
+  }, [status, score, asymmetry, exerciseId, navigation, token, weightInput]);
 
   if (!permission) {
     return (
@@ -152,6 +163,17 @@ export function ExecutionScreen({ route, navigation }: Props) {
         {status === 'finished' && 'Calculando resultado...'}
       </Text>
       <Text style={styles.exerciseId}>Exercício: {exerciseId}</Text>
+      <View style={styles.weightRow}>
+        <Text style={styles.text}>Carga (kg):</Text>
+        <TextInput
+          style={styles.weightInput}
+          keyboardType="numeric"
+          placeholder="opcional"
+          value={weightInput}
+          onChangeText={setWeightInput}
+          editable={status === 'recording'}
+        />
+      </View>
       <Text style={styles.disclaimer}>
         Pontuação experimental: a comparação com a referência ainda não usa o
         padrão real deste exercício.
@@ -172,6 +194,16 @@ const styles = StyleSheet.create({
   camera: { width: '100%', aspectRatio: 3 / 4, borderRadius: 12, overflow: 'hidden' },
   text: { fontSize: 16, textAlign: 'center', color: '#555' },
   exerciseId: { fontSize: 14, color: '#94a3b8' },
+  weightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  weightInput: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    width: 90,
+    fontSize: 16,
+  },
   disclaimer: { fontSize: 12, color: '#b45309', textAlign: 'center' },
   button: { backgroundColor: '#2563eb', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
   buttonDisabled: { backgroundColor: '#94a3b8' },

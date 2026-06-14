@@ -125,7 +125,10 @@ export function HistoryScreen() {
               <Text style={styles.itemTitle}>{exerciseName(item.exercise_id)}</Text>
               <Text style={styles.itemScore}>{item.score}%</Text>
             </View>
-            <Text style={styles.itemSubtitle}>{formatDateTime(item.executed_at)}</Text>
+            <Text style={styles.itemSubtitle}>
+              {formatDateTime(item.executed_at)}
+              {item.weight_kg != null ? ` · ${item.weight_kg} kg` : ''}
+            </Text>
           </View>
         )}
       />
