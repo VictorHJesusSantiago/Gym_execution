@@ -1,11 +1,12 @@
 jest.mock('../../services/poseScoring', () => ({
   scoreExecution: jest.fn(() => 77),
+  computeAsymmetry: jest.fn(() => ({ overallPercent: 5, byJoint: { elbow: 0, knee: 5, hip: 0 } })),
 }));
 
 import { createElement } from 'react';
 import { act, create } from 'react-test-renderer';
 import { usePoseSession } from '../usePoseSession';
-import { scoreExecution } from '../../services/poseScoring';
+import { computeAsymmetry, scoreExecution } from '../../services/poseScoring';
 import type { CameraFrameInput, PoseDetector, PoseFrame } from '../../services/poseTypes';
 
 const FRAME: CameraFrameInput = { uri: 'file://frame.jpg', width: 192, height: 192 };
@@ -38,13 +39,15 @@ function renderPoseSession(detector: PoseDetector, referenceFrames: PoseFrame[])
 describe('usePoseSession', () => {
   beforeEach(() => {
     (scoreExecution as jest.Mock).mockClear();
+    (computeAsymmetry as jest.Mock).mockClear();
   });
 
-  it('inicia em idle sem score calculado', () => {
+  it('inicia em idle sem score nem assimetria calculados', () => {
     const result = renderPoseSession(createDetector(), REFERENCE_FRAMES);
 
     expect(result.current.status).toBe('idle');
     expect(result.current.score).toBeNull();
+    expect(result.current.asymmetry).toBeNull();
   });
 
   it('start() carrega o detector e passa para recording', async () => {
@@ -107,7 +110,9 @@ describe('usePoseSession', () => {
     });
 
     expect(scoreExecution).toHaveBeenCalledTimes(1);
+    expect(computeAsymmetry).toHaveBeenCalledTimes(1);
     expect(result.current.score).toBe(77);
+    expect(result.current.asymmetry).toEqual({ overallPercent: 5, byJoint: { elbow: 0, knee: 5, hip: 0 } });
     expect(result.current.status).toBe('finished');
     expect(detector.dispose).toHaveBeenCalledTimes(1);
   });
@@ -121,8 +126,10 @@ describe('usePoseSession', () => {
     });
 
     expect(scoreExecution).not.toHaveBeenCalled();
+    expect(computeAsymmetry).not.toHaveBeenCalled();
     expect(result.current.status).toBe('idle');
     expect(result.current.score).toBeNull();
+    expect(result.current.asymmetry).toBeNull();
     expect(detector.dispose).not.toHaveBeenCalled();
   });
 });

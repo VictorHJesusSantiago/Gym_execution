@@ -6,6 +6,7 @@ export type TrainingSessionPublic = {
   exercise_id: string;
   score: number;
   executed_at: string;
+  weight_kg: number | null;
 };
 
 export const SESSIONS_PAGE_SIZE = 20;
@@ -50,11 +51,17 @@ export function recordSession(
   token: string,
   exerciseId: string,
   score: number,
-  executedAt: Date
+  executedAt: Date,
+  weightKg?: number | null
 ): Promise<TrainingSessionPublic> {
   return apiRequest<TrainingSessionPublic>('/sessions', {
     method: 'POST',
     token,
-    body: { exercise_id: exerciseId, score, executed_at: executedAt.toISOString() },
+    body: {
+      exercise_id: exerciseId,
+      score,
+      executed_at: executedAt.toISOString(),
+      weight_kg: weightKg ?? null,
+    },
   });
 }

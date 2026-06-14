@@ -105,3 +105,55 @@ export function scoreExecution(userFrames: PoseFrame[], referenceFrames: PoseFra
   const score = (1 - normalized) * 100;
   return Math.round(Math.max(0, Math.min(100, score)));
 }
+
+/** Articulações em pares esquerda/direita usadas na detecção de assimetria. */
+export type AsymmetricJoint = 'elbow' | 'knee' | 'hip';
+
+const ASYMMETRY_PAIRS: Record<AsymmetricJoint, [keyof JointAngles, keyof JointAngles]> = {
+  elbow: ['leftElbow', 'rightElbow'],
+  knee: ['leftKnee', 'rightKnee'],
+  hip: ['leftHip', 'rightHip'],
+};
+
+/**
+ * Diferença percentual acima da qual sinalizamos uma possível compensação
+ * (ex.: um joelho dobrando bem mais que o outro no agachamento).
+ */
+export const ASYMMETRY_THRESHOLD_PERCENT = 15;
+
+export type AsymmetryResult = {
+  /** Diferença percentual média entre os lados, considerando as 3 articulações. */
+  overallPercent: number;
+  /** Diferença percentual por articulação (cotovelo, joelho, quadril). */
+  byJoint: Record<AsymmetricJoint, number>;
+};
+
+/**
+ * Compara o ângulo médio de cada articulação entre o lado esquerdo e o
+ * direito ao longo da execução — grandes diferenças sugerem compensação
+ * (ex.: descarregar o peso mais num lado do corpo). Roda sobre os mesmos
+ * frames já capturados para o `scoreExecution`, sem custo adicional de CV.
+ */
+export function computeAsymmetry(frames: PoseFrame[]): AsymmetryResult | null {
+  if (frames.length === 0) return null;
+
+  const angles = frames.map(extractJointAngles);
+  const average = (key: keyof JointAngles): number =>
+    angles.reduce((sum, frame) => sum + frame[key], 0) / angles.length;
+
+  const byJoint = {} as Record<AsymmetricJoint, number>;
+  for (const [joint, [leftKey, rightKey]] of Object.entries(ASYMMETRY_PAIRS) as Array<
+    [AsymmetricJoint, [keyof JointAngles, keyof JointAngles]]
+  >) {
+    const left = average(leftKey);
+    const right = average(rightKey);
+    const base = Math.max(left, right, 1);
+    byJoint[joint] = Math.round((Math.abs(left - right) / base) * 100);
+  }
+
+  const overallPercent = Math.round(
+    (byJoint.elbow + byJoint.knee + byJoint.hip) / Object.keys(byJoint).length
+  );
+
+  return { overallPercent, byJoint };
+}

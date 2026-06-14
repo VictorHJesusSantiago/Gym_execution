@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { CameraFrameInput, PoseDetector, PoseFrame } from '../services/poseTypes';
-import { scoreExecution } from '../services/poseScoring';
+import { AsymmetryResult, computeAsymmetry, scoreExecution } from '../services/poseScoring';
 
 export type PoseSessionStatus = 'idle' | 'loading' | 'recording' | 'finished';
 
@@ -24,6 +24,7 @@ const MAX_RECORDED_FRAMES = 6000;
 export function usePoseSession(detector: PoseDetector, referenceFrames: PoseFrame[]) {
   const [status, setStatus] = useState<PoseSessionStatus>('idle');
   const [score, setScore] = useState<number | null>(null);
+  const [asymmetry, setAsymmetry] = useState<AsymmetryResult | null>(null);
   const framesRef = useRef<PoseFrame[]>([]);
 
   const start = useCallback(async () => {
@@ -47,9 +48,10 @@ export function usePoseSession(detector: PoseDetector, referenceFrames: PoseFram
     if (status !== 'recording') return;
     const finalScore = scoreExecution(framesRef.current, referenceFrames);
     setScore(finalScore);
+    setAsymmetry(computeAsymmetry(framesRef.current));
     setStatus('finished');
     detector.dispose();
   }, [detector, referenceFrames, status]);
 
-  return { status, score, start, captureFrame, finish };
+  return { status, score, asymmetry, start, captureFrame, finish };
 }

@@ -6,6 +6,7 @@ export type PendingSession = {
   exerciseId: string;
   score: number;
   executedAt: string; // ISO 8601 — ver TrainingSessionCreate.executed_at
+  weightKg?: number | null;
 };
 
 const STORAGE_KEY = '@gym_execution/pending_sessions';
@@ -33,7 +34,13 @@ export async function drainPendingSessions(token: string): Promise<void> {
   const remaining: PendingSession[] = [];
   for (const pending of queue) {
     try {
-      await recordSession(token, pending.exerciseId, pending.score, new Date(pending.executedAt));
+      await recordSession(
+        token,
+        pending.exerciseId,
+        pending.score,
+        new Date(pending.executedAt),
+        pending.weightKg
+      );
     } catch {
       remaining.push(pending);
     }

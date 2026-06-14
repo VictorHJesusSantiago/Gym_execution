@@ -1,4 +1,4 @@
-import { extractJointAngles, scoreExecution } from '../poseScoring';
+import { computeAsymmetry, extractJointAngles, scoreExecution } from '../poseScoring';
 import { LANDMARK_INDEX, Landmark, PoseFrame } from '../poseTypes';
 
 /**
@@ -33,6 +33,29 @@ function frameWithLeftElbowAngle(timestampMs: number, angleDegrees: number): Pos
       y: 0.5 - Math.cos(radians) * 0.5,
       visibility: 1,
     },
+  });
+}
+
+/**
+ * Monta um frame com os joelhos esquerdo e direito em ângulos articulares
+ * independentes (graus), seguindo a mesma construção geométrica de
+ * `frameWithLeftElbowAngle` (quadril fixo acima do joelho; tornozelo
+ * posicionado para que o ângulo quadril→joelho→tornozelo seja exatamente
+ * o ângulo informado). Demais articulações ficam na posição neutra (0°),
+ * o que mantém cotovelos e quadris simétricos entre os lados.
+ */
+function frameWithKneeAngles(timestampMs: number, leftAngleDegrees: number, rightAngleDegrees: number): PoseFrame {
+  const toAnkle = (angleDegrees: number) => {
+    const radians = (angleDegrees * Math.PI) / 180;
+    return { x: 0.5 + Math.sin(radians) * 0.5, y: 0.5 - Math.cos(radians) * 0.5, visibility: 1 };
+  };
+  return makeFrame(timestampMs, {
+    [LANDMARK_INDEX.leftHip]: { x: 0.5, y: 0.0, visibility: 1 },
+    [LANDMARK_INDEX.leftKnee]: { x: 0.5, y: 0.5, visibility: 1 },
+    [LANDMARK_INDEX.leftAnkle]: toAnkle(leftAngleDegrees),
+    [LANDMARK_INDEX.rightHip]: { x: 0.5, y: 0.0, visibility: 1 },
+    [LANDMARK_INDEX.rightKnee]: { x: 0.5, y: 0.5, visibility: 1 },
+    [LANDMARK_INDEX.rightAnkle]: toAnkle(rightAngleDegrees),
   });
 }
 
@@ -94,5 +117,30 @@ describe('scoreExecution', () => {
 
     expect(scoreExecution([], sequence)).toBe(0);
     expect(scoreExecution(sequence, [])).toBe(0);
+  });
+});
+
+describe('computeAsymmetry', () => {
+  it('retorna null para uma sequência vazia', () => {
+    expect(computeAsymmetry([])).toBeNull();
+  });
+
+  it('retorna 0% em todas as articulações para uma execução simétrica', () => {
+    const frames = [frameWithKneeAngles(0, 90, 90), frameWithKneeAngles(100, 120, 120)];
+
+    const result = computeAsymmetry(frames);
+
+    expect(result).toEqual({ overallPercent: 0, byJoint: { elbow: 0, knee: 0, hip: 0 } });
+  });
+
+  it('detecta diferença percentual entre os joelhos quando um lado dobra muito mais que o outro', () => {
+    const frames = [frameWithKneeAngles(0, 90, 0)];
+
+    const result = computeAsymmetry(frames);
+
+    expect(result?.byJoint.knee).toBe(100);
+    expect(result?.byJoint.elbow).toBe(0);
+    expect(result?.byJoint.hip).toBe(0);
+    expect(result?.overallPercent).toBe(Math.round(100 / 3));
   });
 });
