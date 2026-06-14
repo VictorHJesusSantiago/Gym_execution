@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
 import { ASYMMETRY_THRESHOLD_PERCENT, type AsymmetricJoint } from '../services/poseScoring';
+import { loadBodyCalibration } from '../services/bodyCalibration';
 
 type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Result'>;
 
@@ -14,9 +16,20 @@ const JOINT_LABELS: Record<AsymmetricJoint, string> = {
 export function ResultScreen({ route, navigation }: Props) {
   const { score, exerciseId, asymmetry, repCount, fatigue } = route.params;
 
+  // Pessoas com assimetria corporal natural (medida na Calibração) não devem
+  // ser sinalizadas por algo que já é normal para elas — somamos essa
+  // linha de base ao limiar padrão antes de comparar.
+  const [asymmetryThreshold, setAsymmetryThreshold] = useState(ASYMMETRY_THRESHOLD_PERCENT);
+
+  useEffect(() => {
+    loadBodyCalibration().then((calibration) => {
+      if (calibration) setAsymmetryThreshold(ASYMMETRY_THRESHOLD_PERCENT + calibration.baselineAsymmetryPercent);
+    });
+  }, []);
+
   const asymmetricJoints = asymmetry
     ? (Object.entries(asymmetry.byJoint) as Array<[AsymmetricJoint, number]>).filter(
-        ([, percent]) => percent >= ASYMMETRY_THRESHOLD_PERCENT
+        ([, percent]) => percent >= asymmetryThreshold
       )
     : [];
 

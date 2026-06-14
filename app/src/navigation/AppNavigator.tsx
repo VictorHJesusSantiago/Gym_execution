@@ -11,6 +11,7 @@ import { ResultScreen } from '../screens/ResultScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { CalibrationScreen } from '../screens/CalibrationScreen';
 import type { AsymmetryResult, FatigueResult } from '../services/poseScoring';
 
 export type PublicStackParamList = {
@@ -32,6 +33,7 @@ export type AuthenticatedStackParamList = {
   History: undefined;
   Profile: undefined;
   Settings: undefined;
+  Calibration: undefined;
 };
 
 const PublicStack = createNativeStackNavigator<PublicStackParamList>();
@@ -56,6 +58,7 @@ function AuthenticatedNavigator() {
       <AuthenticatedStack.Screen name="History" component={HistoryScreen} options={{ title: 'Histórico' }} />
       <AuthenticatedStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Perfil' }} />
       <AuthenticatedStack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Configurações' }} />
+      <AuthenticatedStack.Screen name="Calibration" component={CalibrationScreen} options={{ title: 'Calibração' }} />
     </AuthenticatedStack.Navigator>
   );
 }

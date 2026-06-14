@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Linking, TextInput } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Linking, TextInput, Vibration } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -38,7 +38,7 @@ export function ExecutionScreen({ route, navigation }: Props) {
   const { token } = useAuth();
   const detector = useMemo(() => new PlatformPoseDetector(), []);
   const referenceFrames = useMemo(() => getReferenceFrames(exerciseId), [exerciseId]);
-  const { status, score, asymmetry, repCount, fatigue, start, captureFrame, finish } = usePoseSession(
+  const { status, score, asymmetry, repCount, fatigue, feedback, start, captureFrame, finish } = usePoseSession(
     detector,
     referenceFrames
   );
@@ -93,6 +93,11 @@ export function ExecutionScreen({ route, navigation }: Props) {
       }, SAMPLE_INTERVAL_MS);
     }
   }, [status, captureFrame]);
+
+  /** Vibra para chamar atenção sempre que uma nova dica de correção aparece. */
+  useEffect(() => {
+    if (feedback) Vibration.vibrate(100);
+  }, [feedback?.joint]);
 
   function handleFinish() {
     if (intervalRef.current) {
@@ -166,6 +171,9 @@ export function ExecutionScreen({ route, navigation }: Props) {
         {status === 'finished' && 'Calculando resultado...'}
       </Text>
       <Text style={styles.exerciseId}>Exercício: {exerciseId}</Text>
+      {status === 'recording' && feedback && (
+        <Text style={styles.feedbackHint}>{feedback.message}</Text>
+      )}
       <View style={styles.weightRow}>
         <Text style={styles.text}>Carga (kg):</Text>
         <TextInput
@@ -197,6 +205,7 @@ const styles = StyleSheet.create({
   camera: { width: '100%', aspectRatio: 3 / 4, borderRadius: 12, overflow: 'hidden' },
   text: { fontSize: 16, textAlign: 'center', color: '#555' },
   exerciseId: { fontSize: 14, color: '#94a3b8' },
+  feedbackHint: { fontSize: 15, fontWeight: '700', color: '#dc2626', textAlign: 'center' },
   weightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   weightInput: {
     borderWidth: 1,

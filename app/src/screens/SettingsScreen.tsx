@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
 import { View, Text, Pressable, Switch, ActivityIndicator, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
 import {
   loadPreferences,
   savePreferences,
@@ -8,6 +10,8 @@ import {
   type Preferences,
   type CameraQuality,
 } from '../services/preferencesStorage';
+
+type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Settings'>;
 
 const CAMERA_QUALITY_OPTIONS: { value: CameraQuality; label: string }[] = [
   { value: 'high', label: 'Alta' },
@@ -19,7 +23,7 @@ const CAMERA_QUALITY_OPTIONS: { value: CameraQuality; label: string }[] = [
  * Tela de Configurações (README.md): preferências locais persistidas via
  * AsyncStorage — não envolvem a API, então cada alteração é salva na hora.
  */
-export function SettingsScreen() {
+export function SettingsScreen({ navigation }: Props) {
   const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
   const [loading, setLoading] = useState(true);
 
@@ -84,6 +88,11 @@ export function SettingsScreen() {
         <Text style={styles.sectionTitle}>Modo escuro</Text>
         <Switch value={preferences.darkMode} onValueChange={(value) => update({ darkMode: value })} />
       </View>
+
+      <Pressable style={styles.row} onPress={() => navigation.navigate('Calibration')}>
+        <Text style={styles.sectionTitle}>Calibração corporal</Text>
+        <Text style={styles.linkText}>Ajustar</Text>
+      </Pressable>
     </View>
   );
 }
@@ -98,4 +107,5 @@ const styles = StyleSheet.create({
   optionText: { color: '#334155', fontSize: 14 },
   optionTextSelected: { color: '#fff', fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  linkText: { color: '#2563eb', fontSize: 14, fontWeight: '600' },
 });
