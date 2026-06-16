@@ -1,4 +1,4 @@
-import { computeProfileStats } from '../profileStats';
+import { computeProfileStats, computeStreak } from '../profileStats';
 
 describe('computeProfileStats', () => {
   it('retorna contagem zero e média nula quando não há sessões', () => {
@@ -20,5 +20,39 @@ describe('computeProfileStats', () => {
 
   it('funciona com uma única sessão', () => {
     expect(computeProfileStats([85])).toEqual({ trainingCount: 1, averageScore: 85 });
+  });
+});
+
+describe('computeStreak', () => {
+  const NOW = new Date('2026-01-10T12:00:00.000Z');
+
+  it('retorna 0 quando não há sessões', () => {
+    expect(computeStreak([], NOW)).toBe(0);
+  });
+
+  it('conta o dia de hoje quando há sessão hoje', () => {
+    expect(computeStreak(['2026-01-10T08:00:00.000Z'], NOW)).toBe(1);
+  });
+
+  it('conta dias consecutivos incluindo hoje', () => {
+    const dates = ['2026-01-08T08:00:00.000Z', '2026-01-09T08:00:00.000Z', '2026-01-10T08:00:00.000Z'];
+
+    expect(computeStreak(dates, NOW)).toBe(3);
+  });
+
+  it('continua contando a partir de ontem se ainda não treinou hoje', () => {
+    const dates = ['2026-01-08T08:00:00.000Z', '2026-01-09T08:00:00.000Z'];
+
+    expect(computeStreak(dates, NOW)).toBe(2);
+  });
+
+  it('retorna 0 quando o último treino foi há 2 dias ou mais', () => {
+    expect(computeStreak(['2026-01-07T08:00:00.000Z'], NOW)).toBe(0);
+  });
+
+  it('conta múltiplas sessões no mesmo dia como um único dia', () => {
+    const dates = ['2026-01-10T08:00:00.000Z', '2026-01-10T18:00:00.000Z'];
+
+    expect(computeStreak(dates, NOW)).toBe(1);
   });
 });

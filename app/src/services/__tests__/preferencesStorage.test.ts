@@ -20,11 +20,19 @@ describe('preferencesStorage', () => {
   });
 
   it('persiste e recarrega as preferências salvas', async () => {
-    await savePreferences({ cameraQuality: 'saver', soundFeedback: false, darkMode: true });
+    const preferences = {
+      cameraQuality: 'saver' as const,
+      soundFeedback: false,
+      darkMode: true,
+      colorBlindMode: true,
+      highContrast: true,
+      largeText: true,
+    };
+    await savePreferences(preferences);
 
     const reloaded = await loadPreferences();
 
-    expect(reloaded).toEqual({ cameraQuality: 'saver', soundFeedback: false, darkMode: true });
+    expect(reloaded).toEqual(preferences);
   });
 
   it('preenche campos ausentes com os padrões ao ler dados salvos parcialmente', async () => {
