@@ -12,7 +12,9 @@ import { HistoryScreen } from '../screens/HistoryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { CalibrationScreen } from '../screens/CalibrationScreen';
+import { GoalsScreen } from '../screens/GoalsScreen';
 import type { AsymmetryResult, FatigueResult } from '../services/poseScoring';
+import type { NewRecords, OverloadWarning } from '../services/sessionInsights';
 
 export type PublicStackParamList = {
   Login: undefined;
@@ -29,11 +31,15 @@ export type AuthenticatedStackParamList = {
     asymmetry?: AsymmetryResult | null;
     repCount?: number | null;
     fatigue?: FatigueResult | null;
+    newRecords?: NewRecords | null;
+    overload?: OverloadWarning | null;
+    weightKg?: number | null;
   };
   History: undefined;
   Profile: undefined;
   Settings: undefined;
   Calibration: undefined;
+  Goals: undefined;
 };
 
 const PublicStack = createNativeStackNavigator<PublicStackParamList>();
@@ -59,6 +65,7 @@ function AuthenticatedNavigator() {
       <AuthenticatedStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Perfil' }} />
       <AuthenticatedStack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Configurações' }} />
       <AuthenticatedStack.Screen name="Calibration" component={CalibrationScreen} options={{ title: 'Calibração' }} />
+      <AuthenticatedStack.Screen name="Goals" component={GoalsScreen} options={{ title: 'Metas' }} />
     </AuthenticatedStack.Navigator>
   );
 }
