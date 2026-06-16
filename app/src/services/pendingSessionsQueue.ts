@@ -49,6 +49,12 @@ export async function drainPendingSessions(token: string): Promise<void> {
   await saveQueue(remaining);
 }
 
+/** Quantas sessões ainda estão na fila de sincronização — usado para exibir um aviso no histórico. */
+export async function countPendingSessions(): Promise<number> {
+  const queue = await loadQueue();
+  return queue.length;
+}
+
 async function loadQueue(): Promise<PendingSession[]> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
   if (!raw) return [];

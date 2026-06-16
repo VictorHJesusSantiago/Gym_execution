@@ -2,10 +2,16 @@ import { apiRequest } from './apiClient';
 
 /** Espelham os schemas Pydantic em backend/app/schemas/auth.py. */
 
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+
 export type UserPublic = {
   id: string;
   name: string;
   email: string;
+  weight_kg: number | null;
+  height_cm: number | null;
+  goal: string | null;
+  experience_level: ExperienceLevel | null;
 };
 
 export type TokenResponse = {

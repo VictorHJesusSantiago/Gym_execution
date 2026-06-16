@@ -6,12 +6,21 @@ export type Preferences = {
   cameraQuality: CameraQuality;
   soundFeedback: boolean;
   darkMode: boolean;
+  /** Paleta alternativa para indicadores de score/alerta (verde/vermelho → azul/laranja). */
+  colorBlindMode: boolean;
+  /** Maior contraste entre texto e fundo nas telas de execução/resultado. */
+  highContrast: boolean;
+  /** Aumenta o tamanho das fontes nas telas de execução/resultado. */
+  largeText: boolean;
 };
 
 export const DEFAULT_PREFERENCES: Preferences = {
   cameraQuality: 'standard',
   soundFeedback: true,
   darkMode: false,
+  colorBlindMode: false,
+  highContrast: false,
+  largeText: false,
 };
 
 const STORAGE_KEY = '@gym_execution/preferences';
