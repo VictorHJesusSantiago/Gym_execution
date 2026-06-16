@@ -9,7 +9,13 @@ import { useAuth } from '../hooks/useAuth';
 import { PlatformPoseDetector } from '../services/poseDetector';
 import { enqueuePendingSession } from '../services/pendingSessionsQueue';
 import { getReferenceFrames } from '../services/referenceLibrary';
-import { recordSession } from '../services/sessionsService';
+import { listAllMySessions, recordSession } from '../services/sessionsService';
+import { computePersonalRecord, detectNewRecords, detectOverload } from '../services/sessionInsights';
+import { getWarmupTip } from '../services/warmupTips';
+import { loadPreferences, DEFAULT_PREFERENCES, type Preferences } from '../services/preferencesStorage';
+import { getContrastColors, scaleFontSize } from '../services/accessibilityStyles';
+import { getScoreColors } from '../services/colorPalette';
+import { EXERCISES } from '../services/exerciseCatalog';
 
 type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'Execution'>;
 
@@ -21,6 +27,10 @@ function parseWeightKg(input: string): number | null {
   if (!normalized) return null;
   const value = Number(normalized);
   return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function exerciseName(exerciseId: string): string {
+  return EXERCISES.find((exercise) => exercise.id === exerciseId)?.name ?? exerciseId;
 }
 
 /**
@@ -38,12 +48,14 @@ export function ExecutionScreen({ route, navigation }: Props) {
   const { token } = useAuth();
   const detector = useMemo(() => new PlatformPoseDetector(), []);
   const referenceFrames = useMemo(() => getReferenceFrames(exerciseId), [exerciseId]);
+  const warmupTip = useMemo(() => getWarmupTip(exerciseId), [exerciseId]);
   const { status, score, asymmetry, repCount, fatigue, feedback, start, captureFrame, finish } = usePoseSession(
     detector,
     referenceFrames
   );
 
   const [weightInput, setWeightInput] = useState('');
+  const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -54,6 +66,16 @@ export function ExecutionScreen({ route, navigation }: Props) {
       requestPermission();
     }
   }, [permission, requestPermission]);
+
+  // Preferências de acessibilidade (tela de Configurações): contraste e
+  // tamanho de fonte aplicados durante a execução do exercício.
+  useEffect(() => {
+    loadPreferences().then(setPreferences);
+  }, []);
+
+  const contrast = getContrastColors(preferences.highContrast);
+  const colors = getScoreColors(preferences.colorBlindMode);
+  const fontSize = (base: number) => scaleFontSize(base, preferences.largeText);
 
   useEffect(() => {
     start();
@@ -127,15 +149,57 @@ export function ExecutionScreen({ route, navigation }: Props) {
           weightKg,
         }).catch(() => {});
       });
+
+      // Compara com o histórico anterior a esta sessão para detectar recordes
+      // pessoais e aumentos de carga acima do esperado (README.md — "Saúde e
+      // segurança"). Falha ao buscar o histórico não bloqueia o resultado.
+      listAllMySessions(token)
+        .then((sessions) => {
+          const previousSessions = sessions.filter((s) => new Date(s.executed_at) < executedAt);
+          navigation.replace('Result', {
+            score,
+            exerciseId,
+            asymmetry,
+            repCount,
+            fatigue,
+            newRecords: detectNewRecords({ score, weightKg }, computePersonalRecord(previousSessions, exerciseId)),
+            overload: detectOverload(previousSessions, exerciseId, weightKg),
+            weightKg,
+          });
+        })
+        .catch(() => {
+          navigation.replace('Result', {
+            score,
+            exerciseId,
+            asymmetry,
+            repCount,
+            fatigue,
+            newRecords: null,
+            overload: null,
+            weightKg,
+          });
+        });
+      return;
     }
 
-    navigation.replace('Result', { score, exerciseId, asymmetry, repCount, fatigue });
+    navigation.replace('Result', {
+      score,
+      exerciseId,
+      asymmetry,
+      repCount,
+      fatigue,
+      newRecords: null,
+      overload: null,
+      weightKg: parseWeightKg(weightInput),
+    });
   }, [status, score, asymmetry, repCount, fatigue, exerciseId, navigation, token, weightInput]);
 
   if (!permission) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.text}>Solicitando permissão da câmera...</Text>
+      <View style={[styles.container, { backgroundColor: contrast.background }]}>
+        <Text style={[styles.text, { color: contrast.muted, fontSize: fontSize(16) }]}>
+          Solicitando permissão da câmera...
+        </Text>
       </View>
     );
   }
@@ -145,16 +209,26 @@ export function ExecutionScreen({ route, navigation }: Props) {
     // `requestPermission()` não reabre o diálogo do sistema — só a tela de
     // configurações do app permite reverter.
     return (
-      <View style={styles.container}>
-        <Text style={styles.text}>
+      <View style={[styles.container, { backgroundColor: contrast.background }]}>
+        <Text style={[styles.text, { color: contrast.muted, fontSize: fontSize(16) }]}>
           Precisamos da sua permissão para usar a câmera e analisar o exercício.
         </Text>
         {permission.canAskAgain ? (
-          <Pressable style={styles.button} onPress={requestPermission}>
+          <Pressable
+            style={styles.button}
+            onPress={requestPermission}
+            accessibilityRole="button"
+            accessibilityLabel="Conceder permissão da câmera"
+          >
             <Text style={styles.buttonText}>Conceder permissão</Text>
           </Pressable>
         ) : (
-          <Pressable style={styles.button} onPress={() => Linking.openSettings()}>
+          <Pressable
+            style={styles.button}
+            onPress={() => Linking.openSettings()}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir configurações do app"
+          >
             <Text style={styles.buttonText}>Abrir configurações do app</Text>
           </Pressable>
         )}
@@ -163,29 +237,43 @@ export function ExecutionScreen({ route, navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="front" />
-      <Text style={styles.text}>
+    <View
+      style={[styles.container, { backgroundColor: contrast.background }]}
+      accessibilityLabel={`Execução do exercício ${exerciseName(exerciseId)}`}
+    >
+      <CameraView ref={cameraRef} style={styles.camera} facing="front" accessibilityLabel="Câmera de análise de pose" />
+      <Text style={[styles.text, { color: contrast.muted, fontSize: fontSize(16) }]}>
         {status === 'loading' && 'Carregando modelo de análise de pose...'}
         {status === 'recording' && 'Câmera ativa — execute o movimento'}
         {status === 'finished' && 'Calculando resultado...'}
       </Text>
-      <Text style={styles.exerciseId}>Exercício: {exerciseId}</Text>
+      <Text style={[styles.exerciseId, { color: contrast.muted, fontSize: fontSize(14) }]}>
+        Exercício: {exerciseName(exerciseId)}
+      </Text>
+      {status === 'loading' && (
+        <Text style={[styles.warmupHint, { color: colors.positive, fontSize: fontSize(13) }]}>{warmupTip}</Text>
+      )}
       {status === 'recording' && feedback && (
-        <Text style={styles.feedbackHint}>{feedback.message}</Text>
+        <Text
+          style={[styles.feedbackHint, { color: colors.warning, fontSize: fontSize(15) }]}
+          accessibilityLabel={`Dica de correção: ${feedback.message}`}
+        >
+          {feedback.message}
+        </Text>
       )}
       <View style={styles.weightRow}>
-        <Text style={styles.text}>Carga (kg):</Text>
+        <Text style={[styles.text, { color: contrast.muted, fontSize: fontSize(16) }]}>Carga (kg):</Text>
         <TextInput
-          style={styles.weightInput}
+          style={[styles.weightInput, { color: contrast.text, fontSize: fontSize(16) }]}
           keyboardType="numeric"
           placeholder="opcional"
           value={weightInput}
           onChangeText={setWeightInput}
           editable={status === 'recording'}
+          accessibilityLabel="Carga em quilogramas, opcional"
         />
       </View>
-      <Text style={styles.disclaimer}>
+      <Text style={[styles.disclaimer, { color: contrast.muted, fontSize: fontSize(12) }]}>
         Pontuação experimental: a comparação com a referência ainda não usa o
         padrão real deste exercício.
       </Text>
@@ -193,6 +281,9 @@ export function ExecutionScreen({ route, navigation }: Props) {
         style={[styles.button, status !== 'recording' && styles.buttonDisabled]}
         onPress={handleFinish}
         disabled={status !== 'recording'}
+        accessibilityRole="button"
+        accessibilityLabel="Finalizar série"
+        accessibilityState={{ disabled: status !== 'recording' }}
       >
         <Text style={styles.buttonText}>Finalizar série</Text>
       </Pressable>
@@ -206,6 +297,7 @@ const styles = StyleSheet.create({
   text: { fontSize: 16, textAlign: 'center', color: '#555' },
   exerciseId: { fontSize: 14, color: '#94a3b8' },
   feedbackHint: { fontSize: 15, fontWeight: '700', color: '#dc2626', textAlign: 'center' },
+  warmupHint: { fontSize: 13, color: '#16a34a', textAlign: 'center', maxWidth: 280 },
   weightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   weightInput: {
     borderWidth: 1,

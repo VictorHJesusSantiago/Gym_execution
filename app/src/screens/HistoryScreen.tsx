@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
-import { drainPendingSessions } from '../services/pendingSessionsQueue';
+import { countPendingSessions, drainPendingSessions } from '../services/pendingSessionsQueue';
 import {
   listMySessions,
   SESSIONS_PAGE_SIZE,
@@ -37,6 +37,7 @@ export function HistoryScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
 
   /** Recarrega do zero (primeira página) — usado no foco da tela e no pull-to-refresh. */
   const load = useCallback(async () => {
@@ -47,6 +48,7 @@ export function HistoryScreen() {
       // sessão, ver ExecutionScreen/pendingSessionsQueue) antes de carregar
       // o histórico, para que apareçam na lista já nesta visita.
       await drainPendingSessions(token).catch(() => {});
+      setPendingCount(await countPendingSessions());
       const page = await listMySessions(token, { offset: 0 });
       setSessions(page);
       setHasMore(page.length === SESSIONS_PAGE_SIZE);
@@ -98,29 +100,45 @@ export function HistoryScreen() {
     );
   }
 
+  const pendingBanner = pendingCount > 0 ? (
+    <View style={styles.pendingBanner}>
+      <Text style={styles.pendingText}>
+        {pendingCount === 1
+          ? '1 sessão ainda não foi sincronizada.'
+          : `${pendingCount} sessões ainda não foram sincronizadas.`}{' '}
+        Tentaremos novamente automaticamente.
+      </Text>
+    </View>
+  ) : null;
+
   if (sessions.length === 0) {
     return (
       <View style={styles.center}>
+        {pendingBanner}
         <Text style={styles.emptyText}>Nenhum treino registrado ainda.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessibilityLabel="Histórico de treinos">
       <FlatList
         data={sessions}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
         onEndReached={loadMore}
         onEndReachedThreshold={0.4}
+        ListHeaderComponent={pendingBanner}
         ListFooterComponent={
           loadingMore ? (
             <ActivityIndicator size="small" color="#2563eb" style={styles.footerSpinner} />
           ) : null
         }
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <View
+            style={styles.item}
+            accessibilityLabel={`${exerciseName(item.exercise_id)}, ${item.score} por cento, ${formatDateTime(item.executed_at)}${item.weight_kg != null ? `, ${item.weight_kg} quilogramas` : ''}`}
+          >
             <View style={styles.itemHeader}>
               <Text style={styles.itemTitle}>{exerciseName(item.exercise_id)}</Text>
               <Text style={styles.itemScore}>{item.score}%</Text>
@@ -145,6 +163,8 @@ const styles = StyleSheet.create({
   itemScore: { fontSize: 18, fontWeight: '700', color: '#2563eb' },
   itemSubtitle: { fontSize: 14, color: '#64748b', marginTop: 4 },
   footerSpinner: { marginVertical: 16 },
+  pendingBanner: { backgroundColor: '#fef3c7', borderRadius: 8, padding: 12, marginBottom: 12 },
+  pendingText: { color: '#92400e', fontSize: 13, textAlign: 'center' },
   error: { color: '#dc2626', fontSize: 16, textAlign: 'center' },
   emptyText: { color: '#64748b', fontSize: 16, textAlign: 'center' },
 });

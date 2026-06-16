@@ -59,7 +59,7 @@ export function SettingsScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessibilityLabel="Configurações">
       <Text style={styles.sectionTitle}>Qualidade da câmera</Text>
       <View style={styles.optionsRow}>
         {CAMERA_QUALITY_OPTIONS.map((option) => {
@@ -69,6 +69,9 @@ export function SettingsScreen({ navigation }: Props) {
               key={option.value}
               style={[styles.option, selected && styles.optionSelected]}
               onPress={() => update({ cameraQuality: option.value })}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              accessibilityLabel={`Qualidade da câmera: ${option.label}`}
             >
               <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{option.label}</Text>
             </Pressable>
@@ -81,17 +84,64 @@ export function SettingsScreen({ navigation }: Props) {
         <Switch
           value={preferences.soundFeedback}
           onValueChange={(value) => update({ soundFeedback: value })}
+          accessibilityLabel="Som de feedback"
         />
       </View>
 
       <View style={styles.row}>
         <Text style={styles.sectionTitle}>Modo escuro</Text>
-        <Switch value={preferences.darkMode} onValueChange={(value) => update({ darkMode: value })} />
+        <Switch
+          value={preferences.darkMode}
+          onValueChange={(value) => update({ darkMode: value })}
+          accessibilityLabel="Modo escuro"
+        />
       </View>
 
-      <Pressable style={styles.row} onPress={() => navigation.navigate('Calibration')}>
+      <View style={styles.row}>
+        <Text style={styles.sectionTitle}>Modo daltonismo</Text>
+        <Switch
+          value={preferences.colorBlindMode}
+          onValueChange={(value) => update({ colorBlindMode: value })}
+          accessibilityLabel="Modo daltonismo"
+        />
+      </View>
+
+      <View style={styles.row}>
+        <Text style={styles.sectionTitle}>Alto contraste</Text>
+        <Switch
+          value={preferences.highContrast}
+          onValueChange={(value) => update({ highContrast: value })}
+          accessibilityLabel="Alto contraste"
+        />
+      </View>
+
+      <View style={styles.row}>
+        <Text style={styles.sectionTitle}>Fontes grandes</Text>
+        <Switch
+          value={preferences.largeText}
+          onValueChange={(value) => update({ largeText: value })}
+          accessibilityLabel="Fontes grandes"
+        />
+      </View>
+
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate('Calibration')}
+        accessibilityRole="button"
+        accessibilityLabel="Ajustar calibração corporal"
+      >
         <Text style={styles.sectionTitle}>Calibração corporal</Text>
         <Text style={styles.linkText}>Ajustar</Text>
+      </Pressable>
+
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate('Goals')}
+        accessibilityRole="button"
+        accessibilityLabel="Definir metas pessoais"
+      >
+        <Text style={styles.sectionTitle}>Metas pessoais</Text>
+        <Text style={styles.linkText}>Definir</Text>
       </Pressable>
     </View>
   );
