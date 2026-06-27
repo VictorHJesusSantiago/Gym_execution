@@ -2,34 +2,36 @@ import logging
 import time
 
 from fastapi import Request
-
-logger = logging.getLogger("app.request")
+from pythonjsonlogger import jsonlogger
 
 
 def configure_logging() -> None:
-    """Configura o logging raiz da aplicação (chamado uma vez em main.py).
-
-    Em produção, o orquestrador (Docker/k8s) coleta stdout — não há
-    necessidade de handlers de arquivo aqui.
-    """
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    """Logging JSON estruturado: cada linha é um objeto JSON independente,
+    parseável por CloudWatch / Datadog / Loki sem regex — substitui
+    logging.basicConfig com formato de texto puro."""
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        jsonlogger.JsonFormatter(
+            "%(asctime)s %(levelname)s %(name)s %(message)s",
+            rename_fields={"asctime": "timestamp", "levelname": "level"},
+        )
     )
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.handlers = [handler]
 
 
 async def log_requests_middleware(request: Request, call_next):
-    """Loga método, caminho, status e duração de cada requisição —
-    observabilidade mínima para depurar latência/erros em produção sem
-    precisar de um APM externo."""
     start = time.perf_counter()
     response = await call_next(request)
     duration_ms = (time.perf_counter() - start) * 1000
-    logger.info(
-        "%s %s -> %d (%.1fms)",
-        request.method,
-        request.url.path,
-        response.status_code,
-        duration_ms,
+    logging.getLogger("app.request").info(
+        "http_request",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": round(duration_ms, 1),
+        },
     )
     return response

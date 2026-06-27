@@ -3,13 +3,16 @@ from slowapi.util import get_remote_address
 
 from .config import settings
 
-# Limita por IP de origem — suficiente para mitigar força bruta/credential
-# stuffing em /auth sem exigir autenticação prévia (que ainda não existe
-# nesse ponto do fluxo). Limites por usuário autenticado podem ser
-# adicionados depois com `key_func` baseada no token, se necessário.
-limiter = Limiter(key_func=get_remote_address, enabled=settings.rate_limit_enabled)
+# Quando rate_limit_enabled=False (testes, via conftest.py), usa memória local
+# para não exigir Redis rodando. Em produção (enabled=True), usa Redis para
+# compartilhar o estado entre workers/réplicas — sem isso o limite é por
+# processo e facilmente contornado distribuindo requests entre instâncias.
+_storage_uri = settings.redis_url if settings.rate_limit_enabled else "memory://"
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    enabled=settings.rate_limit_enabled,
+    storage_uri=_storage_uri,
+)
 
 AUTH_RATE_LIMIT = "10/minute"
-"""Aplicado a /auth/register e /auth/login — generoso o bastante para uso
-normal (poucas tentativas por minuto), mas barra varreduras automatizadas
-de credenciais. Ver README.md seção de segurança."""
