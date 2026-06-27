@@ -1,19 +1,15 @@
 import * as SecureStore from 'expo-secure-store';
 
 /**
- * Persistência do token JWT em armazenamento seguro do dispositivo
- * (Keychain no iOS, Android Keystore no Android) — nunca em AsyncStorage
- * simples, que guarda dados em texto puro.
+ * Persistência de tokens em armazenamento seguro do dispositivo
+ * (Keychain no iOS, Android Keystore no Android).
  *
- * Trade-off com o requisito de hardware antigo (README.md): o
- * Android Keystore exige API 23+ (Android 6.0, fim de 2015), por isso
- * `app.json` foi ajustado de minSdkVersion 21 para 23 — ainda alinhado
- * ao "a partir de 2015", apenas restringindo a poucos meses iniciais
- * daquele ano (Android 5.x). Optou-se por manter a segurança do token
- * em vez de degradar para armazenamento em texto puro nesses aparelhos.
+ * Access token: vida curta (30 min) — renovado automaticamente via refresh.
+ * Refresh token: vida longa (30 dias) — rotacionado a cada uso em /auth/refresh.
  */
 
 const TOKEN_KEY = 'gym_execution_access_token';
+const REFRESH_TOKEN_KEY = 'gym_execution_refresh_token';
 
 export function saveToken(token: string): Promise<void> {
   return SecureStore.setItemAsync(TOKEN_KEY, token);
@@ -25,4 +21,16 @@ export function loadToken(): Promise<string | null> {
 
 export function clearToken(): Promise<void> {
   return SecureStore.deleteItemAsync(TOKEN_KEY);
+}
+
+export function saveRefreshToken(token: string): Promise<void> {
+  return SecureStore.setItemAsync(REFRESH_TOKEN_KEY, token);
+}
+
+export function loadRefreshToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+}
+
+export function clearRefreshToken(): Promise<void> {
+  return SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
 }

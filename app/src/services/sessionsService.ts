@@ -9,13 +9,16 @@ export type TrainingSessionPublic = {
   weight_kg: number | null;
 };
 
+/** Espelha SessionStats em backend/app/schemas/session.py. */
+export type SessionStats = {
+  total_sessions: number;
+  avg_score: number | null;
+  best_score: number | null;
+  exercises_count: number;
+};
+
 export const SESSIONS_PAGE_SIZE = 20;
 
-/**
- * Espelha `limit`/`offset` de `GET /sessions` (backend/app/routers/sessions.py).
- * Uma página com menos itens que `SESSIONS_PAGE_SIZE` indica que não há mais
- * páginas — usado por `HistoryScreen` para decidir se mostra "carregar mais".
- */
 export function listMySessions(
   token: string,
   options: { offset?: number; limit?: number } = {}
@@ -25,10 +28,9 @@ export function listMySessions(
 }
 
 /**
- * Busca o histórico completo percorrendo todas as páginas — usado por
- * `ProfileScreen` para calcular estatísticas agregadas (treinos realizados/
- * pontuação média), que precisam do total e não só da primeira página.
- * Usa o `limit` máximo aceito pela API (100) para minimizar requisições.
+ * Busca o histórico completo para features que precisam dos dados brutos
+ * (achievements, gráfico de evolução, CSV export). Para estatísticas
+ * simples (total, média), prefira `getMyStats` — muito mais eficiente.
  */
 export async function listAllMySessions(token: string): Promise<TrainingSessionPublic[]> {
   const pageSize = 100;
@@ -44,9 +46,13 @@ export async function listAllMySessions(token: string): Promise<TrainingSessionP
 }
 
 /**
- * Envia apenas o resultado já calculado no dispositivo (nunca o vídeo
- * bruto — ver README.md seção 5 e backend/app/routers/sessions.py).
+ * Estatísticas agregadas do usuário (M4) — calculadas server-side em uma
+ * única query SQL em vez de buscar todas as sessões no cliente.
  */
+export function getMyStats(token: string): Promise<SessionStats> {
+  return apiRequest<SessionStats>('/sessions/stats', { token });
+}
+
 export function recordSession(
   token: string,
   exerciseId: string,

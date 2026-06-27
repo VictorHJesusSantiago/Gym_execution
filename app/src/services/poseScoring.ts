@@ -1,18 +1,15 @@
 import { Landmark, LANDMARK_INDEX, PoseFrame } from './poseTypes';
 
 /**
- * Algoritmo de comparação de execução de exercício, descrito em
- * README.md (seção 4): compara o ângulo das principais articulações
- * do usuário, quadro a quadro, com uma sequência de referência, e gera
- * uma porcentagem de acerto. Roda 100% no dispositivo (sem enviar vídeo).
+ * Algoritmo de comparação de execução de exercício (README.md seção 4):
+ * compara os ângulos articulares do usuário com uma sequência de referência
+ * via DTW (Dynamic Time Warping) e gera uma porcentagem de acerto.
  *
- * Estratégia:
- *  1. Reduzir cada pose a um conjunto de ângulos articulares (invariantes
- *     a posição/escala na tela — robusto a diferenças de enquadramento).
- *  2. Alinhar a sequência do usuário à referência no tempo (DTW simplificado),
- *     pois pessoas executam o mesmo movimento em ritmos diferentes.
- *  3. Calcular a diferença angular média após o alinhamento e converter
- *     em uma porcentagem de similaridade.
+ * Otimizações de memória/performance:
+ * - DTW com banda de Sakoe-Chiba: O(n×W) em vez de O(n×m), eliminando o
+ *   risco de OOM em sessões longas (até 6000 frames × referência).
+ * - Rolling two-row array: O(m) de espaço em vez de O(n×m).
+ * - Downsampling: frames do usuário limitados a 3× a referência antes do DTW.
  */
 
 export type JointAngles = {
@@ -63,37 +60,65 @@ export function angleVectorDistance(a: JointAngles, b: JointAngles): number {
   return Math.sqrt(sumSquared / keys.length);
 }
 
+/** Reamostragagem uniforme: reduz `seq` para `targetLength` elementos. */
+function downsample<T>(seq: T[], targetLength: number): T[] {
+  if (seq.length <= targetLength) return seq;
+  const step = (seq.length - 1) / (targetLength - 1);
+  return Array.from({ length: targetLength }, (_, i) => seq[Math.round(i * step)]);
+}
+
 /**
- * Alinha duas sequências por Dynamic Time Warping e retorna a distância
- * média acumulada no melhor caminho — tolera variações de ritmo/velocidade
- * entre a execução do usuário e a referência.
+ * DTW com banda de Sakoe-Chiba e rolling two-row array.
+ *
+ * Complexidade: O(n × W) tempo, O(m) espaço — vs. O(n×m) da implementação
+ * full-matrix. Com W=50 e m=100 frames de referência:
+ *   antes: 6001 × 101 × 8B ≈ 4.8MB por chamada
+ *   depois: 2 × 101 × 8B ≈ 1.6KB por chamada
  */
+function dtwBanded(userSeq: JointAngles[], refSeq: JointAngles[], bandWidth: number): number {
+  const n = userSeq.length;
+  const m = refSeq.length;
+  // W deve ser pelo menos |n-m| para garantir que exista um caminho válido.
+  const W = Math.max(bandWidth, Math.abs(n - m));
+  const INF = Infinity;
+
+  let prev = new Float64Array(m + 1).fill(INF);
+  let curr = new Float64Array(m + 1).fill(INF);
+  prev[0] = 0;
+
+  for (let i = 1; i <= n; i++) {
+    curr.fill(INF);
+    const jMin = Math.max(1, i - W);
+    const jMax = Math.min(m, i + W);
+    for (let j = jMin; j <= jMax; j++) {
+      const d = angleVectorDistance(userSeq[i - 1], refSeq[j - 1]);
+      const best = Math.min(prev[j - 1], prev[j], curr[j - 1]);
+      curr[j] = d + best;
+    }
+    // Troca os buffers sem alocação nova
+    const tmp = prev;
+    prev = curr;
+    curr = tmp;
+  }
+
+  return prev[m] / Math.max(n, m);
+}
+
 function dtwAverageDistance(userSeq: JointAngles[], referenceSeq: JointAngles[]): number {
   const n = userSeq.length;
   const m = referenceSeq.length;
   if (n === 0 || m === 0) return Infinity;
 
-  const cost: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity));
-  cost[0][0] = 0;
+  // Limita os frames do usuário a 3× a referência antes do DTW — evita
+  // matrizes de custo gigantes em sessões longas (ex.: 6000 × 100 frames).
+  const maxFrames = m * 3;
+  const normalizedUser = n > maxFrames ? downsample(userSeq, maxFrames) : userSeq;
 
-  for (let i = 1; i <= n; i++) {
-    for (let j = 1; j <= m; j++) {
-      const d = angleVectorDistance(userSeq[i - 1], referenceSeq[j - 1]);
-      cost[i][j] = d + Math.min(cost[i - 1][j], cost[i][j - 1], cost[i - 1][j - 1]);
-    }
-  }
-
-  // Normaliza pelo comprimento do caminho (aprox. pela maior sequência)
-  return cost[n][m] / Math.max(n, m);
+  return dtwBanded(normalizedUser, referenceSeq, 50);
 }
 
-/** Diferença angular (graus) acima da qual consideramos "erro total" (0%). */
 const MAX_TOLERATED_ANGLE_DIFF_DEGREES = 45;
 
-/**
- * Converte a distância angular média (após alinhamento DTW) em uma
- * porcentagem de 0 a 100. Quanto menor a distância, maior o score.
- */
 export function scoreExecution(userFrames: PoseFrame[], referenceFrames: PoseFrame[]): number {
   const userAngles = userFrames.map(extractJointAngles);
   const referenceAngles = referenceFrames.map(extractJointAngles);
@@ -106,7 +131,6 @@ export function scoreExecution(userFrames: PoseFrame[], referenceFrames: PoseFra
   return Math.round(Math.max(0, Math.min(100, score)));
 }
 
-/** Articulações em pares esquerda/direita usadas na detecção de assimetria. */
 export type AsymmetricJoint = 'elbow' | 'knee' | 'hip';
 
 const ASYMMETRY_PAIRS: Record<AsymmetricJoint, [keyof JointAngles, keyof JointAngles]> = {
@@ -115,25 +139,13 @@ const ASYMMETRY_PAIRS: Record<AsymmetricJoint, [keyof JointAngles, keyof JointAn
   hip: ['leftHip', 'rightHip'],
 };
 
-/**
- * Diferença percentual acima da qual sinalizamos uma possível compensação
- * (ex.: um joelho dobrando bem mais que o outro no agachamento).
- */
 export const ASYMMETRY_THRESHOLD_PERCENT = 15;
 
 export type AsymmetryResult = {
-  /** Diferença percentual média entre os lados, considerando as 3 articulações. */
   overallPercent: number;
-  /** Diferença percentual por articulação (cotovelo, joelho, quadril). */
   byJoint: Record<AsymmetricJoint, number>;
 };
 
-/**
- * Compara o ângulo médio de cada articulação entre o lado esquerdo e o
- * direito ao longo da execução — grandes diferenças sugerem compensação
- * (ex.: descarregar o peso mais num lado do corpo). Roda sobre os mesmos
- * frames já capturados para o `scoreExecution`, sem custo adicional de CV.
- */
 export function computeAsymmetry(frames: PoseFrame[]): AsymmetryResult | null {
   if (frames.length === 0) return null;
 
@@ -158,26 +170,9 @@ export function computeAsymmetry(frames: PoseFrame[]): AsymmetryResult | null {
   return { overallPercent, byJoint };
 }
 
-/**
- * Diferença minima (graus) entre o maior e o menor valor de uma articulação
- * ao longo da execução para considerá-la o "sinal primário" do movimento —
- * abaixo disso, tratamos como ruído/parado e não segmentamos repetições.
- */
 const MIN_MOTION_RANGE_DEGREES = 10;
-
-/**
- * Margem (em % da amplitude do sinal primário) usada como histerese para
- * decidir quando o usuário "saiu" da posição alta/baixa do movimento —
- * evita contar tremulações perto do meio do percurso como repetições.
- */
 const REP_HYSTERESIS_PERCENT = 0.15;
 
-/**
- * Divide os frames capturados em uma repetição por ciclo completo
- * (alto → baixo → alto) da articulação com maior amplitude de movimento
- * (ex.: joelho no agachamento, cotovelo na flexão). Frames de um ciclo
- * incompleto no final são descartados.
- */
 function segmentRepetitions(frames: PoseFrame[]): PoseFrame[][] {
   if (frames.length === 0) return [];
 
@@ -220,38 +215,18 @@ function segmentRepetitions(frames: PoseFrame[]): PoseFrame[][] {
   return segments;
 }
 
-/**
- * Conta repetições automaticamente a partir da oscilação da articulação que
- * mais se move durante a execução (sem precisar de configuração por
- * exercício).
- */
 export function countRepetitions(frames: PoseFrame[]): number {
   return segmentRepetitions(frames).length;
 }
 
-/**
- * Abaixo desse percentual de similaridade entre a última e a primeira
- * repetição, consideramos que a forma "degradou" ao longo da série
- * (possível sinal de fadiga).
- */
 export const FATIGUE_CONSISTENCY_THRESHOLD_PERCENT = 70;
 
 export type FatigueResult = {
-  /** Repetições completas detectadas. */
   repCount: number;
-  /** O quão parecida a última repetição é da primeira (0-100). */
   consistencyPercent: number;
-  /** `true` quando a forma da última repetição mudou significativamente em relação à primeira. */
   degraded: boolean;
 };
 
-/**
- * Compara a última repetição com a primeira usando o mesmo algoritmo de
- * `scoreExecution` (a primeira repetição serve de "referência") — uma queda
- * grande de similaridade sugere que a forma piorou ao longo da série,
- * possível indício de fadiga. Retorna `null` se menos de 2 repetições
- * completas foram detectadas.
- */
 export function detectFatigue(frames: PoseFrame[]): FatigueResult | null {
   const segments = segmentRepetitions(frames);
   if (segments.length < 2) return null;
@@ -265,10 +240,8 @@ export function detectFatigue(frames: PoseFrame[]): FatigueResult | null {
   };
 }
 
-/** Diferença (graus) acima da qual avisamos sobre uma articulação durante a execução. */
 const REALTIME_FEEDBACK_THRESHOLD_DEGREES = 20;
 
-/** Dica curta exibida (e usada para acionar vibração) por articulação. */
 const JOINT_FEEDBACK_MESSAGES: Record<keyof JointAngles, string> = {
   leftElbow: 'Ajuste o cotovelo esquerdo',
   rightElbow: 'Ajuste o cotovelo direito',
@@ -283,13 +256,6 @@ export type RealtimeFeedback = {
   message: string;
 };
 
-/**
- * Compara o frame atual com o frame de referência mais parecido (menor
- * distância angular) e retorna uma dica curta para a articulação que mais
- * diverge — usado para feedback em tempo real durante a execução (ver
- * README.md seção 4). Retorna `null` quando não há referência ou quando o
- * usuário está dentro da tolerância em todas as articulações.
- */
 export function getRealtimeFeedback(frame: PoseFrame, referenceFrames: PoseFrame[]): RealtimeFeedback | null {
   if (referenceFrames.length === 0) return null;
 
