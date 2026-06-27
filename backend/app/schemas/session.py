@@ -2,14 +2,11 @@ from datetime import datetime, timedelta, timezone
 
 from pydantic import BaseModel, Field, field_validator
 
-# Tolerância para clock skew entre dispositivo e servidor — além disso,
-# `executed_at` no futuro indica relógio do cliente errado ou payload
-# manipulado, e poluiria a ordenação do histórico (ORDER BY executed_at DESC).
 _FUTURE_TOLERANCE = timedelta(minutes=5)
 
 
 class TrainingSessionCreate(BaseModel):
-    """Resultado de uma série, calculado e enviado pelo app (não o vídeo bruto —
+    """Resultado de uma série calculado e enviado pelo app (não o vídeo bruto —
     o processamento de pose acontece no dispositivo, ver README.md seção 4)."""
 
     exercise_id: str
@@ -34,3 +31,13 @@ class TrainingSessionPublic(BaseModel):
     weight_kg: float | None = None
 
     model_config = {"from_attributes": True}
+
+
+class SessionStats(BaseModel):
+    """Agregados calculados server-side em uma query única — substitui a
+    necessidade de buscar todas as sessões no cliente para exibir estatísticas."""
+
+    total_sessions: int
+    avg_score: float | None = None
+    best_score: int | None = None
+    exercises_count: int

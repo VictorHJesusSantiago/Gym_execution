@@ -24,10 +24,11 @@ class UserPublic(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    """Campos editáveis pelo próprio usuário em `PUT /users/me`
-    (ver README.md — tela de Perfil, "Editar perfil")."""
+    """PATCH /users/me — todos os campos são opcionais.
+    `model_dump(exclude_unset=True)` no serviço garante que campos omitidos
+    não sobrescrevam valores existentes (diferente do PUT antigo)."""
 
-    name: str = Field(min_length=1, max_length=120)
+    name: Optional[str] = Field(default=None, min_length=1, max_length=120)
     weight_kg: Optional[float] = Field(default=None, ge=0, le=500)
     height_cm: Optional[float] = Field(default=None, ge=0, le=300)
     goal: Optional[str] = Field(default=None, max_length=255)
@@ -41,4 +42,15 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
     token_type: str = "bearer"
