@@ -19,7 +19,13 @@ class Settings(BaseSettings):
 
     jwt_secret_key: str = "change-me-in-env"
     jwt_algorithm: str = "HS256"
-    jwt_expire_minutes: int = 60 * 24
+    jwt_expire_minutes: int = 30
+    """Access token de curta duração (30 min) — renovado via POST /auth/refresh
+    com o refresh token de longa duração armazenado no cliente."""
+
+    refresh_token_expire_days: int = 30
+    """Refresh token válido por 30 dias; rotacionado a cada uso (ver
+    app/services/auth_service.py). Revogar via POST /auth/logout."""
 
     media_storage_url: str = "https://storage.example.com"
 
@@ -34,16 +40,15 @@ class Settings(BaseSettings):
     endpoints administrativos — não é uma conta de usuário comum."""
 
     cors_allowed_origins: list[str] = ["http://localhost:8081", "http://localhost:19006"]
-    """Origens autorizadas a chamar a API a partir do navegador (build web do
-    Expo). Em produção, sobrescrever via env (`CORS_ALLOWED_ORIGINS` como JSON
-    array, ex.: '["https://app.exemplo.com"]") com o(s) domínio(s) reais —
-    nunca usar "*" junto de credenciais (Authorization: Bearer)."""
+    """Origens autorizadas a chamar a API a partir do navegador. Em produção,
+    sobrescrever via env com o(s) domínio(s) reais — nunca usar "*" junto
+    de credentials (Authorization: Bearer)."""
 
     @model_validator(mode="after")
     def _validate_production_secrets(self) -> "Settings":
-        """Falha no boot, em vez de rodar com segredos padrão conhecidos
-        publicamente (este repositório) — evita forjar tokens JWT/chave
-        administrativa por falta de configuração do `.env` em produção."""
+        """Falha no boot em vez de rodar com segredos padrão conhecidos
+        publicamente — evita forjar tokens JWT/chave administrativa por
+        falta de configuração do `.env` em produção."""
         if self.environment == "production":
             for field_name in ("jwt_secret_key", "admin_api_key"):
                 if getattr(self, field_name) == "change-me-in-env":

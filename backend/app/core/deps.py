@@ -1,3 +1,5 @@
+import hmac
+
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -26,12 +28,7 @@ def get_current_user(
 
 
 def require_admin_api_key(x_admin_api_key: str = Header(...)) -> None:
-    """Protege endpoints administrativos chamados por processos internos
-    (ex.: pipeline de ingestão de referências), não por usuários comuns.
-
-    Comparação em tempo constante para evitar timing attacks na chave.
-    """
-    import hmac
-
+    """Protege endpoints administrativos chamados por processos internos.
+    Comparação em tempo constante para evitar timing attacks na chave."""
     if not hmac.compare_digest(x_admin_api_key, settings.admin_api_key):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Chave administrativa inválida")
