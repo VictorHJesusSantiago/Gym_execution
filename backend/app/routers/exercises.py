@@ -1,28 +1,29 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from ..core.database import get_db
 from ..core.deps import require_admin_api_key
 from ..models.exercise import Exercise
 from ..schemas.exercise import ExercisePublic, ExerciseReferenceModelUpdate
+from ..services import exercise_service
 
 router = APIRouter(prefix="/exercises", tags=["exercises"])
 
 
 @router.get("", response_model=list[ExercisePublic])
-def list_exercises(db: Session = Depends(get_db)) -> list[Exercise]:
-    """Catálogo de exercícios com link para o modelo de referência (pose),
-    cacheável localmente pelo app — ver README.md seção 3."""
-    return list(db.scalars(select(Exercise)))
+def list_exercises(
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+) -> list[Exercise]:
+    """Catálogo paginado (A7) — evita SELECT * ilimitado conforme o catálogo
+    cresce. Cacheável por CDN com Cache-Control no gateway."""
+    return exercise_service.list_exercises(db, limit=limit, offset=offset)
 
 
 @router.get("/{exercise_id}", response_model=ExercisePublic)
 def get_exercise(exercise_id: str, db: Session = Depends(get_db)) -> Exercise:
-    exercise = db.get(Exercise, exercise_id)
-    if exercise is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exercício não encontrado")
-    return exercise
+    return exercise_service.get_exercise(db, exercise_id)
 
 
 @router.put(
@@ -35,14 +36,4 @@ def update_reference_model(
     payload: ExerciseReferenceModelUpdate,
     db: Session = Depends(get_db),
 ) -> Exercise:
-    """Endpoint administrativo: registra a URL da sequência de pose recém
-    publicada (ver backend/pipeline/publish_reference.py), fechando o ciclo
-    de ingestão de vídeos de referência sem passo manual no banco."""
-    exercise = db.get(Exercise, exercise_id)
-    if exercise is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exercício não encontrado")
-
-    exercise.reference_model_uri = str(payload.reference_model_uri)
-    db.commit()
-    db.refresh(exercise)
-    return exercise
+    return exercise_service.update_exercise_reference_model(db, exercise_id, payload.reference_model_uri)
