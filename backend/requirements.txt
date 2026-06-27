@@ -1,15 +1,11 @@
 # Versões fixadas (pinned) propositalmente.
-# Antes de instalar: `pip install -r requirements.txt --require-hashes` (gerar hashes
-# com pip-compile/pip-audit) e conferir nomes contra o PyPI oficial para evitar
-# typosquatting — mesmo cuidado citado no README.md raiz.
+# Antes de atualizar: `pip-audit -r requirements.txt` para detectar CVEs;
+# conferir nomes no PyPI oficial para evitar typosquatting.
 #
-# `pydantic` foi ajustado de 2.7.4 (não tem wheel pré-compilada para
-# Python 3.13/3.14 — só compila via Rust/PyO3, que não suporta essas
-# versões) para 2.9.2, que tem wheel oficial para cp313/cp314 e mantém
-# compatibilidade com fastapi==0.111.0/pydantic-settings==2.3.4.
-#
-# `psycopg2-binary` foi ajustado de 2.9.9 (sem wheel para cp313/cp314)
-# para 2.9.12, que tem wheel oficial para essas versões.
+# Mudanças relevantes:
+# - python-jose removido: CVE-2024-33664/33663 (JWT algorithm confusion) — substituído por PyJWT==2.9.0
+# - passlib removido: abandonado desde 2020, incompatibilidade silenciosa com bcrypt>=4.0 — substituído por bcrypt nativo
+# - python-json-logger adicionado: logging estruturado JSON (ver app/core/logging.py)
 
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
@@ -18,12 +14,12 @@ pydantic-settings==2.3.4
 sqlalchemy==2.0.31
 alembic==1.13.2
 psycopg2-binary==2.9.12
-passlib[bcrypt]==1.7.4
-bcrypt==4.0.1
-python-jose[cryptography]==3.3.0
+bcrypt==4.2.0
+PyJWT==2.9.0
 python-multipart==0.0.9
 redis==5.0.7
 slowapi==0.1.9
+python-json-logger==2.0.7
 
 # testes
 pytest==8.2.2

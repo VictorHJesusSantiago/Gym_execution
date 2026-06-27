@@ -1,10 +1,12 @@
-# Build de produção da API — ver README.md raiz, seção "Deploy", para a
-# estratégia completa. Multi-stage para manter a imagem final enxuta (sem cache de
-# build/compiladores) e rodando como usuário não-root.
+# Build de produção da API — multi-stage para manter a imagem final enxuta
+# e rodando como usuário não-root.
 #
-# Cuidado de supply-chain: a imagem base é fixada por versão+digest do
-# Docker Hub oficial — confira o digest atual em https://hub.docker.com/_/python
-# antes de usar em produção (digests mudam a cada rebuild da imagem base).
+# SUPPLY-CHAIN: fixar por digest além da tag antes de ir para produção:
+#   docker pull python:3.12-slim
+#   docker inspect python:3.12-slim --format='{{index .RepoDigests 0}}'
+# Substitua as linhas FROM abaixo pelo resultado, ex:
+#   FROM python:3.12-slim@sha256:<digest> AS builder
+# O digest muda a cada rebuild da imagem base no Docker Hub.
 
 FROM python:3.12-slim AS builder
 
@@ -21,6 +23,9 @@ COPY --from=builder /root/.local /home/app/.local
 COPY alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
+COPY entrypoint.sh ./
+
+RUN chmod +x entrypoint.sh
 
 ENV PATH="/home/app/.local/bin:${PATH}" \
     PYTHONUNBUFFERED=1
@@ -29,6 +34,10 @@ USER app
 
 EXPOSE 8000
 
-# Roda as migrations e sobe a API — ver README.md raiz, seção "Deploy",
-# para a justificativa de fazer isso no entrypoint vs. um job de deploy separado.
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://localhost:8000/health || exit 1
+
+# entrypoint.sh: roda `alembic upgrade head` + uvicorn com set -e.
+# Para multi-réplica, extrair a migration para job separado — ver comentário
+# em entrypoint.sh.
+CMD ["./entrypoint.sh"]

@@ -1,4 +1,4 @@
-import { apiRequest, ApiError, setUnauthorizedHandler } from '../apiClient';
+import { apiRequest, ApiError, setTokenRefreshHandler, setUnauthorizedHandler } from '../apiClient';
 
 function mockFetchResponse(status: number, body: unknown): Response {
   return {
@@ -11,6 +11,7 @@ function mockFetchResponse(status: number, body: unknown): Response {
 describe('apiRequest', () => {
   afterEach(() => {
     setUnauthorizedHandler(null);
+    setTokenRefreshHandler(null);
     jest.restoreAllMocks();
   });
 
@@ -52,5 +53,31 @@ describe('apiRequest', () => {
 
     await apiRequest('/auth/login', { method: 'POST', body: {} }).catch(() => {});
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('faz single-flight do refresh: 401 concorrentes disparam um único refresh', async () => {
+    // Regressão: sem single-flight, cada 401 concorrente dispararia um refresh
+    // com o mesmo refresh token; o backend rotaciona/invalida no primeiro uso,
+    // então os demais falhariam e provocariam logout espúrio em cascata.
+    const refresh = jest.fn().mockResolvedValue('new-token');
+    setTokenRefreshHandler(refresh);
+
+    global.fetch = jest.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      const auth = (init?.headers as Record<string, string> | undefined)?.Authorization;
+      return Promise.resolve(
+        auth === 'Bearer new-token'
+          ? mockFetchResponse(200, { ok: true })
+          : mockFetchResponse(401, { detail: 'expirado' }),
+      );
+    });
+
+    const [a, b] = await Promise.all([
+      apiRequest('/users/me', { token: 'old-token' }),
+      apiRequest('/sessions', { token: 'old-token' }),
+    ]);
+
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(a).toEqual({ ok: true });
+    expect(b).toEqual({ ok: true });
   });
 });
