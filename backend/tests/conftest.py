@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -8,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.database import get_db
 from app.core.rate_limit import limiter
+from app.core.redis import get_redis
 from app.main import app
 from app.models.base import Base
 
@@ -46,9 +48,39 @@ def _override_get_db() -> Generator[Session, None, None]:
 app.dependency_overrides[get_db] = _override_get_db
 
 
+class _FakeRedis:
+    """Substituto in-memory de redis.Redis para testes.
+
+    Implementa apenas os métodos usados por auth_service: setex, get, delete.
+    Não requer Redis instalado; cada fixture `client` parte de um estado limpo.
+    """
+
+    def __init__(self) -> None:
+        self._store: dict[str, Any] = {}
+
+    def setex(self, name: str, time: int, value: Any) -> None:  # noqa: ARG002
+        self._store[name] = value
+
+    def get(self, name: str) -> Any:
+        return self._store.get(name)
+
+    def delete(self, *names: str) -> int:
+        deleted = 0
+        for name in names:
+            if name in self._store:
+                del self._store[name]
+                deleted += 1
+        return deleted
+
+
+_fake_redis = _FakeRedis()
+app.dependency_overrides[get_redis] = lambda: _fake_redis
+
+
 @pytest.fixture(autouse=True)
 def _reset_database() -> Generator[None, None, None]:
     Base.metadata.create_all(bind=engine)
+    _fake_redis._store.clear()
     yield
     Base.metadata.drop_all(bind=engine)
 

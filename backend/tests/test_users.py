@@ -18,18 +18,18 @@ def test_get_my_profile_returns_current_user(client, auth_headers):
 def test_update_my_profile_changes_name(client, auth_headers):
     headers = auth_headers()
 
-    response = client.put("/users/me", json={"name": "Novo Nome"}, headers=headers)
+    response = client.patch("/users/me", json={"name": "Novo Nome"}, headers=headers)
 
     assert response.status_code == 200
     assert response.json()["name"] == "Novo Nome"
 
-    # A mudança persiste para chamadas seguintes (não é só o retorno do PUT).
+    # A mudança persiste para chamadas seguintes (não é só o retorno do PATCH).
     profile = client.get("/users/me", headers=headers)
     assert profile.json()["name"] == "Novo Nome"
 
 
 def test_update_my_profile_requires_authentication(client):
-    response = client.put("/users/me", json={"name": "Novo Nome"})
+    response = client.patch("/users/me", json={"name": "Novo Nome"})
 
     assert response.status_code == 403
 
@@ -37,7 +37,7 @@ def test_update_my_profile_requires_authentication(client):
 def test_update_my_profile_sets_physical_profile_fields(client, auth_headers):
     headers = auth_headers()
 
-    response = client.put(
+    response = client.patch(
         "/users/me",
         json={
             "name": "Maria Teste",
@@ -56,7 +56,7 @@ def test_update_my_profile_sets_physical_profile_fields(client, auth_headers):
     assert body["goal"] == "Ganhar massa muscular"
     assert body["experience_level"] == "intermediate"
 
-    # A mudança persiste para chamadas seguintes (não é só o retorno do PUT).
+    # A mudança persiste para chamadas seguintes (não é só o retorno do PATCH).
     profile = client.get("/users/me", headers=headers)
     assert profile.json()["weight_kg"] == 65.5
     assert profile.json()["experience_level"] == "intermediate"
@@ -65,7 +65,7 @@ def test_update_my_profile_sets_physical_profile_fields(client, auth_headers):
 def test_update_my_profile_rejects_invalid_experience_level(client, auth_headers):
     headers = auth_headers()
 
-    response = client.put(
+    response = client.patch(
         "/users/me",
         json={"name": "Maria Teste", "experience_level": "expert"},
         headers=headers,
