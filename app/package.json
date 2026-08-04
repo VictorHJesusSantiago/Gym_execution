@@ -9,6 +9,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "test:coverage": "jest --coverage",
+    "typecheck": "tsc --noEmit",
     "generate:types": "openapi-typescript ../openapi.json --output src/types/api.generated.ts"
   },
   "dependencies": {
@@ -44,7 +46,19 @@
     "typescript": "~5.3.3"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "collectCoverageFrom": [
+      "src/services/**/*.ts",
+      "src/hooks/**/*.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 65,
+        "branches": 65,
+        "functions": 55,
+        "lines": 65
+      }
+    }
   },
   "comment_versoes": "Versoes fixadas (pinned) propositalmente. Antes de instalar, conferir nomes/hashes no registro oficial (npmjs.com) e revisar o lockfile gerado para evitar typosquatting/pacotes maliciosos."
 }
