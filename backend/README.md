@@ -37,9 +37,16 @@ backend/
 └── tests/
     ├── conftest.py           # SQLite em memória + override de get_db + fixtures (client, auth_headers, db_session)
     ├── test_auth.py          # registro/login: sucesso, e-mail duplicado, credenciais inválidas
-    ├── test_users.py         # GET/PUT /users/me: autenticação e persistência
+    ├── test_auth_refresh.py  # rotação, detecção de reuso, logout, token nunca em texto puro
+    ├── test_users.py         # GET/PATCH /users/me: autenticação e persistência
     ├── test_sessions.py      # registro de sessão, validação de score, isolamento por usuário
-    └── test_exercises.py     # catálogo, 404, endpoint admin (chave correta/incorreta/ausente)
+    ├── test_exercises.py     # catálogo, 404, endpoint admin (chave correta/incorreta/ausente)
+    ├── test_rate_limit.py    # 429 em /auth após AUTH_RATE_LIMIT (limiter religado só aqui)
+    ├── test_account_deletion.py      # DELETE /users/me: apaga conta + histórico, revoga sessões
+    ├── test_idempotency.py           # Idempotency-Key: retry não duplica sessão
+    ├── test_observability.py         # X-Request-ID e métricas RED em /metrics
+    ├── test_uuid_generation.py       # UUIDv7: versão, ordenação temporal, unicidade
+    └── test_app_catalog_contract.py  # o catálogo embutido no app não pode divergir do seed
 ```
 
 ## Instalação (faça você mesmo, com revisão antes de instalar)
@@ -69,8 +76,15 @@ desenvolvimento — gerar uma chave forte e aleatória em produção).
 
 ```bash
 cd backend
-pytest
+pytest                                        # 67 testes
+ruff check .                                  # lint (ruff==0.6.9, só CI/dev)
+pytest --cov=app --cov-fail-under=90          # gate de cobertura do CI (hoje: 94%)
 ```
+
+Não é preciso Postgres nem Redis: `tests/conftest.py` usa SQLite em memória,
+um dublê in-memory do Redis, e força `RATE_LIMIT_STORAGE_URI=memory://` **antes**
+de importar `app.*` (a ordem importa — `Settings` e o `Limiter` são singletons
+criados no import).
 
 A suíte ([tests/](tests/)) usa `TestClient` do FastAPI com **SQLite em
 memória** (ver [conftest.py](tests/conftest.py)) — não precisa do Postgres
@@ -146,7 +160,7 @@ usuários em sequência — ver `Settings.rate_limit_enabled` em `core/config.py
 ## Ambiente de desenvolvimento (testado nesta máquina)
 
 Um `.venv` local foi criado e a suíte de testes roda de ponta a ponta
-(27 passam, 1 pulado — o de integração com Postgres real):
+(**42 passam, 1 pulado** — o de integração com Postgres real):
 
 ```powershell
 cd backend
@@ -156,19 +170,19 @@ $env:DATABASE_URL = "sqlite:///./test_run.db"     # evita exigir Postgres local 
 ./.venv/Scripts/python -m pytest -q
 ```
 
-Duas notas de compatibilidade encontradas ao instalar de verdade nesta
-máquina (Python 3.13/3.14, Windows, sem toolchain Postgres/Rust) — os
-pins em `requirements.txt` já refletem os ajustes:
+Notas de compatibilidade encontradas ao instalar de verdade — os pins em
+`requirements.txt` já refletem os ajustes:
 
+- **Python 3.14 não funciona**: `pydantic-core` 2.9.2 não publica wheel para
+  `cp314` e o PyO3 dela recusa interpretadores acima de 3.13, então o build da
+  fonte falha. Use **3.12** (a versão do CI) ou 3.13.
 - **`pydantic`**: a versão originalmente fixada (2.7.4) não tem wheel
-  pré-compilada para Python 3.13/3.14 (só compila via Rust/PyO3, que não
-  suporta essas versões do Python ainda) — ajustada para `2.9.2`
-  (compatível com `fastapi==0.111.0`/`pydantic-settings==2.3.4`, com
-  wheel oficial para `cp313`/`cp314`).
-- **`bcrypt`**: fixado explicitamente em `4.0.1` — `passlib==1.7.4`
-  (2020) é incompatível com `bcrypt>=4.1` (que passou a levantar
-  `ValueError` em vez de truncar senhas longas no autoteste interno do
-  passlib, um problema conhecido do ecossistema).
+  pré-compilada para Python 3.13 — ajustada para `2.9.2` (compatível com
+  `fastapi==0.111.0`/`pydantic-settings==2.3.4`).
+- **`bcrypt`**: fixado em `4.2.0`, usado diretamente (`app/core/security.py`).
+  O `passlib` foi **removido**: abandonado desde 2020 e incompatível com
+  `bcrypt>=4.1`, que passou a levantar `ValueError` em vez de truncar senhas
+  longas no autoteste interno do passlib.
 - **`psycopg2-binary`**: ajustado de `2.9.9` (sem wheel para `cp313`/`cp314`)
   para `2.9.12` (tem wheel oficial para essas versões) — por padrão os
   testes usam `DATABASE_URL=sqlite:///...` (a suíte roda inteiramente

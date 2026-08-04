@@ -1,0 +1,49 @@
+# Lint do backend. Roda no CI (ver .github/workflows/ci.yml) e localmente com
+# `ruff check .`. Escolhido por ser um binário único, sem dependências
+# transitivas Python — menos superfície de supply-chain que flake8 + plugins.
+
+line-length = 110
+target-version = "py312"
+
+exclude = ["alembic/versions"]
+# Migrations são histórico imutável: reformatá-las depois de aplicadas em
+# produção não traz benefício e polui o diff de auditoria.
+
+[lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes — imports/variáveis não usados, nomes indefinidos
+    "I",    # isort — ordem de imports
+    "B",    # flake8-bugbear — armadilhas reais (mutável como default, etc.)
+    "UP",   # pyupgrade — sintaxe moderna disponível no target-version
+    "S",    # flake8-bandit — problemas de segurança
+    "ARG",  # argumentos não usados
+    "SIM",  # simplificações óbvias
+]
+
+ignore = [
+    "E501",  # comprimento de linha: já coberto por `line-length` no formatter
+    "B008",  # `Depends(...)` no default é o idioma do FastAPI, não um bug
+    "S104",  # bind em 0.0.0.0 é intencional dentro do contêiner
+    "UP017",
+    # `datetime.UTC` é só um alias de `timezone.utc`, sem ganho nenhum — não
+    # vale reescrever código de data que funciona só para agradar o linter.
+]
+
+[lint.per-file-ignores]
+"tests/**" = [
+    "S101",  # assert É a ferramenta do pytest
+    "S105",  # "senha" em teste é fixture, não credencial
+    "S106",
+    "S107",
+    "ARG001",  # fixture recebida só pelo efeito colateral (ex.: `client` monta o app)
+    "SLF001",
+]
+"pipeline/test_*.py" = ["S101"]
+"app/routers/auth.py" = [
+    "ARG001",
+    # O parâmetro `request` parece morto mas é OBRIGATÓRIO: o slowapi inspeciona
+    # a assinatura para achar o `Request` de onde tira o IP do cliente
+    # (`get_remote_address`). Remover "o argumento não usado" desliga o rate
+    # limiting em silêncio — exatamente o tipo de conserto que vira incidente.
+]

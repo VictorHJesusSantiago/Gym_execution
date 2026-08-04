@@ -34,8 +34,12 @@ USER app
 
 EXPOSE 8000
 
+# /health/live (não /health): o healthcheck do Docker reinicia o contêiner ao
+# falhar, então precisa medir só o processo. Indisponibilidade de banco é
+# readiness (/health/ready) e deve ser tratada pelo balanceador, não por
+# restart — ver app/main.py.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget -qO- http://localhost:8000/health || exit 1
+    CMD wget -qO- http://localhost:8000/health/live || exit 1
 
 # entrypoint.sh: roda `alembic upgrade head` + uvicorn com set -e.
 # Para multi-réplica, extrair a migration para job separado — ver comentário
