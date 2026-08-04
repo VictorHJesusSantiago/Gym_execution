@@ -34,17 +34,20 @@ app/
     │   ├── userService.ts        # consome GET/PUT /users/me (perfil)
     │   ├── profileStats.ts       # agrega "treinos realizados"/"pontuação média" (testável isoladamente)
     │   ├── preferencesStorage.ts # preferências locais via AsyncStorage
-    │   ├── exerciseCatalog.ts
+    │   ├── exerciseCatalog.ts    # fallback offline; ids DEVEM casar com o seed do backend
+    │   ├── exerciseCatalogService.ts  # busca o catalogo real em GET /exercises + cache
+    │   ├── theme.ts              # tema (darkMode + alto contraste + daltonismo)
     │   ├── poseTypes.ts          # tipos/contrato do detector de pose (PoseDetector)
     │   ├── poseScoring.ts        # algoritmo de comparação de execução (ângulos + DTW)
-    │   ├── mockPoseDetector.ts   # detector simulado p/ validar o fluxo sem libs nativas
     │   ├── moveNetAdapter.ts     # converte saída do MoveNet (17 kpts COCO) → formato MediaPipe (33), p/ integração futura
     │   ├── referenceLibrary.ts   # fonte das sequências de pose de referência
-    │   └── __tests__/            # poseScoring, profileStats, preferencesStorage, moveNetAdapter (Jest)
-    ├── hooks/
-    │   ├── useAuth.tsx           # AuthProvider/useAuth — fonte única do estado de sessão
-    │   └── usePoseSession.ts     # orquestra captura → scoring → resultado
-    └── components/               # (vazio, para componentes reutilizáveis)
+    │   └── __tests__/            # 20 suites (Jest)
+    └── hooks/
+        ├── useAuth.tsx           # AuthProvider/useAuth — fonte única do estado de sessão
+        ├── usePreferences.tsx    # PreferencesProvider — fonte única das preferências + tema
+        ├── useExerciseCatalog.ts # catálogo do backend com fallback embutido
+        ├── useReferenceSequence.ts # baixa/cacheia a sequência de referência
+        └── usePoseSession.ts     # orquestra captura → scoring → resultado
 ```
 
 ## Autenticação
@@ -104,8 +107,11 @@ sem precisar de endpoint agregado no backend) e expõe o `signOut`.
 preferências **só no dispositivo** via `AsyncStorage`
 ([preferencesStorage.ts](src/services/preferencesStorage.ts)): qualidade
 da câmera (Alta/Padrão/Economia — liga direto com a decisão de
-performance do [README.md raiz](../README.md#decisões-de-performance-alvo-2gb-ram-hardware-2015)), som de feedback e modo
-escuro. Cada alteração é salva imediatamente, sem botão de "salvar".
+performance do [README.md raiz](../README.md#decisões-de-performance-alvo-2gb-ram-hardware-2015) — alimenta de verdade a compressão
+do JPEG em `useCameraCapture`), vibração ao corrigir postura, modo escuro e
+acessibilidade (alto contraste, fontes grandes, paleta para daltonismo). Cada
+alteração é salva imediatamente e vale no app inteiro na hora, via
+`PreferencesProvider`.
 Testado com o mock oficial de `AsyncStorage` em
 [preferencesStorage.test.ts](src/services/__tests__/preferencesStorage.test.ts)
 (padrões, persistência, merge de dados parciais e recuperação de
@@ -147,8 +153,19 @@ vs `poseDetector.web.ts`, resolvido pelo Metro):
 > não roda módulos nativos customizados. `tsc --noEmit` e os testes Jest
 > passam, validando os tipos contra as APIs reais das libs instaladas.
 
-Próximo passo possível: substituir `getReferenceFrames` por consumo real
-da API do backend (vídeos de referência processados, cacheados localmente).
+### Sequência de referência
+
+`getReferenceFrames` ([referenceLibrary.ts](src/services/referenceLibrary.ts))
+já **baixa e cacheia** a sequência real publicada pelo pipeline, resolvendo o
+`referenceModelUri` a partir do catálogo vindo de `GET /exercises`. O envelope
+é validado antes do uso (formato de landmark, exercício correspondente,
+presença de frames) — o storage de mídia é público e fora do controle da API,
+e um arquivo truncado geraria `NaN` silencioso no cálculo de ângulos.
+
+> ⚠️ **Nenhuma sequência real foi publicada ainda**, então na prática todo
+> exercício ainda cai na sequência sintética e exibe o aviso de "pontuação
+> experimental" — que some sozinho, por exercício, assim que houver referência.
+> Ver [ADR-0001](../docs/adr/0001-reference-pose-sequences-are-synthetic.md).
 
 ## Instalação (faça você mesmo, com revisão antes de instalar)
 
@@ -160,7 +177,9 @@ da API do backend (vídeos de referência processados, cacheados localmente).
 
 ```bash
 cd app
-npm install
+npm ci                 # respeita o lockfile (não use `npm install` aqui)
+npm run typecheck      # tsc --noEmit — o Jest NÃO checa tipos (babel apaga)
+npm run test:coverage  # 132 testes + gate de cobertura
 npx expo start
 ```
 

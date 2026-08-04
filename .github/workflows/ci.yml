@@ -38,8 +38,25 @@ jobs:
       - name: Instalar dependências
         run: pip install -r requirements.txt
 
-      - name: Rodar testes
-        run: pytest
+      # Ferramentas só de CI, fixadas — não entram em requirements.txt para não
+      # irem parar na imagem de produção.
+      - name: Instalar ferramentas de qualidade
+        run: pip install ruff==0.6.9 pytest-cov==5.0.0 pip-audit==2.7.3
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      # `--cov-fail-under` é o gate: sem ele a cobertura é só um número num
+      # relatório que ninguém abre. Está em 94%; o piso fica em 90 para dar
+      # folga a um refactor legítimo. Regra: subir, nunca descer.
+      - name: Rodar testes com gate de cobertura
+        run: pytest --cov=app --cov-report=term-missing --cov-fail-under=90
+
+      # RNF08 ("supply-chain security") era só uma promessa no README: nada no
+      # pipeline checava CVEs. pip-audit consulta a Advisory Database do PyPI
+      # contra o que está instalado.
+      - name: Auditar dependências (CVEs conhecidas)
+        run: pip-audit -r requirements.txt --strict
 
   app-tests:
     name: App (jest)
@@ -59,8 +76,23 @@ jobs:
       - name: Instalar dependências (respeita o lockfile)
         run: npm ci
 
-      - name: Rodar testes
-        run: npm test -- --ci
+      # `tsconfig.json` já tem strict: true, mas nada no CI compilava o projeto —
+      # o Jest roda por babel, que APAGA os tipos sem checá-los. Erros de tipo
+      # (assinatura trocada, campo renomeado num contrato da API) passavam com a
+      # suíte verde. Usa o typescript já pinado em devDependencies.
+      - name: Checagem de tipos (tsc --noEmit)
+        run: npm run typecheck
+
+      # O gate de cobertura vive em package.json (`jest.coverageThreshold`) —
+      # o Jest falha sozinho ao ficar abaixo dele.
+      - name: Rodar testes com gate de cobertura
+        run: npm run test:coverage -- --ci
+
+      # Contrapartida de pip-audit no backend; `npm audit` é embutido no npm,
+      # sem dependência nova. Só falha em severidade alta/crítica para não
+      # travar o pipeline por avisos de transitivas de dev.
+      - name: Auditar dependências (CVEs conhecidas)
+        run: npm audit --audit-level=high
 
   backend-integration-tests:
     name: Backend (integração — Postgres real)
