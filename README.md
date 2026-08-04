@@ -240,22 +240,22 @@ the phone; only the final score is sent to the backend.
 |---|---|---|---|---|
 | RF01 | Register/Login | UC01, UC02 | `backend/app/routers/auth.py` | `backend/tests/test_auth.py` |
 | RF02 | Browse catalog | UC03, UC04 | `backend/app/routers/exercises.py` | `backend/tests/test_exercises.py` |
-| RF03 | Capture + on-device pose detection | UC05 | `app/services/poseDetector*.ts` | `app/__tests__/poseDetector.test.ts` |
-| RF04 | Compute % score | UC05 | `app/services/scoreExecution.ts` | `app/__tests__/scoreExecution.test.ts` |
-| RF05 | Show result immediately | UC05 | `app/screens/ExecutionScreen.tsx` | Manual / E2E |
+| RF03 | Capture + on-device pose detection | UC05 | `app/src/services/poseDetector*.ts` | `app/src/services/__tests__/moveNetAdapter.test.ts` (adapter only — native path unverified) |
+| RF04 | Compute % score | UC05 | `app/src/services/poseScoring.ts` | `app/src/services/__tests__/poseScoring.test.ts` — ⚠️ **partial**: the algorithm is tested, but it still scores against a synthetic reference, see [ADR-0001](docs/adr/0001-reference-pose-sequences-are-synthetic.md) |
+| RF05 | Show result immediately | UC05 | `app/src/screens/ExecutionScreen.tsx` | Manual / E2E |
 | RF06 | Paginated history | UC06 | `backend/app/routers/sessions.py` | `backend/tests/test_sessions.py` |
 | RF07 | View/edit profile | UC07 | `backend/app/routers/users.py` | `backend/tests/test_users.py` |
-| RF08 | Local preferences | UC08 | `app/hooks/usePreferences.ts` | `app/__tests__/usePreferences.test.ts` |
-| RF09 | Publish reference model | UC09 | `backend/app/routers/exercises.py` (admin) | `backend/tests/test_admin.py` |
-| RF10 | Logout | UC10 | `app/services/auth.ts` | `app/__tests__/auth.test.ts` |
+| RF08 | Local preferences | UC08 | `app/src/services/preferencesStorage.ts` | `app/src/services/__tests__/preferencesStorage.test.ts` — ⚠️ **partial**: `cameraQuality`, `soundFeedback` and `darkMode` are persisted but no consumer applies them |
+| RF09 | Publish reference model | UC09 | `backend/app/routers/exercises.py` (admin) | `backend/tests/test_exercises.py` |
+| RF10 | Logout | UC10 | `app/src/services/authService.ts`, `backend/app/services/auth_service.py` | `backend/tests/test_auth_refresh.py` |
 | RNF01 | Performance on low-end devices | UC05 | INT8 TFLite model, `SAMPLE_INTERVAL_MS` | Manual perf test on 2GB device |
 | RNF02 | Privacy (no raw media) | UC05 | `scoreExecution.ts` discards frames after processing | Code review + `RN04` check |
 | RNF03 | Security (JWT, hashing, rate limit) | UC01, UC02, UC09 | `backend/app/core/security.py` | `backend/tests/test_auth.py` |
 | RNF04 | Cross-platform | All | Expo (Android/iOS/Web) | CI build matrix |
 | RNF05 | Offline-first CV | UC05 | Bundled/cached TFLite model | Manual offline test |
-| RNF06 | Maintainability (typing/tests) | All | TypeScript + Pydantic | `pytest`, `Jest` in CI |
+| RNF06 | Maintainability (typing/tests) | All | TypeScript + Pydantic | `pytest`, `Jest` and `tsc --noEmit` in CI |
 | RNF07 | Scalability | All | Stateless FastAPI + Postgres/Redis | Load test (future) |
-| RNF08 | Supply-chain security | All | Lockfiles, pinned versions | `npm ci`, `pip --require-hashes` |
+| RNF08 | Supply-chain security | All | Lockfiles, pinned versions | `npm ci`, `pip-audit` + `npm audit` in CI |
 | RNF09 | CI/CD | All | `.github/workflows/ci.yml` | CI run on push/PR |
 | DOM01–DOM06 | Domain rules (pose/scoring) | UC05 | `app/services/`, `backend/pipeline/` | Unit tests + manual validation |
 | DAT01–DAT06 | Data persistence rules | UC01, UC05, UC06, UC08 | `backend/app/models/`, `app/services/storage.ts` | `backend/tests/`, code review |
@@ -810,7 +810,7 @@ erDiagram
 | `training_sessions` | `id` | `uuid` | PK, default `gen_random_uuid()` | Unique execution identifier |
 | `training_sessions` | `user_id` | `uuid` | FK → `users.id`, NOT NULL | Owner of the execution |
 | `training_sessions` | `exercise_id` | `uuid` | FK → `exercises.id`, NOT NULL | Exercise performed |
-| `training_sessions` | `score` | `smallint` | NOT NULL, `CHECK (score BETWEEN 0 AND 100)` | Similarity score (angles + DTW) |
+| `training_sessions` | `score` | `integer` | NOT NULL, `CHECK (score >= 0 AND score <= 100)` (migration `0007`) | Similarity score (angles + DTW) |
 | `training_sessions` | `executed_at` | `timestamptz` | NOT NULL | When the set was performed |
 
 </details>
@@ -1232,15 +1232,27 @@ docker compose up -d
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
-| `POST` | `/auth/register` | Register a new user | — |
-| `POST` | `/auth/login` | Login, returns JWT | — |
-| `GET` | `/exercises` | List the exercise catalog | 🔑 |
-| `GET` | `/exercises/{id}` | Get exercise details | 🔑 |
+| `POST` | `/auth/register` | Register a new user | — (rate-limited) |
+| `POST` | `/auth/login` | Login, returns access + refresh token | — (rate-limited) |
+| `POST` | `/auth/refresh` | Rotate the refresh token, get a new pair | — (rate-limited) |
+| `POST` | `/auth/logout` | Revoke a refresh token | — (rate-limited) |
+| `GET` | `/exercises` | List the exercise catalog (paginated) | — public |
+| `GET` | `/exercises/{id}` | Get exercise details | — public |
 | `PUT` | `/exercises/{id}/reference-model` | Publish a reference pose sequence URI | 🛡️ Admin |
 | `GET` | `/sessions` | List the user's training sessions (paginated) | 🔑 |
+| `GET` | `/sessions/stats` | Aggregated stats for the current user | 🔑 |
 | `POST` | `/sessions` | Record a training session result | 🔑 |
 | `GET` | `/users/me` | Get current user profile | 🔑 |
-| `PUT` | `/users/me` | Update current user profile | 🔑 |
+| `PATCH` | `/users/me` | Partially update the current user profile | 🔑 |
+| `GET` | `/health/live` | Liveness probe (process only) | — |
+| `GET` | `/health/ready` | Readiness probe (checks the database) | — |
+
+> The catalog endpoints are **public by design** — the app fetches the catalog
+> before the user has a session. This table is generated by hand; it drifted
+> before (`/exercises` was documented as authenticated, `/users/me` as `PUT`
+> when it is `PATCH`, and `/auth/refresh`, `/auth/logout` and `/sessions/stats`
+> were missing entirely). The authoritative contract is the OpenAPI schema:
+> `python backend/scripts/export_openapi.py`.
 
 ## 🧪 Testing & CI/CD
 
