@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">92.85% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>13/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">91.66% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>11/12</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -119,29 +119,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">46x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,30 +159,30 @@ import { fetchExerciseCatalog, loadCachedCatalog } from '../services/exerciseCat
  * Falha de rede é ignorada de propósito: o app funciona offline (RNF05) e o
  * usuário não tem o que fazer com um erro sobre um catálogo que já está na tela.
  */
-export function <span class="fstat-no" title="function not covered" >useExerciseCatalog(</span>): { exercises: Exercise[] } {
-  const [exercises, setExercises] = <span class="cstat-no" title="statement not covered" >useState&lt;Exercise[]&gt;(EXERCISES);</span>
+export function useExerciseCatalog(): { exercises: Exercise[] } {
+  const [exercises, setExercises] = useState&lt;Exercise[]&gt;(EXERCISES);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-    let active = <span class="cstat-no" title="statement not covered" >true;</span>
-    const apply = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>atalog: Exercise[]) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      if (active) <span class="cstat-no" title="statement not covered" >setExercises(catalog);</span></span>
+  useEffect(() =&gt; {
+    let active = true;
+    const apply = (catalog: Exercise[]) =&gt; {
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (active) setExercises(catalog);
     };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    loadCachedCatalog().then(apply).catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {});</span>
-<span class="cstat-no" title="statement not covered" >    fetchExerciseCatalog().then(apply).catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {});</span>
+    loadCachedCatalog().then(apply).catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {});
+    fetchExerciseCatalog().then(apply).catch(() =&gt; {});
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    return <span class="fstat-no" title="function not covered" >()</span> =&gt; {
 <span class="cstat-no" title="statement not covered" >      active = false;</span>
     };
   }, []);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return { exercises };</span>
+  return { exercises };
 }
 &nbsp;
 /** Grupos musculares presentes no catálogo, para o filtro de `ExerciseListScreen`. */
-export function <span class="fstat-no" title="function not covered" >useMuscleGroups(</span>exercises: Exercise[]): string[] {
-<span class="cstat-no" title="statement not covered" >  return useMemo(</span>
-<span class="fstat-no" title="function not covered" >    ()</span> =&gt; <span class="cstat-no" title="statement not covered" >Array.from(new Set(exercises.map(<span class="fstat-no" title="function not covered" >(e</span>xercise) =&gt; <span class="cstat-no" title="statement not covered" >exercise.muscleGroup)</span>)),</span>
+export function useMuscleGroups(exercises: Exercise[]): string[] {
+  return useMemo(
+    () =&gt; Array.from(new Set(exercises.map((exercise) =&gt; exercise.muscleGroup))),
     [exercises]
   );
 }
@@ -193,7 +193,7 @@ export function <span class="fstat-no" title="function not covered" >useMuscleGr
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-04T13:32:34.514Z
+                at 2026-08-04T23:59:23.123Z
             </div>
         <script src="../prettify.js"></script>
         <script>
