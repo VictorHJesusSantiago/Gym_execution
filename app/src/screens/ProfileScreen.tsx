@@ -1,20 +1,17 @@
 import { useCallback, useState } from 'react';
-import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Share, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Share, StyleSheet, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
-import { getMyProfile, updateMyProfile } from '../services/userService';
+import { deleteMyAccount, getMyProfile, updateMyProfile } from '../services/userService';
 import { listAllMySessions, type TrainingSessionPublic } from '../services/sessionsService';
 import { ApiError } from '../services/apiClient';
 import { computeProfileStats, computeStreak, type ProfileStats } from '../services/profileStats';
 import { computeAchievements, type Achievement } from '../services/achievements';
 import { computePeriodReport, computeScoreSeries, type PeriodReport, type ScorePoint } from '../services/trainingReport';
 import { sessionsToCSV } from '../services/exportSessions';
-import { EXERCISES } from '../services/exerciseCatalog';
+import { exerciseName } from '../services/exerciseCatalog';
+import { useTheme } from '../hooks/usePreferences';
 import type { ExperienceLevel, UserPublic } from '../services/authService';
-
-function exerciseName(exerciseId: string): string {
-  return EXERCISES.find((exercise) => exercise.id === exerciseId)?.name ?? exerciseId;
-}
 
 const EXPERIENCE_LEVEL_OPTIONS: { value: ExperienceLevel; label: string }[] = [
   { value: 'beginner', label: 'Iniciante' },
@@ -42,6 +39,7 @@ function parseOptionalNumber(input: string): number | null {
  */
 export function ProfileScreen() {
   const { token, signOut } = useAuth();
+  const theme = useTheme();
   const [user, setUser] = useState<UserPublic | null>(null);
   const [stats, setStats] = useState<ProfileStats>({ trainingCount: 0, averageScore: null });
   const [streakDays, setStreakDays] = useState(0);
@@ -111,6 +109,36 @@ export function ProfileScreen() {
     }
   }
 
+  /**
+   * Exclusão de conta (LGPD/GDPR). Confirmação obrigatória e explícita sobre o
+   * que se perde: é irreversível e leva o histórico junto.
+   */
+  function handleDeleteAccount() {
+    Alert.alert(
+      'Excluir conta',
+      'Isto apaga sua conta e TODO o histórico de treinos, de forma permanente. Não é possível desfazer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir tudo',
+          style: 'destructive',
+          onPress: async () => {
+            if (!token) return;
+            try {
+              await deleteMyAccount(token);
+              // A conta já não existe: limpa as credenciais locais e volta à
+              // pilha pública. `signOut` também tenta revogar no servidor, o
+              // que falha em silêncio aqui — comportamento correto.
+              await signOut();
+            } catch (err) {
+              setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a conta.');
+            }
+          },
+        },
+      ]
+    );
+  }
+
   /** Compartilha o histórico em CSV via a folha de compartilhamento nativa (sem dependência nova). */
   async function handleExport() {
     const csv = sessionsToCSV(sessions, exerciseName);
@@ -119,34 +147,40 @@ export function ProfileScreen() {
 
   if (loading || !user) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={[styles.center, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container} accessibilityLabel="Perfil do usuário">
+    <ScrollView
+      style={{ backgroundColor: theme.background }}
+      contentContainerStyle={styles.container}
+      accessibilityLabel="Perfil do usuário"
+    >
       {editing ? (
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+          placeholderTextColor={theme.muted}
           value={name}
           onChangeText={setName}
           placeholder="Nome"
           accessibilityLabel="Nome"
         />
       ) : (
-        <Text style={styles.name}>{user.name}</Text>
+        <Text style={[styles.name, { color: theme.text }]}>{user.name}</Text>
       )}
-      <Text style={styles.email}>{user.email}</Text>
+      <Text style={[styles.email, { color: theme.muted }]}>{user.email}</Text>
 
       {editing ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dados físicos</Text>
+        <View style={[styles.section, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Dados físicos</Text>
           <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Peso (kg)</Text>
+            <Text style={[styles.fieldLabel, { color: theme.text }]}>Peso (kg)</Text>
             <TextInput
-              style={styles.fieldInput}
+              style={[styles.fieldInput, { color: theme.text, borderColor: theme.border }]}
+              placeholderTextColor={theme.muted}
               value={weightInput}
               onChangeText={setWeightInput}
               keyboardType="numeric"
@@ -155,9 +189,10 @@ export function ProfileScreen() {
             />
           </View>
           <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Altura (cm)</Text>
+            <Text style={[styles.fieldLabel, { color: theme.text }]}>Altura (cm)</Text>
             <TextInput
-              style={styles.fieldInput}
+              style={[styles.fieldInput, { color: theme.text, borderColor: theme.border }]}
+              placeholderTextColor={theme.muted}
               value={heightInput}
               onChangeText={setHeightInput}
               keyboardType="numeric"
@@ -166,29 +201,30 @@ export function ProfileScreen() {
             />
           </View>
           <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Objetivo</Text>
+            <Text style={[styles.fieldLabel, { color: theme.text }]}>Objetivo</Text>
             <TextInput
-              style={styles.fieldInput}
+              style={[styles.fieldInput, { color: theme.text, borderColor: theme.border }]}
+              placeholderTextColor={theme.muted}
               value={goalInput}
               onChangeText={setGoalInput}
               placeholder="ex.: ganhar massa"
               accessibilityLabel="Objetivo, opcional"
             />
           </View>
-          <Text style={styles.fieldLabel}>Nível de experiência</Text>
+          <Text style={[styles.fieldLabel, { color: theme.text }]}>Nível de experiência</Text>
           <View style={styles.optionsRow}>
             {EXPERIENCE_LEVEL_OPTIONS.map((option) => {
               const selected = experienceLevel === option.value;
               return (
                 <Pressable
                   key={option.value}
-                  style={[styles.option, selected && styles.optionSelected]}
+                  style={[styles.option, { borderColor: theme.border }, selected && { backgroundColor: theme.primary, borderColor: theme.primary }]}
                   onPress={() => setExperienceLevel(option.value)}
                   accessibilityRole="radio"
                   accessibilityState={{ selected }}
                   accessibilityLabel={`Nível de experiência: ${option.label}`}
                 >
-                  <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{option.label}</Text>
+                  <Text style={[styles.optionText, { color: selected ? theme.onPrimary : theme.text }]}>{option.label}</Text>
                 </Pressable>
               );
             })}
@@ -196,36 +232,36 @@ export function ProfileScreen() {
         </View>
       ) : (
         (user.weight_kg != null || user.height_cm != null || user.goal || user.experience_level) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Dados físicos</Text>
-            {user.weight_kg != null && <Text style={styles.sectionText}>Peso: {user.weight_kg}kg</Text>}
-            {user.height_cm != null && <Text style={styles.sectionText}>Altura: {user.height_cm}cm</Text>}
-            {user.goal && <Text style={styles.sectionText}>Objetivo: {user.goal}</Text>}
+          <View style={[styles.section, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Dados físicos</Text>
+            {user.weight_kg != null && <Text style={[styles.sectionText, { color: theme.muted }]}>Peso: {user.weight_kg}kg</Text>}
+            {user.height_cm != null && <Text style={[styles.sectionText, { color: theme.muted }]}>Altura: {user.height_cm}cm</Text>}
+            {user.goal && <Text style={[styles.sectionText, { color: theme.muted }]}>Objetivo: {user.goal}</Text>}
             {user.experience_level && (
-              <Text style={styles.sectionText}>Nível: {EXPERIENCE_LEVEL_LABELS[user.experience_level]}</Text>
+              <Text style={[styles.sectionText, { color: theme.muted }]}>Nível: {EXPERIENCE_LEVEL_LABELS[user.experience_level]}</Text>
             )}
           </View>
         )
       )}
 
       <View style={styles.statsRow}>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{stats.trainingCount}</Text>
-          <Text style={styles.statLabel}>Treinos realizados</Text>
+        <View style={[styles.statBox, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.statValue, { color: theme.accent }]}>{stats.trainingCount}</Text>
+          <Text style={[styles.statLabel, { color: theme.muted }]}>Treinos realizados</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{stats.averageScore !== null ? `${stats.averageScore}%` : '—'}</Text>
-          <Text style={styles.statLabel}>Pontuação média</Text>
+        <View style={[styles.statBox, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.statValue, { color: theme.accent }]}>{stats.averageScore !== null ? `${stats.averageScore}%` : '—'}</Text>
+          <Text style={[styles.statLabel, { color: theme.muted }]}>Pontuação média</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{streakDays}</Text>
-          <Text style={styles.statLabel}>{streakDays === 1 ? 'dia seguido' : 'dias seguidos'}</Text>
+        <View style={[styles.statBox, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.statValue, { color: theme.accent }]}>{streakDays}</Text>
+          <Text style={[styles.statLabel, { color: theme.muted }]}>{streakDays === 1 ? 'dia seguido' : 'dias seguidos'}</Text>
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Esta semana</Text>
-        <Text style={styles.sectionText}>
+      <View style={[styles.section, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Esta semana</Text>
+        <Text style={[styles.sectionText, { color: theme.muted }]}>
           {weeklyReport.sessionsCount === 0
             ? 'Nenhum treino registrado nos últimos 7 dias.'
             : `${weeklyReport.sessionsCount} treino${weeklyReport.sessionsCount > 1 ? 's' : ''} · pontuação média ${weeklyReport.averageScore}% · ${weeklyReport.totalWeightKg}kg movimentados`}
@@ -233,24 +269,27 @@ export function ProfileScreen() {
       </View>
 
       {scoreSeries.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Evolução da pontuação</Text>
+        <View style={[styles.section, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Evolução da pontuação</Text>
           <View style={styles.chart}>
             {scoreSeries.map((point, index) => (
               <View key={index} style={styles.chartBarContainer}>
-                <View style={[styles.chartBar, { height: `${Math.max(point.score, 2)}%` }]} />
+                <View style={[styles.chartBar, { height: `${Math.max(point.score, 2)}%`, backgroundColor: theme.accent }]} />
               </View>
             ))}
           </View>
         </View>
       )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Conquistas</Text>
+      <View style={[styles.section, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Conquistas</Text>
         {achievements.map((achievement) => (
           <Text
             key={achievement.id}
-            style={achievement.unlocked ? styles.achievementUnlocked : styles.achievementLocked}
+            style={[
+              achievement.unlocked ? styles.achievementUnlocked : styles.achievementLocked,
+              { color: achievement.unlocked ? theme.positive : theme.muted },
+            ]}
           >
             {achievement.unlocked ? '[OK] ' : '[ ] '}
             {achievement.title}
@@ -258,46 +297,55 @@ export function ProfileScreen() {
         ))}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
 
       {editing ? (
         <Pressable
-          style={[styles.button, saving && styles.buttonDisabled]}
+          style={[styles.button, { backgroundColor: saving ? theme.disabled : theme.primary }]}
           onPress={handleSave}
           disabled={saving}
           accessibilityRole="button"
           accessibilityLabel="Salvar perfil"
           accessibilityState={{ disabled: saving }}
         >
-          <Text style={styles.buttonText}>{saving ? 'Salvando...' : 'Salvar'}</Text>
+          <Text style={[styles.buttonText, { color: theme.onPrimary }]}>{saving ? 'Salvando...' : 'Salvar'}</Text>
         </Pressable>
       ) : (
         <Pressable
-          style={styles.button}
+          style={[styles.button, { backgroundColor: theme.primary }]}
           onPress={() => setEditing(true)}
           accessibilityRole="button"
           accessibilityLabel="Editar perfil"
         >
-          <Text style={styles.buttonText}>Editar perfil</Text>
+          <Text style={[styles.buttonText, { color: theme.onPrimary }]}>Editar perfil</Text>
         </Pressable>
       )}
 
       <Pressable
-        style={styles.secondaryButton}
+        style={[styles.secondaryButton, { borderColor: theme.danger }]}
         onPress={handleExport}
         accessibilityRole="button"
         accessibilityLabel="Exportar histórico em CSV"
       >
-        <Text style={styles.secondaryButtonText}>Exportar histórico (CSV)</Text>
+        <Text style={[styles.secondaryButtonText, { color: theme.danger }]}>Exportar histórico (CSV)</Text>
       </Pressable>
 
       <Pressable
-        style={styles.secondaryButton}
+        style={[styles.secondaryButton, { borderColor: theme.danger }]}
         onPress={signOut}
         accessibilityRole="button"
         accessibilityLabel="Sair da conta"
       >
-        <Text style={styles.secondaryButtonText}>Sair</Text>
+        <Text style={[styles.secondaryButtonText, { color: theme.danger }]}>Sair</Text>
+      </Pressable>
+
+      <Pressable
+        onPress={handleDeleteAccount}
+        accessibilityRole="button"
+        accessibilityLabel="Excluir conta e todo o histórico permanentemente"
+        hitSlop={8}
+      >
+        <Text style={[styles.deleteAccountLink, { color: theme.muted }]}>Excluir minha conta</Text>
       </Pressable>
     </ScrollView>
   );
@@ -307,20 +355,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', padding: 24, gap: 12, paddingTop: 48 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   name: { fontSize: 22, fontWeight: '700' },
-  email: { fontSize: 14, color: '#64748b', marginBottom: 16 },
-  input: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 10, fontSize: 18, minWidth: 220, textAlign: 'center' },
+  email: { fontSize: 14, marginBottom: 16 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 10, fontSize: 18, minWidth: 220, textAlign: 'center' },
   statsRow: { flexDirection: 'row', gap: 16, marginVertical: 8 },
-  statBox: { alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 8, padding: 16, minWidth: 100 },
-  statValue: { fontSize: 24, fontWeight: '700', color: '#2563eb' },
-  statLabel: { fontSize: 12, color: '#64748b', marginTop: 4, textAlign: 'center' },
-  section: { width: '100%', maxWidth: 320, backgroundColor: '#f1f5f9', borderRadius: 8, padding: 16, gap: 4 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#334155' },
-  sectionText: { fontSize: 13, color: '#64748b' },
+  statBox: { alignItems: 'center', borderRadius: 8, padding: 16, minWidth: 100 },
+  statValue: { fontSize: 24, fontWeight: '700' },
+  statLabel: { fontSize: 12, marginTop: 4, textAlign: 'center' },
+  section: { width: '100%', maxWidth: 320, borderRadius: 8, padding: 16, gap: 4 },
+  sectionTitle: { fontSize: 14, fontWeight: '700' },
+  sectionText: { fontSize: 13 },
   fieldRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  fieldLabel: { fontSize: 13, color: '#334155', fontWeight: '600' },
+  fieldLabel: { fontSize: 13, fontWeight: '600' },
   fieldInput: {
     borderWidth: 1,
-    borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -330,19 +377,19 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   optionsRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  option: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12 },
-  optionSelected: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  optionText: { color: '#334155', fontSize: 13 },
-  optionTextSelected: { color: '#fff', fontWeight: '600' },
+  option: { borderWidth: 1, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12 },
+  optionText: { fontSize: 13 },
   chart: { height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginTop: 8 },
   chartBarContainer: { flex: 1, height: '100%', justifyContent: 'flex-end' },
-  chartBar: { backgroundColor: '#2563eb', borderRadius: 4, minHeight: 2 },
-  achievementUnlocked: { fontSize: 13, color: '#16a34a', fontWeight: '600' },
-  achievementLocked: { fontSize: 13, color: '#94a3b8' },
-  error: { color: '#dc2626', fontSize: 14 },
-  button: { backgroundColor: '#2563eb', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8, marginTop: 8 },
-  buttonDisabled: { backgroundColor: '#94a3b8' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  secondaryButton: { borderWidth: 1, borderColor: '#dc2626', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8 },
-  secondaryButtonText: { color: '#dc2626', fontSize: 16, fontWeight: '600' },
+  chartBar: { borderRadius: 4, minHeight: 2 },
+  achievementUnlocked: { fontSize: 13, fontWeight: '600' },
+  achievementLocked: { fontSize: 13 },
+  error: { fontSize: 14 },
+  button: { paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8, marginTop: 8 },
+  buttonText: { fontSize: 16, fontWeight: '600' },
+  secondaryButton: { borderWidth: 1, paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8 },
+  secondaryButtonText: { fontSize: 16, fontWeight: '600' },
+  // Discreto de propósito: é uma ação destrutiva e irreversível, não deve
+  // competir visualmente com "Sair".
+  deleteAccountLink: { fontSize: 13, textDecorationLine: 'underline', marginTop: 8, marginBottom: 16 },
 });

@@ -4,11 +4,13 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PublicStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../services/apiClient';
+import { useTheme } from '../hooks/usePreferences';
 
 type Props = NativeStackScreenProps<PublicStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
   const { signIn } = useAuth();
+  const theme = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -29,11 +31,12 @@ export function LoginScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Gym Execution</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.title, { color: theme.text }]}>Gym Execution</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+        placeholderTextColor={theme.muted}
         placeholder="E-mail"
         autoCapitalize="none"
         keyboardType="email-address"
@@ -41,21 +44,22 @@ export function LoginScreen({ navigation }: Props) {
         onChangeText={setEmail}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+        placeholderTextColor={theme.muted}
         placeholder="Senha"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
 
-      <Pressable style={[styles.button, submitting && styles.buttonDisabled]} onPress={handleSubmit} disabled={submitting}>
-        <Text style={styles.buttonText}>{submitting ? 'Entrando...' : 'Entrar'}</Text>
+      <Pressable style={[styles.button, { backgroundColor: submitting ? theme.disabled : theme.primary }]} onPress={handleSubmit} disabled={submitting}>
+        <Text style={[styles.buttonText, { color: theme.onPrimary }]}>{submitting ? 'Entrando...' : 'Entrar'}</Text>
       </Pressable>
 
       <Pressable onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Não tem conta? Criar conta</Text>
+        <Text style={[styles.link, { color: theme.primary }]}>Não tem conta? Criar conta</Text>
       </Pressable>
     </View>
   );
@@ -64,10 +68,9 @@ export function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
   title: { fontSize: 28, fontWeight: '700', textAlign: 'center', marginBottom: 24 },
-  input: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 12, fontSize: 16 },
-  error: { color: '#dc2626', fontSize: 14 },
-  button: { backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginTop: 8 },
-  buttonDisabled: { backgroundColor: '#94a3b8' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  link: { textAlign: 'center', color: '#2563eb', marginTop: 16 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16 },
+  error: { fontSize: 14 },
+  button: { paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginTop: 8 },
+  buttonText: { fontSize: 16, fontWeight: '600' },
+  link: { textAlign: 'center', marginTop: 16 },
 });
