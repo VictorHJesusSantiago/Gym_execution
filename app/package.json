@@ -47,18 +47,29 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "testMatch": [
+      "**/*.test.ts",
+      "**/*.test.tsx"
+    ],
+    "testTimeout": 20000,
+    "_comment_testTimeout": "O padrão de 5s estoura no PRIMEIRO teste que monta uma tela com cache do babel frio (FlatList e a árvore do react-navigation levam ~8s para transformar). Era um flake puro: passava na segunda rodada e falhava no CI limpo. 20s não esconde teste lento de verdade — nenhum aqui passa de 1s com cache quente.",
     "collectCoverageFrom": [
       "src/services/**/*.ts",
-      "src/hooks/**/*.ts"
+      "src/hooks/**/*.ts",
+      "src/hooks/**/*.tsx",
+      "src/screens/**/*.tsx",
+      "src/navigation/**/*.tsx",
+      "!src/**/__tests__/**"
     ],
     "coverageThreshold": {
       "global": {
-        "statements": 65,
-        "branches": 65,
-        "functions": 55,
-        "lines": 65
+        "statements": 55,
+        "branches": 45,
+        "functions": 50,
+        "lines": 55
       }
-    }
+    },
+    "_comment_coverage": "O número caiu de 70% para ~58% ao INCLUIR telas e navegação em collectCoverageFrom. Não houve regressão: os 70% mediam só services/hooks, um recorte favorável que escondia o fato de nenhuma tela ter teste de render. O piso reflete a medição honesta, com folga curta. Regra: subir, nunca descer. Falta cobrir Execution, Profile, Calibration e Goals."
   },
   "comment_versoes": "Versoes fixadas (pinned) propositalmente. Antes de instalar, conferir nomes/hashes no registro oficial (npmjs.com) e revisar o lockfile gerado para evitar typosquatting/pacotes maliciosos."
 }
