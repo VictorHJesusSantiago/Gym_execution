@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for services/authStorage.ts</title>
+    <title>Code coverage report for services/bodyCalibration.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">services</a> authStorage.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">services</a> bodyCalibration.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -99,7 +99,13 @@
 <a name='L34'></a><a href='#L34'>34</a>
 <a name='L35'></a><a href='#L35'>35</a>
 <a name='L36'></a><a href='#L36'>36</a>
-<a name='L37'></a><a href='#L37'>37</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -109,67 +115,67 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as SecureStore from 'expo-secure-store';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import AsyncStorage from '@react-native-async-storage/async-storage';
+import { computeAsymmetry } from './poseScoring';
+import type { PoseFrame } from './poseTypes';
+&nbsp;
+const STORAGE_KEY = '@gym_execution/body_calibration';
+&nbsp;
+export type BodyCalibration = {
+  /** Assimetria "natural" do corpo do usuário, medida numa pose neutra. */
+  baselineAsymmetryPercent: number;
+};
 &nbsp;
 /**
- * Persistência de tokens em armazenamento seguro do dispositivo
- * (Keychain no iOS, Android Keystore no Android).
- *
- * Access token: vida curta (30 min) — renovado automaticamente via refresh.
- * Refresh token: vida longa (30 dias) — rotacionado a cada uso em /auth/refresh.
+ * Calibração corporal local (README.md — tela de Configurações). Mede a
+ * assimetria de um frame em pose neutra e guarda essa "linha de base" no
+ * dispositivo, para distinguir assimetria natural do corpo de uma
+ * compensação durante o exercício (ver ResultScreen).
  */
-&nbsp;
-const TOKEN_KEY = <span class="cstat-no" title="statement not covered" >'gym_execution_access_token';</span>
-const REFRESH_TOKEN_KEY = <span class="cstat-no" title="statement not covered" >'gym_execution_refresh_token';</span>
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >saveToken(</span>token: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  return SecureStore.setItemAsync(TOKEN_KEY, token);</span>
+export async function loadBodyCalibration(): Promise&lt;BodyCalibration | null&gt; {
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as BodyCalibration;
+  } catch {
+    return null;
+  }
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >loadToken(</span>): Promise&lt;string | null&gt; {
-<span class="cstat-no" title="statement not covered" >  return SecureStore.getItemAsync(TOKEN_KEY);</span>
+/** Mede a assimetria do frame de calibração (pose neutra) e a persiste como linha de base. */
+export async function saveBodyCalibration(frame: PoseFrame): Promise&lt;BodyCalibration&gt; {
+  const asymmetry = computeAsymmetry([frame]);
+  const calibration: BodyCalibration = { baselineAsymmetryPercent: asymmetry?.overallPercent ?? 0 };
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(calibration));
+  return calibration;
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >clearToken(</span>): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  return SecureStore.deleteItemAsync(TOKEN_KEY);</span>
-}
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >saveRefreshToken(</span>token: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  return SecureStore.setItemAsync(REFRESH_TOKEN_KEY, token);</span>
-}
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >loadRefreshToken(</span>): Promise&lt;string | null&gt; {
-<span class="cstat-no" title="statement not covered" >  return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);</span>
-}
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >clearRefreshToken(</span>): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  return SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);</span>
+export async function clearBodyCalibration(): Promise&lt;void&gt; {
+  await AsyncStorage.removeItem(STORAGE_KEY);
 }
 &nbsp;</pre></td></tr></table></pre>
 
