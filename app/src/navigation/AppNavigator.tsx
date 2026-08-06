@@ -1,7 +1,9 @@
 import { ActivityIndicator, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, type Theme as NavigationTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/usePreferences';
+import type { Theme } from '../services/theme';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -34,6 +36,9 @@ export type AuthenticatedStackParamList = {
     newRecords?: NewRecords | null;
     overload?: OverloadWarning | null;
     weightKg?: number | null;
+    /** A nota veio de uma referência sintética? Controla o aviso de
+     * "pontuação experimental" — ver ADR-0001. */
+    referenceIsSynthetic?: boolean;
   };
   History: undefined;
   Profile: undefined;
@@ -57,6 +62,7 @@ function PublicNavigator() {
 function AuthenticatedNavigator() {
   return (
     <AuthenticatedStack.Navigator initialRouteName="Home">
+      {/* Cores de cabeçalho vêm do `theme` do NavigationContainer. */}
       <AuthenticatedStack.Screen name="Home" component={HomeScreen} options={{ title: 'Gym Execution' }} />
       <AuthenticatedStack.Screen name="ExerciseList" component={ExerciseListScreen} options={{ title: 'Exercícios' }} />
       <AuthenticatedStack.Screen name="Execution" component={ExecutionScreen} options={{ title: 'Execução' }} />
@@ -76,19 +82,42 @@ function AuthenticatedNavigator() {
  * token persistido ainda está sendo carregado, mostra um loading simples
  * para evitar "piscar" a tela de login antes de saber se já há sessão.
  */
+/**
+ * Converte o tema do app para o formato do React Navigation, para que os
+ * cabeçalhos e o fundo das transições sigam a preferência de modo escuro —
+ * sem isto, um app escuro ainda piscaria uma barra de título branca a cada
+ * navegação.
+ */
+function toNavigationTheme(theme: Theme): NavigationTheme {
+  return {
+    ...DefaultTheme,
+    dark: theme.isDark,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: theme.primary,
+      background: theme.background,
+      card: theme.surface,
+      text: theme.text,
+      border: theme.border,
+      notification: theme.danger,
+    },
+  };
+}
+
 export function AppNavigator() {
   const { status } = useAuth();
+  const theme = useTheme();
 
   if (status === 'loading') {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.background }}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={toNavigationTheme(theme)}>
       {status === 'signedIn' ? <AuthenticatedNavigator /> : <PublicNavigator />}
     </NavigationContainer>
   );
