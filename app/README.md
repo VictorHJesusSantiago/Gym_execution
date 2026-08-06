@@ -179,7 +179,7 @@ e um arquivo truncado geraria `NaN` silencioso no cálculo de ângulos.
 cd app
 npm ci                 # respeita o lockfile (não use `npm install` aqui)
 npm run typecheck      # tsc --noEmit — o Jest NÃO checa tipos (babel apaga)
-npm run test:coverage  # 132 testes + gate de cobertura
+npm run test:coverage  # 180 testes + gate de cobertura
 npx expo start
 ```
 
