@@ -54,6 +54,29 @@ export function extractJointAngles(frame: PoseFrame): JointAngles {
   return result;
 }
 
+/**
+ * Ângulos da sequência de referência, memoizados por identidade do array.
+ *
+ * `getRealtimeFeedback` roda a cada frame capturado (~10/s) e recalculava os
+ * ângulos de TODA a referência toda vez: com ~100 frames de referência são
+ * ~6.000 `acos`/`hypot` por segundo jogados fora, no mesmo aparelho de 2GB de
+ * RAM que precisa rodar a inferência do MoveNet no mesmo intervalo (RNF01).
+ * A referência é imutável durante a série, então basta calcular uma vez.
+ *
+ * WeakMap e não Map: a entrada morre junto com o array de referência, sem
+ * segurar frames de exercícios já encerrados na memória.
+ */
+const referenceAngleCache = new WeakMap<PoseFrame[], JointAngles[]>();
+
+function anglesForReference(referenceFrames: PoseFrame[]): JointAngles[] {
+  const cached = referenceAngleCache.get(referenceFrames);
+  if (cached) return cached;
+
+  const angles = referenceFrames.map(extractJointAngles);
+  referenceAngleCache.set(referenceFrames, angles);
+  return angles;
+}
+
 export function angleVectorDistance(a: JointAngles, b: JointAngles): number {
   const keys = Object.keys(a) as (keyof JointAngles)[];
   const sumSquared = keys.reduce((acc, key) => acc + (a[key] - b[key]) ** 2, 0);
@@ -260,7 +283,7 @@ export function getRealtimeFeedback(frame: PoseFrame, referenceFrames: PoseFrame
   if (referenceFrames.length === 0) return null;
 
   const current = extractJointAngles(frame);
-  const referenceAngles = referenceFrames.map(extractJointAngles);
+  const referenceAngles = anglesForReference(referenceFrames);
 
   let closest = referenceAngles[0];
   let closestDistance = angleVectorDistance(current, closest);
