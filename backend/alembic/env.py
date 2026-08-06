@@ -1,12 +1,13 @@
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from alembic import context
 from app.core.config import settings
-from app.models.base import Base
+
 # Importar todos os módulos de modelo para que fiquem registrados em Base.metadata
 from app.models import exercise, training_session, user  # noqa: F401
+from app.models.base import Base
 
 config = context.config
 
