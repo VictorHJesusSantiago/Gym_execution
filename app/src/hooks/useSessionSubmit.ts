@@ -16,6 +16,9 @@ export type SubmitParams = {
   asymmetry: AsymmetryResult | null;
   repCount: number | null;
   fatigue: FatigueResult | null;
+  /** Propagado até o resultado para decidir se o aviso de pontuação
+   * experimental aparece (ADR-0001). */
+  referenceIsSynthetic: boolean;
 };
 
 /**
@@ -25,11 +28,11 @@ export type SubmitParams = {
  */
 export function useSessionSubmit(navigation: Navigation) {
   const submit = useCallback(
-    ({ token, exerciseId, score, weightKg, asymmetry, repCount, fatigue }: SubmitParams) => {
+    ({ token, exerciseId, score, weightKg, asymmetry, repCount, fatigue, referenceIsSynthetic }: SubmitParams) => {
       if (!token) {
         navigation.replace('Result', {
           score, exerciseId, asymmetry, repCount, fatigue,
-          newRecords: null, overload: null, weightKg,
+          newRecords: null, overload: null, weightKg, referenceIsSynthetic,
         });
         return;
       }
@@ -56,13 +59,13 @@ export function useSessionSubmit(navigation: Navigation) {
               computePersonalRecord(previousSessions, exerciseId)
             ),
             overload: detectOverload(previousSessions, exerciseId, weightKg),
-            weightKg,
+            weightKg, referenceIsSynthetic,
           });
         })
         .catch(() => {
           navigation.replace('Result', {
             score, exerciseId, asymmetry, repCount, fatigue,
-            newRecords: null, overload: null, weightKg,
+            newRecords: null, overload: null, weightKg, referenceIsSynthetic,
           });
         });
     },

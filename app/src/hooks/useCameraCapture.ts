@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as FileSystem from 'expo-file-system';
 import type { CameraFrameInput } from '../services/poseTypes';
+import { usePreferences } from './usePreferences';
+import { CAMERA_QUALITY_SETTINGS } from '../services/preferencesStorage';
 
-const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem
+const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem (DOM05 — fixo de propósito)
 
 type CaptureHandler = (timestampMs: number, frame: CameraFrameInput) => Promise<void>;
 
@@ -14,8 +16,15 @@ type CaptureHandler = (timestampMs: number, frame: CameraFrameInput) => Promise<
  *
  * `isRecording` controla o intervalo: inicia quando true, para quando false.
  * `onCapture` é chamado a cada frame capturado com sucesso.
+ *
+ * A compressão do JPEG vem da preferência "Qualidade da câmera" (RF08), que
+ * antes era gravada e ignorada — o valor estava fixo em 0.5 aqui, então o
+ * seletor de três opções da tela de Configurações não mudava absolutamente
+ * nada no consumo de memória do aparelho que ele dizia proteger.
  */
 export function useCameraCapture(isRecording: boolean, onCapture: CaptureHandler) {
+  const { preferences } = usePreferences();
+  const captureQuality = CAMERA_QUALITY_SETTINGS[preferences.cameraQuality].quality;
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -35,7 +44,7 @@ export function useCameraCapture(isRecording: boolean, onCapture: CaptureHandler
       capturingRef.current = true;
 
       cameraRef.current
-        .takePictureAsync({ quality: 0.5, skipProcessing: true })
+        .takePictureAsync({ quality: captureQuality, skipProcessing: true })
         .then((photo) => {
           if (!photo) return;
           const frame: CameraFrameInput = { uri: photo.uri, width: photo.width, height: photo.height };
@@ -62,7 +71,7 @@ export function useCameraCapture(isRecording: boolean, onCapture: CaptureHandler
         intervalRef.current = null;
       }
     };
-  }, [isRecording, onCapture]);
+  }, [isRecording, onCapture, captureQuality]);
 
   const stopCapture = useCallback(() => {
     if (intervalRef.current) {
