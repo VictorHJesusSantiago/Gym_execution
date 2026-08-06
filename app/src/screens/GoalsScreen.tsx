@@ -1,12 +1,10 @@
 import { useCallback, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { EXERCISES } from '../services/exerciseCatalog';
+import { exerciseName } from '../services/exerciseCatalog';
+import { useExerciseCatalog } from '../hooks/useExerciseCatalog';
+import { useTheme } from '../hooks/usePreferences';
 import { loadGoals, removeGoal, saveGoal, type PersonalGoal } from '../services/personalGoals';
-
-function exerciseName(exerciseId: string): string {
-  return EXERCISES.find((exercise) => exercise.id === exerciseId)?.name ?? exerciseId;
-}
 
 /**
  * Tela de Metas pessoais (README.md — "Progresso e métricas"): define, por
@@ -15,8 +13,12 @@ function exerciseName(exerciseId: string): string {
  * Resultado (ver `ResultScreen`).
  */
 export function GoalsScreen() {
+  const theme = useTheme();
+  const { exercises } = useExerciseCatalog();
   const [goals, setGoals] = useState<PersonalGoal[]>([]);
-  const [exerciseId, setExerciseId] = useState(EXERCISES[0].id);
+  // `exercises` nunca é vazio (o hook parte do catálogo embutido), mas o
+  // fallback para '' evita um crash de índice caso um dia passe a ser.
+  const [exerciseId, setExerciseId] = useState(exercises[0]?.id ?? '');
   const [targetScore, setTargetScore] = useState('');
   const [targetWeight, setTargetWeight] = useState('');
 
@@ -44,29 +46,30 @@ export function GoalsScreen() {
   }
 
   return (
-    <View style={styles.container} accessibilityLabel="Metas pessoais">
-      <Text style={styles.title}>Metas pessoais</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]} accessibilityLabel="Metas pessoais">
+      <Text style={[styles.title, { color: theme.text }]}>Metas pessoais</Text>
 
       <View style={styles.picker}>
-        {EXERCISES.map((exercise) => {
+        {exercises.map((exercise) => {
           const selected = exercise.id === exerciseId;
           return (
             <Pressable
               key={exercise.id}
-              style={[styles.pickerItem, selected && styles.pickerItemSelected]}
+              style={[styles.pickerItem, { borderColor: theme.border }, selected && { backgroundColor: theme.primary, borderColor: theme.primary }]}
               onPress={() => setExerciseId(exercise.id)}
               accessibilityRole="radio"
               accessibilityState={{ selected }}
               accessibilityLabel={`Exercício: ${exercise.name}`}
             >
-              <Text style={[styles.pickerText, selected && styles.pickerTextSelected]}>{exercise.name}</Text>
+              <Text style={[styles.pickerText, { color: selected ? theme.onPrimary : theme.text }]}>{exercise.name}</Text>
             </Pressable>
           );
         })}
       </View>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+        placeholderTextColor={theme.muted}
         keyboardType="numeric"
         placeholder="Meta de pontuação (%)"
         value={targetScore}
@@ -74,7 +77,8 @@ export function GoalsScreen() {
         accessibilityLabel="Meta de pontuação em porcentagem, opcional"
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+        placeholderTextColor={theme.muted}
         keyboardType="numeric"
         placeholder="Meta de carga (kg)"
         value={targetWeight}
@@ -82,8 +86,8 @@ export function GoalsScreen() {
         accessibilityLabel="Meta de carga em quilogramas, opcional"
       />
 
-      <Pressable style={styles.button} onPress={handleSave} accessibilityRole="button" accessibilityLabel="Salvar meta">
-        <Text style={styles.buttonText}>Salvar meta</Text>
+      <Pressable style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleSave} accessibilityRole="button" accessibilityLabel="Salvar meta">
+        <Text style={[styles.buttonText, { color: theme.onPrimary }]}>Salvar meta</Text>
       </Pressable>
 
       <FlatList
@@ -91,10 +95,10 @@ export function GoalsScreen() {
         data={goals}
         keyExtractor={(item) => item.exerciseId}
         renderItem={({ item }) => (
-          <View style={styles.goalItem}>
+          <View style={[styles.goalItem, { backgroundColor: theme.surface }]}>
             <View>
-              <Text style={styles.goalTitle}>{exerciseName(item.exerciseId)}</Text>
-              <Text style={styles.goalDetail}>
+              <Text style={[styles.goalTitle, { color: theme.text }]}>{exerciseName(item.exerciseId, exercises)}</Text>
+              <Text style={[styles.goalDetail, { color: theme.muted }]}>
                 {item.targetScore != null ? `Pontuação: ${item.targetScore}%` : ''}
                 {item.targetScore != null && item.targetWeightKg != null ? ' · ' : ''}
                 {item.targetWeightKg != null ? `Carga: ${item.targetWeightKg}kg` : ''}
@@ -103,9 +107,9 @@ export function GoalsScreen() {
             <Pressable
               onPress={() => handleRemove(item.exerciseId)}
               accessibilityRole="button"
-              accessibilityLabel={`Remover meta de ${exerciseName(item.exerciseId)}`}
+              accessibilityLabel={`Remover meta de ${exerciseName(item.exerciseId, exercises)}`}
             >
-              <Text style={styles.removeText}>Remover</Text>
+              <Text style={[styles.removeText, { color: theme.danger }]}>Remover</Text>
             </Pressable>
           </View>
         )}
@@ -118,13 +122,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 48, gap: 12 },
   title: { fontSize: 20, fontWeight: '700' },
   picker: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  pickerItem: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12 },
-  pickerItemSelected: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  pickerText: { color: '#334155', fontSize: 13 },
-  pickerTextSelected: { color: '#fff', fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 10, fontSize: 16 },
-  button: { backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  pickerItem: { borderWidth: 1, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12 },
+  pickerText: { fontSize: 13 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 10, fontSize: 16 },
+  button: { paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+  buttonText: { fontSize: 16, fontWeight: '600' },
   list: { marginTop: 8 },
   goalItem: {
     flexDirection: 'row',
@@ -132,10 +134,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#f1f5f9',
     marginBottom: 8,
   },
   goalTitle: { fontSize: 15, fontWeight: '600' },
-  goalDetail: { fontSize: 13, color: '#64748b', marginTop: 2 },
-  removeText: { color: '#dc2626', fontSize: 14, fontWeight: '600' },
+  goalDetail: { fontSize: 13, marginTop: 2 },
+  removeText: { fontSize: 14, fontWeight: '600' },
 });

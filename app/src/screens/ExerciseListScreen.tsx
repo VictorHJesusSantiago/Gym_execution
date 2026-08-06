@@ -3,7 +3,9 @@ import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthenticatedStackParamList } from '../navigation/AppNavigator';
-import { EXERCISES, type Exercise } from '../services/exerciseCatalog';
+import { type Exercise } from '../services/exerciseCatalog';
+import { useExerciseCatalog, useMuscleGroups } from '../hooks/useExerciseCatalog';
+import { useTheme } from '../hooks/usePreferences';
 import {
   loadFavoriteExerciseIds,
   loadRecentExerciseIds,
@@ -16,9 +18,13 @@ type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'ExerciseList'>
 /** Opção do filtro que mostra todos os grupos musculares. */
 const ALL_GROUPS = 'Todos';
 
-const MUSCLE_GROUPS = [ALL_GROUPS, ...Array.from(new Set(EXERCISES.map((exercise) => exercise.muscleGroup)))];
-
 export function ExerciseListScreen({ navigation }: Props) {
+  // Catálogo real do backend (com fallback embutido) em vez da lista fixa —
+  // ver useExerciseCatalog/exerciseCatalogService.
+  const theme = useTheme();
+  const { exercises: catalog } = useExerciseCatalog();
+  const muscleGroups = [ALL_GROUPS, ...useMuscleGroups(catalog)];
+
   const [selectedGroup, setSelectedGroup] = useState(ALL_GROUPS);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -31,13 +37,13 @@ export function ExerciseListScreen({ navigation }: Props) {
   );
 
   const exercises =
-    selectedGroup === ALL_GROUPS ? EXERCISES : EXERCISES.filter((exercise) => exercise.muscleGroup === selectedGroup);
+    selectedGroup === ALL_GROUPS ? catalog : catalog.filter((exercise) => exercise.muscleGroup === selectedGroup);
 
   const recentExercises = recentIds
-    .map((id) => EXERCISES.find((exercise) => exercise.id === id))
+    .map((id) => catalog.find((exercise) => exercise.id === id))
     .filter((exercise): exercise is Exercise => !!exercise);
 
-  const favoriteExercises = EXERCISES.filter((exercise) => favoriteIds.includes(exercise.id));
+  const favoriteExercises = catalog.filter((exercise) => favoriteIds.includes(exercise.id));
 
   function openExercise(exerciseId: string) {
     recordRecentExercise(exerciseId).then(setRecentIds);
@@ -49,7 +55,7 @@ export function ExerciseListScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
         data={exercises}
         keyExtractor={(item) => item.id}
@@ -57,11 +63,11 @@ export function ExerciseListScreen({ navigation }: Props) {
           <View>
             {recentExercises.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Recentes</Text>
+                <Text style={[styles.sectionTitle, { color: theme.muted }]}>Recentes</Text>
                 <View style={styles.chipsRow}>
                   {recentExercises.map((exercise) => (
-                    <Pressable key={exercise.id} style={styles.chip} onPress={() => openExercise(exercise.id)}>
-                      <Text style={styles.chipText}>{exercise.name}</Text>
+                    <Pressable key={exercise.id} style={[styles.chip, { backgroundColor: theme.surface }]} onPress={() => openExercise(exercise.id)}>
+                      <Text style={[styles.chipText, { color: theme.text }]}>{exercise.name}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -69,26 +75,26 @@ export function ExerciseListScreen({ navigation }: Props) {
             )}
             {favoriteExercises.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Favoritos</Text>
+                <Text style={[styles.sectionTitle, { color: theme.muted }]}>Favoritos</Text>
                 <View style={styles.chipsRow}>
                   {favoriteExercises.map((exercise) => (
-                    <Pressable key={exercise.id} style={styles.chip} onPress={() => openExercise(exercise.id)}>
-                      <Text style={styles.chipText}>★ {exercise.name}</Text>
+                    <Pressable key={exercise.id} style={[styles.chip, { backgroundColor: theme.surface }]} onPress={() => openExercise(exercise.id)}>
+                      <Text style={[styles.chipText, { color: theme.text }]}>★ {exercise.name}</Text>
                     </Pressable>
                   ))}
                 </View>
               </View>
             )}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Grupo muscular</Text>
+              <Text style={[styles.sectionTitle, { color: theme.muted }]}>Grupo muscular</Text>
               <View style={styles.chipsRow}>
-                {MUSCLE_GROUPS.map((group) => (
+                {muscleGroups.map((group) => (
                   <Pressable
                     key={group}
-                    style={[styles.chip, selectedGroup === group && styles.chipSelected]}
+                    style={[styles.chip, { backgroundColor: selectedGroup === group ? theme.primary : theme.surface }]}
                     onPress={() => setSelectedGroup(group)}
                   >
-                    <Text style={[styles.chipText, selectedGroup === group && styles.chipTextSelected]}>
+                    <Text style={[styles.chipText, { color: selectedGroup === group ? theme.onPrimary : theme.text }]}>
                       {group}
                     </Text>
                   </Pressable>
@@ -98,17 +104,29 @@ export function ExerciseListScreen({ navigation }: Props) {
           </View>
         }
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Pressable style={styles.itemMain} onPress={() => openExercise(item.id)}>
-              <Text style={styles.itemTitle}>{item.name}</Text>
-              <Text style={styles.itemSubtitle}>{item.muscleGroup}</Text>
+          <View style={[styles.item, { backgroundColor: theme.surface }]}>
+            <Pressable
+              style={styles.itemMain}
+              onPress={() => openExercise(item.id)}
+              accessibilityRole="button"
+              // O rótulo inclui o grupo muscular porque um leitor de tela lê os
+              // dois Text como nós separados, sem dizer que são do mesmo card.
+              accessibilityLabel={`Iniciar ${item.name}, ${item.muscleGroup}`}
+            >
+              <Text style={[styles.itemTitle, { color: theme.text }]}>{item.name}</Text>
+              <Text style={[styles.itemSubtitle, { color: theme.muted }]}>{item.muscleGroup}</Text>
             </Pressable>
             <Pressable
               onPress={() => handleToggleFavorite(item.id)}
               hitSlop={8}
-              accessibilityLabel={favoriteIds.includes(item.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              accessibilityRole="button"
+              accessibilityLabel={
+                favoriteIds.includes(item.id)
+                  ? `Remover ${item.name} dos favoritos`
+                  : `Adicionar ${item.name} aos favoritos`
+              }
             >
-              <Text style={styles.favoriteIcon}>{favoriteIds.includes(item.id) ? '★' : '☆'}</Text>
+              <Text style={[styles.favoriteIcon, { color: theme.warning }]}>{favoriteIds.includes(item.id) ? '★' : '☆'}</Text>
             </Pressable>
           </View>
         )}
@@ -120,23 +138,20 @@ export function ExerciseListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   section: { marginBottom: 16 },
-  sectionTitle: { fontSize: 14, fontWeight: '600', color: '#475569', marginBottom: 8 },
+  sectionTitle: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#e2e8f0' },
-  chipSelected: { backgroundColor: '#2563eb' },
-  chipText: { fontSize: 13, color: '#334155' },
-  chipTextSelected: { color: '#fff', fontWeight: '600' },
+  chip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
+  chipText: { fontSize: 13 },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#f1f5f9',
     marginBottom: 12,
   },
   itemMain: { flex: 1 },
   itemTitle: { fontSize: 18, fontWeight: '600' },
-  itemSubtitle: { fontSize: 14, color: '#64748b' },
-  favoriteIcon: { fontSize: 24, color: '#f59e0b', paddingLeft: 12 },
+  itemSubtitle: { fontSize: 14 },
+  favoriteIcon: { fontSize: 24, paddingLeft: 12 },
 });
