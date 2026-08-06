@@ -12,6 +12,8 @@ type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   token?: string | null;
+  /** Headers extras (ex.: `Idempotency-Key`). */
+  headers?: Record<string, string>;
 };
 
 let unauthorizedHandler: (() => void) | null = null;
@@ -49,9 +51,9 @@ function refreshTokenOnce(): Promise<string | null> {
 }
 
 async function executeRequest<T>(path: string, options: RequestOptions, isRetry = false): Promise<T> {
-  const { method = 'GET', body, token } = options;
+  const { method = 'GET', body, token, headers: extraHeaders } = options;
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...extraHeaders };
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
