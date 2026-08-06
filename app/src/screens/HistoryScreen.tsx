@@ -8,12 +8,9 @@ import {
   SESSIONS_PAGE_SIZE,
   type TrainingSessionPublic,
 } from '../services/sessionsService';
-import { EXERCISES } from '../services/exerciseCatalog';
+import { exerciseName } from '../services/exerciseCatalog';
 import { ApiError } from '../services/apiClient';
-
-function exerciseName(exerciseId: string): string {
-  return EXERCISES.find((exercise) => exercise.id === exerciseId)?.name ?? exerciseId;
-}
+import { useTheme } from '../hooks/usePreferences';
 
 function formatDateTime(isoDate: string): string {
   return new Date(isoDate).toLocaleString('pt-BR', {
@@ -32,6 +29,7 @@ function formatDateTime(isoDate: string): string {
  */
 export function HistoryScreen() {
   const { token } = useAuth();
+  const theme = useTheme();
   const [sessions, setSessions] = useState<TrainingSessionPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -86,16 +84,16 @@ export function HistoryScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={[styles.center, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{error}</Text>
+      <View style={[styles.center, { backgroundColor: theme.background }]}>
+        <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>
       </View>
     );
   }
@@ -113,15 +111,15 @@ export function HistoryScreen() {
 
   if (sessions.length === 0) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: theme.background }]}>
         {pendingBanner}
-        <Text style={styles.emptyText}>Nenhum treino registrado ainda.</Text>
+        <Text style={[styles.emptyText, { color: theme.muted }]}>Nenhum treino registrado ainda.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container} accessibilityLabel="Histórico de treinos">
+    <View style={[styles.container, { backgroundColor: theme.background }]} accessibilityLabel="Histórico de treinos">
       <FlatList
         data={sessions}
         keyExtractor={(item) => item.id}
@@ -131,19 +129,19 @@ export function HistoryScreen() {
         ListHeaderComponent={pendingBanner}
         ListFooterComponent={
           loadingMore ? (
-            <ActivityIndicator size="small" color="#2563eb" style={styles.footerSpinner} />
+            <ActivityIndicator size="small" color={theme.primary} style={styles.footerSpinner} />
           ) : null
         }
         renderItem={({ item }) => (
           <View
-            style={styles.item}
+            style={[styles.item, { backgroundColor: theme.surface }]}
             accessibilityLabel={`${exerciseName(item.exercise_id)}, ${item.score} por cento, ${formatDateTime(item.executed_at)}${item.weight_kg != null ? `, ${item.weight_kg} quilogramas` : ''}`}
           >
             <View style={styles.itemHeader}>
-              <Text style={styles.itemTitle}>{exerciseName(item.exercise_id)}</Text>
-              <Text style={styles.itemScore}>{item.score}%</Text>
+              <Text style={[styles.itemTitle, { color: theme.text }]}>{exerciseName(item.exercise_id)}</Text>
+              <Text style={[styles.itemScore, { color: theme.accent }]}>{item.score}%</Text>
             </View>
-            <Text style={styles.itemSubtitle}>
+            <Text style={[styles.itemSubtitle, { color: theme.muted }]}>
               {formatDateTime(item.executed_at)}
               {item.weight_kg != null ? ` · ${item.weight_kg} kg` : ''}
             </Text>
@@ -157,14 +155,14 @@ export function HistoryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  item: { padding: 16, borderRadius: 8, backgroundColor: '#f1f5f9', marginBottom: 12 },
+  item: { padding: 16, borderRadius: 8, marginBottom: 12 },
   itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   itemTitle: { fontSize: 18, fontWeight: '600' },
-  itemScore: { fontSize: 18, fontWeight: '700', color: '#2563eb' },
-  itemSubtitle: { fontSize: 14, color: '#64748b', marginTop: 4 },
+  itemScore: { fontSize: 18, fontWeight: '700' },
+  itemSubtitle: { fontSize: 14, marginTop: 4 },
   footerSpinner: { marginVertical: 16 },
   pendingBanner: { backgroundColor: '#fef3c7', borderRadius: 8, padding: 12, marginBottom: 12 },
   pendingText: { color: '#92400e', fontSize: 13, textAlign: 'center' },
-  error: { color: '#dc2626', fontSize: 16, textAlign: 'center' },
-  emptyText: { color: '#64748b', fontSize: 16, textAlign: 'center' },
+  error: { fontSize: 16, textAlign: 'center' },
+  emptyText: { fontSize: 16, textAlign: 'center' },
 });
