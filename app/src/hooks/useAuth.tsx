@@ -77,28 +77,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null);
   }, [forceSignOut]);
 
-  async function signIn(email: string, password: string) {
+  const signIn = useCallback(async (email: string, password: string) => {
     const { access_token, refresh_token } = await authService.login(email, password);
     await Promise.all([saveToken(access_token), saveRefreshToken(refresh_token)]);
     setToken(access_token);
     setRefreshToken(refresh_token);
     setStatus('signedIn');
-  }
+  }, []);
 
-  async function signUp(name: string, email: string, password: string) {
-    await authService.register(name, email, password);
-    await signIn(email, password);
-  }
+  const signUp = useCallback(
+    async (name: string, email: string, password: string) => {
+      await authService.register(name, email, password);
+      await signIn(email, password);
+    },
+    [signIn]
+  );
 
-  async function signOut() {
+  const signOut = useCallback(async () => {
     if (refreshToken) {
       // Melhor esforço: falha de rede não bloqueia o logout local.
       authService.logout(refreshToken).catch(() => {});
     }
     await forceSignOut();
-  }
+  }, [refreshToken, forceSignOut]);
 
-  const value = useMemo(() => ({ status, token, signIn, signUp, signOut }), [status, token]);
+  // `refreshToken` PRECISA estar aqui: `signOut` fecha sobre ele para revogar a
+  // sessão no servidor. Com as funções recriadas a cada render e o memo preso a
+  // [status, token], bastava o refresh token mudar sem o access token mudar
+  // junto para o `signOut` exposto ficar com um valor velho — e o logout
+  // deixava de revogar de verdade, mantendo viva no backend uma credencial de
+  // 30 dias que o usuário acha que acabou de encerrar.
+  const value = useMemo(
+    () => ({ status, token, signIn, signUp, signOut }),
+    [status, token, signIn, signUp, signOut]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
