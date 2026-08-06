@@ -53,6 +53,25 @@ export function getMyStats(token: string): Promise<SessionStats> {
   return apiRequest<SessionStats>('/sessions/stats', { token });
 }
 
+/**
+ * Chave de idempotência determinística para uma série.
+ *
+ * Derivada do conteúdo (exercício + instante + score + carga) em vez de
+ * aleatória, porque a fila offline persiste o resultado em AsyncStorage e pode
+ * reenviá-lo em outra execução do app: um UUID sorteado na hora do envio seria
+ * diferente a cada tentativa e não impediria duplicata nenhuma. `executedAt`
+ * tem precisão de milissegundo, então duas séries distintas do mesmo exercício
+ * não colidem.
+ */
+export function buildIdempotencyKey(
+  exerciseId: string,
+  score: number,
+  executedAt: Date,
+  weightKg?: number | null
+): string {
+  return `${exerciseId}:${executedAt.toISOString()}:${score}:${weightKg ?? ''}`;
+}
+
 export function recordSession(
   token: string,
   exerciseId: string,
@@ -63,6 +82,7 @@ export function recordSession(
   return apiRequest<TrainingSessionPublic>('/sessions', {
     method: 'POST',
     token,
+    headers: { 'Idempotency-Key': buildIdempotencyKey(exerciseId, score, executedAt, weightKg) },
     body: {
       exercise_id: exerciseId,
       score,
