@@ -18,3 +18,11 @@ export function getMyProfile(token: string): Promise<UserPublic> {
 export function updateMyProfile(token: string, payload: ProfileUpdate): Promise<UserPublic> {
   return apiRequest<UserPublic>('/users/me', { method: 'PATCH', token, body: payload });
 }
+
+/**
+ * Exclui a conta e todo o histórico, de forma irreversível
+ * (LGPD art. 18 / GDPR art. 17). Quem chama deve confirmar com o usuário antes.
+ */
+export function deleteMyAccount(token: string): Promise<void> {
+  return apiRequest<void>('/users/me', { method: 'DELETE', token });
+}
