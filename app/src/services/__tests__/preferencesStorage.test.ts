@@ -22,7 +22,7 @@ describe('preferencesStorage', () => {
   it('persiste e recarrega as preferências salvas', async () => {
     const preferences = {
       cameraQuality: 'saver' as const,
-      soundFeedback: false,
+      vibrationFeedback: false,
       darkMode: true,
       colorBlindMode: true,
       highContrast: true,
@@ -33,6 +33,29 @@ describe('preferencesStorage', () => {
     const reloaded = await loadPreferences();
 
     expect(reloaded).toEqual(preferences);
+  });
+
+  it('migra o antigo `soundFeedback` para `vibrationFeedback`', async () => {
+    // Quem já tinha desligado o feedback não pode vê-lo voltar sozinho ao
+    // padrão só porque a chave foi renomeada.
+    await AsyncStorage.setItem(
+      '@gym_execution/preferences',
+      JSON.stringify({ ...DEFAULT_PREFERENCES, soundFeedback: false, vibrationFeedback: undefined })
+    );
+
+    const preferences = await loadPreferences();
+
+    expect(preferences.vibrationFeedback).toBe(false);
+    expect(preferences).not.toHaveProperty('soundFeedback');
+  });
+
+  it('a chave nova vence a antiga quando as duas existem', async () => {
+    await AsyncStorage.setItem(
+      '@gym_execution/preferences',
+      JSON.stringify({ soundFeedback: false, vibrationFeedback: true })
+    );
+
+    expect((await loadPreferences()).vibrationFeedback).toBe(true);
   });
 
   it('preenche campos ausentes com os padrões ao ler dados salvos parcialmente', async () => {
