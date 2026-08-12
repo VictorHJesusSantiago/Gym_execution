@@ -8,15 +8,23 @@ from app.main import app
 @pytest.fixture()
 def rate_limited_client():
     """`conftest.py` desliga o limiter globalmente para o resto da suíte
-    (ver comentário lá) — aqui religamos só para este teste e garantimos
-    que volta a ficar desligado ao final, mesmo se o teste falhar."""
+    (ver comentário lá) — aqui religamos só para este teste.
+
+    Tudo dentro do `try`: `limiter.reset()` ficava FORA dele, então quando o
+    reset falhava (era o caso, porque o storage apontava para um Redis
+    inexistente) o `finally` nunca rodava e o limiter continuava LIGADO pelo
+    resto da sessão — test_sessions.py e test_users.py quebravam em massa por
+    causa de uma falha em test_rate_limit.py. Estado global mutável só é
+    aceitável em teste se a restauração for inescapável.
+    """
     limiter.enabled = True
-    limiter.reset()
     try:
+        limiter.reset()
         with TestClient(app) as test_client:
             yield test_client
     finally:
         limiter.enabled = False
+        limiter.reset()
 
 
 def _attempts_allowed() -> int:
