@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from redis import Redis
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -6,8 +7,21 @@ from ..models.exercise import Exercise
 from ..models.training_session import TrainingSession
 from ..schemas.session import SessionStats, TrainingSessionCreate
 
+_IDEMPOTENCY_PREFIX = "idempotency:session:"
 
-def record_session(db: Session, user_id: str, payload: TrainingSessionCreate) -> TrainingSession:
+_IDEMPOTENCY_TTL_SECONDS = 24 * 3600
+"""Cobre com folga a janela em que um cliente ainda pode reenviar: a fila
+offline drena ao abrir o histórico, então retries acontecem em horas, não dias.
+Guardar para sempre transformaria o Redis num segundo banco de sessões."""
+
+
+def record_session(
+    db: Session,
+    user_id: str,
+    payload: TrainingSessionCreate,
+    redis: Redis | None = None,
+    idempotency_key: str | None = None,
+) -> TrainingSession:
     # A8: valida FK de exercise_id antes do commit — devolve 422 semântico
     # em vez de deixar o banco lançar IntegrityError que vira 500 genérico.
     if db.get(Exercise, payload.exercise_id) is None:
@@ -15,6 +29,24 @@ def record_session(db: Session, user_id: str, payload: TrainingSessionCreate) ->
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"exercise_id '{payload.exercise_id}' não encontrado",
         )
+
+    # A chave é escopada por usuário: sem isso, uma chave adivinhada por outro
+    # cliente devolveria a sessão de terceiro — vazamento de dado de treino.
+    cache_key = (
+        f"{_IDEMPOTENCY_PREFIX}{user_id}:{idempotency_key}"
+        if redis is not None and idempotency_key
+        else None
+    )
+
+    if cache_key is not None:
+        existing_id = redis.get(cache_key)
+        if existing_id is not None:
+            existing = db.get(TrainingSession, existing_id)
+            # Se a sessão sumiu (conta excluída, limpeza), a chave não vale mais
+            # nada e seguimos criando uma nova em vez de devolver 404.
+            if existing is not None:
+                return existing
+
     session = TrainingSession(
         user_id=user_id,
         exercise_id=payload.exercise_id,
@@ -25,16 +57,26 @@ def record_session(db: Session, user_id: str, payload: TrainingSessionCreate) ->
     db.add(session)
     db.commit()
     db.refresh(session)
+
+    if cache_key is not None:
+        # Depois do commit: registrar antes deixaria a chave apontando para uma
+        # sessão que a transação pode ter descartado.
+        redis.set(cache_key, str(session.id), ex=_IDEMPOTENCY_TTL_SECONDS)
+
     return session
 
 
 def list_user_sessions(
     db: Session, user_id: str, limit: int = 20, offset: int = 0
 ) -> list[TrainingSession]:
+    # `id` desempata: duas séries com o mesmo `executed_at` (comum ao drenar a
+    # fila offline, que reenvia vários resultados de uma vez) tinham ordem
+    # relativa indefinida entre uma página e a seguinte — o histórico podia
+    # mostrar a mesma sessão duas vezes e esconder outra.
     stmt = (
         select(TrainingSession)
         .where(TrainingSession.user_id == user_id)
-        .order_by(TrainingSession.executed_at.desc())
+        .order_by(TrainingSession.executed_at.desc(), TrainingSession.id.desc())
         .limit(limit)
         .offset(offset)
     )
