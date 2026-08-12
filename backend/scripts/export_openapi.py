@@ -6,9 +6,12 @@ Uso (da raiz do backend/):
 Em seguida, no diretório app/:
     npx openapi-typescript ../openapi.json --output src/types/api.generated.ts
 
-Integrado no CI via .github/workflows/ci.yml (step generate-types) para
-manter os tipos TypeScript sincronizados com os schemas Pydantic do backend
-sem drift manual (M5).
+⚠️ Passo MANUAL hoje. A geração de tipos ainda NÃO roda no CI (não existe step
+`generate-types` em .github/workflows/ci.yml, apesar de este cabeçalho ter
+afirmado o contrário), e `openapi.json` não é versionado — por isso
+`npm run generate:types` falha num checkout limpo até se rodar o comando acima.
+Enquanto isso, os tipos do app são escritos à mão espelhando os schemas
+Pydantic (ver o comentário em app/src/services/authService.ts).
 """
 import json
 import sys

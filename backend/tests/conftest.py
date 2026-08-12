@@ -1,23 +1,26 @@
-from collections.abc import Generator
-from typing import Any
+import os
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+# ANTES de qualquer import de `app.*`: `Settings` é um singleton criado no
+# import de app.core.config, e o `Limiter` é construído no import de
+# app.core.rate_limit a partir dele. Definir isto depois não teria efeito — era
+# exatamente a armadilha que fazia a suíte inteira tentar falar com um Redis
+# inexistente e quebrar em cascata.
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
+os.environ.setdefault("RATE_LIMIT_STORAGE_URI", "memory://")
 
-from app.core.database import get_db
-from app.core.rate_limit import limiter
-from app.core.redis import get_redis
-from app.main import app
-from app.models.base import Base
+from collections.abc import Generator  # noqa: E402
+from typing import Any  # noqa: E402
 
-# Desliga o rate limiting nos testes: a suíte registra/loga dezenas de
-# usuários em sequência (auth_headers é chamado em quase todo teste) e
-# esbarraria no limite de /auth (AUTH_RATE_LIMIT) sem isso — o limite em
-# si tem seu próprio teste em test_rate_limit.py com o limiter religado.
-limiter.enabled = False
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import Session, sessionmaker  # noqa: E402
+from sqlalchemy.pool import StaticPool  # noqa: E402
+
+from app.core.database import get_db  # noqa: E402
+from app.core.redis import get_redis  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models.base import Base  # noqa: E402
 
 """
 Suite de testes da API (FastAPI TestClient + SQLite em memória).
@@ -27,6 +30,10 @@ tipos padrão (String/Integer/DateTime — ver app/models/*.py), então o SQLite
 em memória é suficiente para testar o contrato HTTP sem exigir um Postgres
 rodando localmente. `StaticPool` mantém a mesma conexão entre threads do
 TestClient, o que é necessário para o SQLite `:memory:`.
+
+O rate limiting fica desligado (via env acima) porque `auth_headers` é usado em
+quase todo teste e a suíte estouraria AUTH_RATE_LIMIT; o limite em si tem seu
+próprio teste em test_rate_limit.py, que o religa sobre storage `memory://`.
 """
 
 engine = create_engine(
@@ -51,26 +58,62 @@ app.dependency_overrides[get_db] = _override_get_db
 class _FakeRedis:
     """Substituto in-memory de redis.Redis para testes.
 
-    Implementa apenas os métodos usados por auth_service: setex, get, delete.
-    Não requer Redis instalado; cada fixture `client` parte de um estado limpo.
+    Implementa a fatia da API que `auth_service` usa: strings (`set`/`get`/
+    `delete`/`expire`) e conjuntos (`sadd`/`srem`/`smembers`), imitando
+    `decode_responses=True` (tudo entra e sai como str).
+
+    O TTL é aceito e ignorado: nenhum teste depende de expiração por tempo, e
+    fingir passagem de tempo aqui só criaria testes lentos ou instáveis.
+
+    Nota: este dublê é o ponto exato onde a suíte já mentiu uma vez — ele tinha
+    `setex` enquanto o serviço chamava `set(..., ex=...)`, e todo teste que
+    passava por /auth/login morria com AttributeError. Ao mexer em
+    `auth_service`, confira se os métodos usados existem aqui.
     """
 
+    # Anotações com `set[...]` ficam entre aspas neste corpo de classe: o método
+    # `set` (nome exigido pela API do redis-py) sombreia o builtin durante a
+    # execução do corpo, e uma anotação não-adiada quebraria no import.
     def __init__(self) -> None:
-        self._store: dict[str, Any] = {}
+        self._strings: dict[str, str] = {}
+        self._sets: dict[str, set[str]] = {}
 
-    def setex(self, name: str, time: int, value: Any) -> None:  # noqa: ARG002
-        self._store[name] = value
+    def set(self, name: str, value: Any, ex: int | None = None) -> None:  # noqa: ARG002
+        self._strings[name] = str(value)
 
-    def get(self, name: str) -> Any:
-        return self._store.get(name)
+    def get(self, name: str) -> str | None:
+        return self._strings.get(name)
 
     def delete(self, *names: str) -> int:
         deleted = 0
         for name in names:
-            if name in self._store:
-                del self._store[name]
-                deleted += 1
+            deleted += self._strings.pop(name, None) is not None
+            deleted += self._sets.pop(name, None) is not None
         return deleted
+
+    def expire(self, name: str, seconds: int) -> bool:  # noqa: ARG002
+        return name in self._strings or name in self._sets
+
+    def sadd(self, name: str, *values: str) -> int:
+        members = self._sets.setdefault(name, set())
+        before = len(members)
+        members.update(str(value) for value in values)
+        return len(members) - before
+
+    def srem(self, name: str, *values: str) -> int:
+        members = self._sets.get(name)
+        if members is None:
+            return 0
+        before = len(members)
+        members.difference_update(str(value) for value in values)
+        return before - len(members)
+
+    def smembers(self, name: str) -> "set[str]":
+        return {*self._sets.get(name, ())}
+
+    def clear(self) -> None:
+        self._strings.clear()
+        self._sets.clear()
 
 
 _fake_redis = _FakeRedis()
@@ -80,9 +123,16 @@ app.dependency_overrides[get_redis] = lambda: _fake_redis
 @pytest.fixture(autouse=True)
 def _reset_database() -> Generator[None, None, None]:
     Base.metadata.create_all(bind=engine)
-    _fake_redis._store.clear()
+    _fake_redis.clear()
     yield
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture()
+def fake_redis() -> _FakeRedis:
+    """Acesso ao dublê do Redis para testes que precisam inspecionar o estado
+    das sessões (ex.: garantir que o refresh token não é guardado em texto puro)."""
+    return _fake_redis
 
 
 @pytest.fixture()
@@ -112,5 +162,18 @@ def auth_headers(client: TestClient):
         login_response = client.post("/auth/login", json={"email": email, "password": password})
         token = login_response.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
+
+    return _make
+
+
+@pytest.fixture()
+def login_tokens(client: TestClient):
+    """Registra/loga um usuário e devolve o par completo de tokens — para os
+    testes de rotação e revogação de refresh token."""
+
+    def _make(email: str = "rota@example.com", password: str = "senha-forte-123") -> dict[str, str]:
+        client.post("/auth/register", json={"name": "Rota Teste", "email": email, "password": password})
+        response = client.post("/auth/login", json={"email": email, "password": password})
+        return response.json()
 
     return _make
