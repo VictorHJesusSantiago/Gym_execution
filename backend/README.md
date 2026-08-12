@@ -46,6 +46,7 @@ backend/
     ├── test_idempotency.py           # Idempotency-Key: retry não duplica sessão
     ├── test_observability.py         # X-Request-ID e métricas RED em /metrics
     ├── test_uuid_generation.py       # UUIDv7: versão, ordenação temporal, unicidade
+    ├── test_architecture.py          # regra de dependência + ausência de ciclos (ADP)
     └── test_app_catalog_contract.py  # o catálogo embutido no app não pode divergir do seed
 ```
 
@@ -76,7 +77,7 @@ desenvolvimento — gerar uma chave forte e aleatória em produção).
 
 ```bash
 cd backend
-pytest                                        # 67 testes
+pytest                                        # 70 testes
 ruff check .                                  # lint (ruff==0.6.9, só CI/dev)
 pytest --cov=app --cov-fail-under=90          # gate de cobertura do CI (hoje: 94%)
 ```

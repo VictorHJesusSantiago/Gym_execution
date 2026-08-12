@@ -34,6 +34,18 @@ class Settings(BaseSettings):
     inteira esbarre no limite de /auth ao rodar dezenas de registros/logins
     em sequência. Em produção fica sempre ligado (valor padrão)."""
 
+    rate_limit_storage_uri: str | None = None
+    """Onde o slowapi guarda as contagens. `None` = usa `redis_url` (padrão de
+    produção: estado compartilhado entre workers/réplicas — sem isso o limite é
+    por processo e contornável distribuindo requests). Sobrescrever com
+    "memory://" em ambientes sem Redis (CI/testes).
+
+    Separado de `rate_limit_enabled` de propósito: antes o storage era derivado
+    daquele flag, então desligar o limiter em teste era a ÚNICA forma de não
+    exigir Redis — e como o `Limiter` é construído no import, desligá-lo depois
+    (`limiter.enabled = False`) já não trocava o storage. Resultado: a suíte
+    inteira tentava conectar no Redis e quebrava em cascata."""
+
     admin_api_key: str = "change-me-in-env"
     """Chave usada por processos internos (ex.: pipeline de ingestão de
     referências, ver backend/pipeline/publish_reference.py) para chamar
@@ -43,6 +55,12 @@ class Settings(BaseSettings):
     """Origens autorizadas a chamar a API a partir do navegador. Em produção,
     sobrescrever via env com o(s) domínio(s) reais — nunca usar "*" junto
     de credentials (Authorization: Bearer)."""
+
+    @model_validator(mode="after")
+    def _default_rate_limit_storage_to_redis(self) -> "Settings":
+        if self.rate_limit_storage_uri is None:
+            self.rate_limit_storage_uri = self.redis_url
+        return self
 
     @model_validator(mode="after")
     def _validate_production_secrets(self) -> "Settings":
