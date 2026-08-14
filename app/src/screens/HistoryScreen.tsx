@@ -42,9 +42,6 @@ export function HistoryScreen() {
     if (!token) return;
     setError(null);
     try {
-      // Reenvia resultados que falharam ao gravar (ex.: offline durante a
-      // sessão, ver ExecutionScreen/pendingSessionsQueue) antes de carregar
-      // o histórico, para que apareçam na lista já nesta visita.
       await drainPendingSessions(token).catch(() => {});
       setPendingCount(await countPendingSessions());
       const page = await listMySessions(token, { offset: 0 });
@@ -69,8 +66,6 @@ export function HistoryScreen() {
       setSessions((current) => [...current, ...page]);
       setHasMore(page.length === SESSIONS_PAGE_SIZE);
     } catch {
-      // Falha ao carregar mais não substitui o erro principal — o usuário
-      // já vê o histórico carregado até aqui e pode tentar rolar de novo.
     } finally {
       setLoadingMore(false);
     }

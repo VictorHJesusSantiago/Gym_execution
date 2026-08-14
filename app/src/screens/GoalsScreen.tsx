@@ -16,8 +16,6 @@ export function GoalsScreen() {
   const theme = useTheme();
   const { exercises } = useExerciseCatalog();
   const [goals, setGoals] = useState<PersonalGoal[]>([]);
-  // `exercises` nunca é vazio (o hook parte do catálogo embutido), mas o
-  // fallback para '' evita um crash de índice caso um dia passe a ser.
   const [exerciseId, setExerciseId] = useState(exercises[0]?.id ?? '');
   const [targetScore, setTargetScore] = useState('');
   const [targetWeight, setTargetWeight] = useState('');
