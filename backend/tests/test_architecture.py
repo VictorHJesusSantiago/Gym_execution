@@ -14,8 +14,6 @@ from pathlib import Path
 
 _APP_ROOT = Path(__file__).resolve().parent.parent / "app"
 
-# Camadas, da mais externa para a mais interna. Cada uma só pode depender das
-# que estão ABAIXO dela nesta lista (Dependency Rule).
 _LAYERS = ("routers", "services", "schemas", "core", "models")
 
 
@@ -34,7 +32,7 @@ def _resolve_relative(module: str, node: ast.ImportFrom) -> str | None:
     if node.level == 0:
         return node.module if node.module and node.module.startswith("app") else None
 
-    package_parts = module.split(".")[:-1]  # remove o próprio módulo
+    package_parts = module.split(".")[:-1]
     base = package_parts[: len(package_parts) - (node.level - 1)]
     if node.module:
         base = base + node.module.split(".")
@@ -105,7 +103,7 @@ def test_module_graph_has_no_cycles():
         colour[module] = GREY
         for target in sorted(graph.get(module, ())):
             if target not in colour:
-                continue  # pacote sem arquivo próprio (ex.: `app.services` como namespace)
+                continue
             if colour[target] == GREY:
                 start = stack.index(target)
                 cycles.append(" -> ".join([*stack[start:], target]))

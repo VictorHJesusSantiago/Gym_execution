@@ -10,10 +10,6 @@ evitando erros de digitação/duplicação que só apareceriam ao rodar
 import importlib.util
 from pathlib import Path
 
-# Carrega o módulo da migration diretamente do arquivo (não via `import
-# alembic.versions...`): o diretório local `backend/alembic/` não é um
-# pacote Python regular (sem `__init__.py` — Alembic carrega migrations
-# do seu próprio jeito) e colidiria com o pacote `alembic` instalado.
 _MIGRATION_PATH = (
     Path(__file__).resolve().parent.parent / "alembic" / "versions" / "0002_seed_exercise_catalog.py"
 )

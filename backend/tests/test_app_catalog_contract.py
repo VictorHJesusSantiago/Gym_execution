@@ -25,9 +25,6 @@ _APP_CATALOG = (
     Path(__file__).resolve().parents[2] / "app" / "src" / "services" / "exerciseCatalog.ts"
 )
 
-# Casa `id: 'algum-id'` dentro do literal EXERCISES. Regex em vez de parser de
-# TypeScript de propósito: a estrutura é uma lista de literais estável, e uma
-# dependência nova (ou um Node no CI do backend) custaria mais do que resolve.
 _ID_PATTERN = re.compile(r"\bid:\s*'([^']+)'")
 
 

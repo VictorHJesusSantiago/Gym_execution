@@ -56,11 +56,9 @@ def test_replaying_a_rotated_token_revokes_every_active_session(client, login_to
     stolen = login_tokens()
     legitimate = client.post("/auth/refresh", json={"refresh_token": stolen["refresh_token"]}).json()
 
-    # O atacante replica o token que a vítima já rotacionou.
     replay = client.post("/auth/refresh", json={"refresh_token": stolen["refresh_token"]})
     assert replay.status_code == 401
 
-    # O token BOM da vítima também deve ter morrido: na dúvida, derruba tudo.
     after_revocation = client.post("/auth/refresh", json={"refresh_token": legitimate["refresh_token"]})
     assert after_revocation.status_code == 401
 
