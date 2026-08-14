@@ -62,7 +62,7 @@ function PublicNavigator() {
 function AuthenticatedNavigator() {
   return (
     <AuthenticatedStack.Navigator initialRouteName="Home">
-      {/* Cores de cabeçalho vêm do `theme` do NavigationContainer. */}
+      {}
       <AuthenticatedStack.Screen name="Home" component={HomeScreen} options={{ title: 'Gym Execution' }} />
       <AuthenticatedStack.Screen name="ExerciseList" component={ExerciseListScreen} options={{ title: 'Exercícios' }} />
       <AuthenticatedStack.Screen name="Execution" component={ExecutionScreen} options={{ title: 'Execução' }} />

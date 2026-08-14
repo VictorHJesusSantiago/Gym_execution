@@ -19,8 +19,6 @@ type Props = NativeStackScreenProps<AuthenticatedStackParamList, 'ExerciseList'>
 const ALL_GROUPS = 'Todos';
 
 export function ExerciseListScreen({ navigation }: Props) {
-  // Catálogo real do backend (com fallback embutido) em vez da lista fixa —
-  // ver useExerciseCatalog/exerciseCatalogService.
   const theme = useTheme();
   const { exercises: catalog } = useExerciseCatalog();
   const muscleGroups = [ALL_GROUPS, ...useMuscleGroups(catalog)];
@@ -109,8 +107,6 @@ export function ExerciseListScreen({ navigation }: Props) {
               style={styles.itemMain}
               onPress={() => openExercise(item.id)}
               accessibilityRole="button"
-              // O rótulo inclui o grupo muscular porque um leitor de tela lê os
-              // dois Text como nós separados, sem dizer que são do mesmo card.
               accessibilityLabel={`Iniciar ${item.name}, ${item.muscleGroup}`}
             >
               <Text style={[styles.itemTitle, { color: theme.text }]}>{item.name}</Text>

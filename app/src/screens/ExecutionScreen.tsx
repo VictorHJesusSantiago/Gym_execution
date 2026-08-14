@@ -33,8 +33,6 @@ export function ExecutionScreen({ route, navigation }: Props) {
   const detector = useMemo(() => new PlatformPoseDetector(), []);
   const warmupTip = useMemo(() => getWarmupTip(exerciseId), [exerciseId]);
 
-  // A referência agora é BAIXADA (e cacheada) do storage de mídia quando o
-  // exercício tem uma publicada — ver useReferenceSequence/ADR-0001.
   const reference = useReferenceSequence(exerciseId);
   const referenceFrames = reference.status === 'ready' ? reference.frames : EMPTY_FRAMES;
 
@@ -43,20 +41,15 @@ export function ExecutionScreen({ route, navigation }: Props) {
 
   const [weightInput, setWeightInput] = useState('');
 
-  // Câmera, permissões e loop de captura de frames (useCameraCapture)
   const { permission, requestPermission, cameraRef, stopCapture } = useCameraCapture(
     status === 'recording',
     captureFrame
   );
 
-  // Envio do resultado, offline queue e navegação (useSessionSubmit)
   const { submit } = useSessionSubmit(navigation);
 
   const fontSize = (base: number) => scaleFontSize(base, preferences.largeText);
 
-  // Só inicia depois que a referência estiver resolvida: começar antes faria a
-  // série ser pontuada contra uma lista vazia (score 0 garantido). É o passo
-  // `LoadingReference` do diagrama de estados do README.md.
   useEffect(() => {
     if (reference.status === 'ready') start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,9 +166,7 @@ export function ExecutionScreen({ route, navigation }: Props) {
           accessibilityLabel="Carga em quilogramas, opcional"
         />
       </View>
-      {/* Aviso condicionado à referência REAL: some sozinho quando o exercício
-          passar a ter uma sequência publicada, em vez de mentir nos dois
-          sentidos. Não remover enquanto o ADR-0001 estiver aberto. */}
+      {}
       {reference.isSynthetic && (
         <Text style={[styles.disclaimer, { color: theme.warning, fontSize: fontSize(12) }]}>
           Pontuação experimental: este exercício ainda não tem um padrão de referência publicado.
