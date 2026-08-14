@@ -21,8 +21,6 @@ export function LoginScreen({ navigation }: Props) {
     setSubmitting(true);
     try {
       await signIn(email.trim(), password);
-      // Navegação para a área autenticada acontece automaticamente:
-      // AppNavigator troca de pilha ao detectar `status === 'signedIn'`.
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível entrar. Tente novamente.');
     } finally {

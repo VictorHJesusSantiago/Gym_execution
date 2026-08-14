@@ -23,15 +23,10 @@ const JOINT_LABELS: Record<AsymmetricJoint, string> = {
 export function ResultScreen({ route, navigation }: Props) {
   const {
     score, exerciseId, asymmetry, repCount, fatigue, newRecords, overload, weightKg,
-    // Ausente = rota antiga/estado restaurado: assume sintético, porque avisar
-    // a mais é seguro e avisar a menos não é.
     referenceIsSynthetic = true,
   } = route.params;
   const { preferences, theme } = usePreferences();
 
-  // Pessoas com assimetria corporal natural (medida na Calibração) não devem
-  // ser sinalizadas por algo que já é normal para elas — somamos essa
-  // linha de base ao limiar padrão antes de comparar.
   const [asymmetryThreshold, setAsymmetryThreshold] = useState(ASYMMETRY_THRESHOLD_PERCENT);
 
   useEffect(() => {
@@ -40,8 +35,6 @@ export function ResultScreen({ route, navigation }: Props) {
     });
   }, []);
 
-  // Meta pessoal definida para este exercício (tela de Metas) — comparada
-  // com o resultado da sessão atual para mostrar se foi atingida.
   const [goal, setGoal] = useState<PersonalGoal | null>(null);
 
   useEffect(() => {
@@ -52,8 +45,6 @@ export function ResultScreen({ route, navigation }: Props) {
 
   const goalProgress = computeGoalProgress(goal, { score, weightKg: weightKg ?? null });
 
-  // Cronômetro de descanso entre séries com lembrete de hidratação
-  // (README.md — "Saúde e segurança"); puramente local, sem dependências novas.
   const [restSeconds, setRestSeconds] = useState(REST_SECONDS);
 
   useEffect(() => {
@@ -63,8 +54,6 @@ export function ResultScreen({ route, navigation }: Props) {
     return () => clearInterval(timer);
   }, []);
 
-  // Preferências de acessibilidade vêm do PreferencesProvider — antes esta
-  // tela recarregava o AsyncStorage por conta própria.
   const fontSize = (base: number) => scaleFontSize(base, preferences.largeText);
 
   const asymmetricJoints = asymmetry
@@ -155,9 +144,7 @@ export function ResultScreen({ route, navigation }: Props) {
           possível sinal de fadiga.
         </Text>
       )}
-      {/* Só aparece quando a nota veio de referência sintética — ver ADR-0001.
-          Antes era incondicional, então continuaria mentindo depois que os
-          padrões reais fossem publicados. */}
+      {}
       {referenceIsSynthetic && (
         <Text style={[styles.disclaimer, { color: theme.warning, fontSize: fontSize(12) }]}>
           Pontuação experimental — este exercício ainda não tem um padrão de referência publicado.

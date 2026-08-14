@@ -22,8 +22,6 @@ export function RegisterScreen({ navigation }: Props) {
     setSubmitting(true);
     try {
       await signUp(name.trim(), email.trim(), password);
-      // Após o cadastro, `signUp` já efetua o login — a troca para a
-      // pilha autenticada acontece automaticamente via AppNavigator.
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível criar a conta. Tente novamente.');
     } finally {

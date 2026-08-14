@@ -126,9 +126,6 @@ export function ProfileScreen() {
             if (!token) return;
             try {
               await deleteMyAccount(token);
-              // A conta já não existe: limpa as credenciais locais e volta à
-              // pilha pública. `signOut` também tenta revogar no servidor, o
-              // que falha em silêncio aqui — comportamento correto.
               await signOut();
             } catch (err) {
               setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a conta.');
@@ -389,7 +386,5 @@ const styles = StyleSheet.create({
   buttonText: { fontSize: 16, fontWeight: '600' },
   secondaryButton: { borderWidth: 1, paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8 },
   secondaryButtonText: { fontSize: 16, fontWeight: '600' },
-  // Discreto de propósito: é uma ação destrutiva e irreversível, não deve
-  // competir visualmente com "Sair".
   deleteAccountLink: { fontSize: 13, textDecorationLine: 'underline', marginTop: 8, marginBottom: 16 },
 });
