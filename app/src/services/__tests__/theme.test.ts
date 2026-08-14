@@ -1,5 +1,3 @@
-// `DEFAULT_PREFERENCES` vive em preferencesStorage, que importa AsyncStorage no
-// topo — sem o mock oficial o módulo nativo é nulo e a suíte nem carrega.
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
@@ -20,8 +18,6 @@ describe('getTheme', () => {
   });
 
   it('darkMode troca de verdade o fundo e o texto', () => {
-    // Regressão: `darkMode` era gravado pela tela de Configurações e nunca lido
-    // por ninguém — o interruptor não fazia absolutamente nada.
     const theme = getTheme(preferences({ darkMode: true }));
 
     expect(theme.isDark).toBe(true);
@@ -30,8 +26,6 @@ describe('getTheme', () => {
   });
 
   it('highContrast tem prioridade sobre darkMode', () => {
-    // Alto contraste é acessibilidade (preto/branco puros); deixar o modo
-    // escuro suavizá-lo desfaria a garantia que o usuário pediu.
     const theme = getTheme(preferences({ darkMode: true, highContrast: true }));
 
     expect(theme.background).toBe('#000000');

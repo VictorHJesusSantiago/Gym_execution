@@ -83,9 +83,6 @@ describe('getReferenceFrames', () => {
   });
 
   it('rejeita formato de landmark desconhecido', async () => {
-    // O storage de mídia é público e fora do controle da API: um arquivo de
-    // outro formato produziria NaN silencioso no cálculo dos ângulos e o
-    // usuário veria uma nota inventada em vez de um aviso.
     mockFetchOnce({ ...publishedSequence(), landmarkFormat: 'coco-17' });
     jest.spyOn(console, 'warn').mockImplementation(() => {});
 

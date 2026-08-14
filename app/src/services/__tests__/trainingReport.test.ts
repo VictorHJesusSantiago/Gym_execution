@@ -14,9 +14,9 @@ describe('computePeriodReport', () => {
 
   it('inclui apenas sessões dentro da janela de dias', () => {
     const sessions = [
-      session(80, '2026-06-14T10:00:00.000Z', 50), // hoje
-      session(60, '2026-06-10T10:00:00.000Z', 40), // 4 dias atrás
-      session(90, '2026-06-01T10:00:00.000Z', 100), // fora da janela de 7 dias
+      session(80, '2026-06-14T10:00:00.000Z', 50),
+      session(60, '2026-06-10T10:00:00.000Z', 40),
+      session(90, '2026-06-01T10:00:00.000Z', 100),
     ];
 
     const report = computePeriodReport(sessions, 7, NOW);

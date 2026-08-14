@@ -69,7 +69,7 @@ describe('detectOverload', () => {
       makeSession({ executed_at: '2026-01-02T10:00:00.000Z', weight_kg: 50 }),
     ];
 
-    expect(detectOverload(sessions, 'squat', 55)).toBeNull(); // +10%
+    expect(detectOverload(sessions, 'squat', 55)).toBeNull();
   });
 
   it('sinaliza aumento de carga acima do limite em relação à média recente', () => {
@@ -78,14 +78,14 @@ describe('detectOverload', () => {
       makeSession({ executed_at: '2026-01-02T10:00:00.000Z', weight_kg: 50 }),
     ];
 
-    const overload = detectOverload(sessions, 'squat', 70); // +40%
+    const overload = detectOverload(sessions, 'squat', 70);
 
     expect(overload).toEqual({ averageRecentWeightKg: 50, increasePercent: 40 });
   });
 
   it('considera só as sessões mais recentes do exercício, ignorando outros exercícios', () => {
     const sessions = [
-      makeSession({ executed_at: '2026-01-01T10:00:00.000Z', weight_kg: 100 }), // antiga, fora da janela
+      makeSession({ executed_at: '2026-01-01T10:00:00.000Z', weight_kg: 100 }),
       makeSession({ executed_at: '2026-01-05T10:00:00.000Z', weight_kg: 50 }),
       makeSession({ executed_at: '2026-01-06T10:00:00.000Z', weight_kg: 50 }),
       makeSession({ executed_at: '2026-01-07T10:00:00.000Z', weight_kg: 50 }),
@@ -94,7 +94,7 @@ describe('detectOverload', () => {
       makeSession({ exercise_id: 'bench', executed_at: '2026-01-10T10:00:00.000Z', weight_kg: 200 }),
     ];
 
-    const overload = detectOverload(sessions, 'squat', 70); // +40% sobre média 50 das 5 mais recentes
+    const overload = detectOverload(sessions, 'squat', 70);
 
     expect(overload).toEqual({ averageRecentWeightKg: 50, increasePercent: 40 });
   });
