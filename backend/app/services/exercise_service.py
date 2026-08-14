@@ -7,10 +7,6 @@ from ..models.exercise import Exercise
 
 
 def list_exercises(db: Session, limit: int = 100, offset: int = 0) -> list[Exercise]:
-    # ORDER BY obrigatório: LIMIT/OFFSET sobre um conjunto sem ordenação total
-    # tem ordem indefinida no Postgres, então páginas consecutivas podiam repetir
-    # ou pular exercícios. `id` no fim garante desempate determinístico mesmo
-    # entre nomes iguais dentro de um grupo muscular.
     stmt = (
         select(Exercise)
         .order_by(Exercise.muscle_group, Exercise.name, Exercise.id)

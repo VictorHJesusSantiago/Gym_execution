@@ -83,7 +83,6 @@ def issue_tokens(user: User, redis: Redis) -> tuple[str, str]:
 
     index_key = f"{_USER_TOKENS_PREFIX}{user.id}"
     redis.sadd(index_key, fingerprint)
-    # O índice expira junto com o token mais recente; cada emissão o renova.
     redis.expire(index_key, ttl_seconds)
 
     return access_token, refresh_token
@@ -96,12 +95,6 @@ def refresh_access_token(refresh_token: str, redis: Redis, db: Session) -> tuple
 
     consumed_by = redis.get(f"{_CONSUMED_PREFIX}{fingerprint}")
     if consumed_by is not None:
-        # Replay de um token JÁ rotacionado. Ou o cliente perdeu a resposta da
-        # rotação anterior, ou o token vazou e está sendo usado em paralelo —
-        # e não há como distinguir. O OAuth 2.0 Security BCP manda tratar como
-        # comprometimento: derruba a família inteira e força login novo.
-        # Sem isto, um token roubado rendia acesso indefinido, porque a rotação
-        # sozinha só invalida o token usado, nunca denuncia o ladrão.
         logger.warning("refresh_token_reuse_detected", extra={"user_id": consumed_by})
         revoke_all_sessions(consumed_by, redis)
         raise _INVALID_REFRESH_TOKEN
@@ -112,7 +105,6 @@ def refresh_access_token(refresh_token: str, redis: Redis, db: Session) -> tuple
 
     user = db.get(User, user_id)
     if user is None:
-        # Conta removida entre a emissão e o refresh: limpa o que sobrou.
         revoke_all_sessions(user_id, redis)
         raise _INVALID_REFRESH_TOKEN
 
@@ -140,8 +132,6 @@ def _consume(fingerprint: str, user_id: str, redis: Redis, ttl_seconds: int) -> 
     """Invalida o token e registra que ele já foi usado (para detectar replay)."""
     redis.delete(f"{_REFRESH_PREFIX}{fingerprint}")
     redis.srem(f"{_USER_TOKENS_PREFIX}{user_id}", fingerprint)
-    # A marca vive o mesmo tempo que o token viveria: depois disso ele já
-    # estaria expirado de qualquer forma e o replay cai no 401 comum.
     redis.set(f"{_CONSUMED_PREFIX}{fingerprint}", user_id, ex=ttl_seconds)
 
 

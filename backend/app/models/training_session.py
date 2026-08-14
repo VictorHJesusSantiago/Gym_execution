@@ -17,12 +17,6 @@ class TrainingSession(Base, TimestampMixin):
     __tablename__ = "training_sessions"
 
     __table_args__ = (
-        # A faixa 0-100 é regra de negócio (RN03/DOM06), não detalhe de
-        # apresentação: valia só no Pydantic, então qualquer escrita fora do
-        # router (migration de dados, script de manutenção, backfill) podia
-        # gravar um score inválido silenciosamente. Declarada aqui e não só na
-        # migration para que o SQLite da suíte de testes — criado por
-        # `create_all`, não por Alembic — imponha a mesma garantia.
         CheckConstraint(
             f"score >= {SCORE_MIN} AND score <= {SCORE_MAX}",
             name="ck_training_sessions_score_range",
