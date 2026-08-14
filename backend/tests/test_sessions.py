@@ -36,9 +36,6 @@ def test_record_session_stores_only_score_and_metadata(client, auth_headers, db_
     assert body["exercise_id"] == "agachamento"
     assert body["score"] == 87
     assert body["weight_kg"] is None
-    # O contrato não expõe nada além de id/exercise_id/score/executed_at/
-    # weight_kg — garante que vídeo bruto nunca faz parte da resposta
-    # (README.md seção 5).
     assert set(body.keys()) == {"id", "exercise_id", "score", "executed_at", "weight_kg"}
 
 
@@ -117,7 +114,7 @@ def test_list_my_sessions_returns_only_own_sessions_newest_first(client, auth_he
 
     assert response.status_code == 200
     scores = [item["score"] for item in response.json()]
-    assert scores == [90, 70]  # só as sessões da usuária A, da mais recente para a mais antiga
+    assert scores == [90, 70]
 
 
 def test_list_my_sessions_supports_pagination(client, auth_headers, db_session):

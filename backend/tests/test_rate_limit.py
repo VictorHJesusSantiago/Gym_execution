@@ -28,7 +28,6 @@ def rate_limited_client():
 
 
 def _attempts_allowed() -> int:
-    # AUTH_RATE_LIMIT está no formato "N/minute" — extrai o N.
     return int(AUTH_RATE_LIMIT.split("/")[0])
 
 
@@ -38,7 +37,7 @@ def test_login_is_rate_limited_per_ip(rate_limited_client: TestClient):
 
     for _ in range(limit):
         response = rate_limited_client.post("/auth/login", json=payload)
-        assert response.status_code == 401  # credenciais inválidas, mas dentro do limite
+        assert response.status_code == 401
 
     blocked = rate_limited_client.post("/auth/login", json=payload)
 
@@ -54,7 +53,7 @@ def test_register_is_rate_limited_per_ip(rate_limited_client: TestClient):
             "/auth/register",
             json={"name": f"Usuário {index}", "email": f"user{index}@example.com", "password": "senha-forte-123"},
         )
-        assert response.status_code in (201, 409)  # 409 se o e-mail já existir não conta como bloqueio
+        assert response.status_code in (201, 409)
 
     blocked = rate_limited_client.post(
         "/auth/register",

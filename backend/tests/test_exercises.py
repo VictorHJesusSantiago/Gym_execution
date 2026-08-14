@@ -40,9 +40,6 @@ def test_update_reference_model_requires_admin_key(client, db_session):
         json={"reference_model_uri": "https://cdn.example.com/agachamento.json"},
     )
 
-    # Credencial ausente é falha de autenticação (401), não de validação de
-    # schema: com `Header(...)` obrigatório o FastAPI devolvia 422 com um corpo
-    # descrevendo o header esperado. O teste seguinte cobre a chave errada (403).
     assert response.status_code == 401
 
 
