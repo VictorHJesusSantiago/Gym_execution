@@ -41,8 +41,6 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const updatePreferences = useCallback((partial: Partial<Preferences>) => {
     setPreferences((current) => {
       const next = { ...current, ...partial };
-      // Preferência local: falha ao persistir não deve travar a interface, que
-      // já reflete a mudança.
       savePreferences(next).catch(() => {});
       return next;
     });

@@ -55,7 +55,6 @@ function runtimeImports(file: string): string[] {
     const [, typeKeyword, clause, specifier] = match;
     if (typeKeyword) continue;
 
-    // `import { type A, type B } from '...'` também é totalmente apagado.
     const named = clause.match(/\{([\s\S]*)\}/);
     if (named) {
       const specifiers = named[1].split(',').map((s) => s.trim()).filter(Boolean);
@@ -102,8 +101,6 @@ describe('arquitetura de módulos', () => {
   });
 
   it('services/ não importa hooks, telas nem navegação', () => {
-    // É o que mantém `services/` puro e testável sem React — a convenção
-    // central do projeto, hoje verificada em vez de apenas documentada.
     const offenders: string[] = [];
 
     for (const [file, targets] of buildGraph()) {
