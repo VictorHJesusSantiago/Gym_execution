@@ -22,10 +22,6 @@ function renderResult(params: Partial<ResultParams> = {}) {
 
 describe('ResultScreen', () => {
   beforeEach(async () => {
-    // Timers falsos: a tela tem um cronômetro de descanso (`setInterval` de 1s)
-    // que continuava disparando `setState` depois do fim do teste, já com o
-    // registro de módulos do Jest desmontado — o processo morria com um erro
-    // de render sem relação nenhuma com o que estava sendo verificado.
     jest.useFakeTimers();
     await AsyncStorage.clear();
   });
@@ -49,15 +45,12 @@ describe('ResultScreen', () => {
   });
 
   it('mostra o aviso experimental quando a referência é sintética', async () => {
-    // ADR-0001: o aviso é condicional para sumir sozinho, por exercício,
-    // quando a referência real for publicada — e para NÃO sumir antes disso.
     const text = renderedText(await renderWithProviders(renderResult({ referenceIsSynthetic: true }).element));
 
     expect(text).toContain('Pontuação experimental');
   });
 
   it('assume sintética quando o parâmetro está ausente', async () => {
-    // Avisar a mais é seguro; avisar a menos, não.
     const { navigation } = renderResult();
     const route = { key: 'Result', name: 'Result', params: { score: 70, exerciseId: 'agachamento' } };
     const element = createElement(ResultScreen, { navigation, route } as never);
@@ -102,8 +95,6 @@ describe('ResultScreen', () => {
   });
 
   it('respeita a calibração corporal ao sinalizar assimetria', async () => {
-    // Assimetria natural medida na Calibração não pode virar alerta: quem tem
-    // 20% de linha de base receberia um aviso em toda série.
     const asymmetry = { overallPercent: 18, byJoint: { elbow: 18, knee: 2, hip: 2 } };
 
     const withoutCalibration = renderedText(await renderWithProviders(renderResult({ asymmetry }).element));

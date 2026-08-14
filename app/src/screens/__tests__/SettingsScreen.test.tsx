@@ -56,8 +56,6 @@ describe('SettingsScreen', () => {
   });
 
   it('persiste o modo escuro e repinta a própria tela na hora', async () => {
-    // O ponto do PreferencesProvider: antes a mudança só valeria na próxima
-    // montagem, então o usuário mexia no interruptor e nada acontecia.
     const renderer = await renderWithProviders(renderSettings().element);
 
     await toggle(renderer, 'Modo escuro', true);

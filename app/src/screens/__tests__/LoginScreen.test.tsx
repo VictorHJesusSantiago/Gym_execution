@@ -2,9 +2,6 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
-// O prefixo `mock` é obrigatório: a fábrica do `jest.mock` é içada para antes
-// das declarações do módulo, e o Babel só libera acesso a variáveis externas
-// que sigam essa convenção — sem ela, a fábrica poderia ler um `undefined`.
 const mockSignIn = jest.fn();
 const mockSignUp = jest.fn();
 jest.mock('../../hooks/useAuth', () => ({
@@ -75,8 +72,6 @@ describe('LoginScreen', () => {
   });
 
   it('autentica com o e-mail sem espaços em volta', async () => {
-    // `email.trim()` importa: teclado de celular adiciona espaço com frequência
-    // e o backend compara o e-mail literalmente.
     const renderer = await renderWithProviders(renderLogin().element);
 
     await type(renderer, 'E-mail', '  ana@example.com  ');
