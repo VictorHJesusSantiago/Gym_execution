@@ -42,7 +42,6 @@ describe('moveNetToMediaPipeFrame', () => {
   it('preenche com placeholder de visibilidade zero os landmarks sem equivalente no COCO', () => {
     const frame = moveNetToMediaPipeFrame(0, makeCocoKeypoints());
 
-    // Índice 17 (left_pinky) não existe no COCO/MoveNet.
     expect(frame.landmarks[17]).toEqual({ x: 0, y: 0, visibility: 0 });
   });
 
@@ -57,7 +56,6 @@ describe('moveNetToMediaPipeFrame', () => {
   });
 
   it('gera frames compatíveis com extractJointAngles (mesmo cálculo de ângulo do detector simulado)', () => {
-    // Cotovelo esquerdo dobrado a 90°: ombro acima do cotovelo, punho ao lado.
     const keypoints = makeCocoKeypoints({
       [COCO_KEYPOINT_INDEX.leftShoulder]: { x: 0.5, y: 0.0 },
       [COCO_KEYPOINT_INDEX.leftElbow]: { x: 0.5, y: 0.5 },

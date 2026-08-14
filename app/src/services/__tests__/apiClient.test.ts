@@ -56,9 +56,6 @@ describe('apiRequest', () => {
   });
 
   it('faz single-flight do refresh: 401 concorrentes disparam um único refresh', async () => {
-    // Regressão: sem single-flight, cada 401 concorrente dispararia um refresh
-    // com o mesmo refresh token; o backend rotaciona/invalida no primeiro uso,
-    // então os demais falhariam e provocariam logout espúrio em cascata.
     const refresh = jest.fn().mockResolvedValue('new-token');
     setTokenRefreshHandler(refresh);
 

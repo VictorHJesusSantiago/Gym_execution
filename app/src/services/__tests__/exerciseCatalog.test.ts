@@ -28,9 +28,6 @@ const SEEDED_IDS = [
 
 describe('exerciseCatalog (embutido)', () => {
   it('só contém ids que existem no seed do backend', () => {
-    // Regressão do bug que quebrava o produto inteiro: o catálogo usava
-    // `squat`/`pushup`/`deadlift`/`shoulder_press`, que nunca foram seedados,
-    // e por isso todo POST /sessions voltava 422.
     expect(EXERCISES.map((exercise) => exercise.id).sort()).toEqual([...SEEDED_IDS].sort());
   });
 
