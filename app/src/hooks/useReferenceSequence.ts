@@ -30,9 +30,6 @@ export function useReferenceSequence(exerciseId: string): ReferenceState {
         if (active) setState({ status: 'ready', ...sequence });
       })
       .catch(() => {
-        // `getReferenceFrames` já trata falha de rede caindo na sintética;
-        // isto cobre apenas o inesperado, para a tela nunca ficar presa em
-        // "carregando" para sempre.
         if (active) setState({ status: 'ready', frames: [], isSynthetic: true });
       });
 

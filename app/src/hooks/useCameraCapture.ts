@@ -5,7 +5,7 @@ import type { CameraFrameInput } from '../services/poseTypes';
 import { usePreferences } from './usePreferences';
 import { CAMERA_QUALITY_SETTINGS } from '../services/preferencesStorage';
 
-const SAMPLE_INTERVAL_MS = 100; // ~10 fps de amostragem (DOM05 — fixo de propósito)
+const SAMPLE_INTERVAL_MS = 100;
 
 type CaptureHandler = (timestampMs: number, frame: CameraFrameInput) => Promise<void>;
 
@@ -49,15 +49,12 @@ export function useCameraCapture(isRecording: boolean, onCapture: CaptureHandler
           if (!photo) return;
           const frame: CameraFrameInput = { uri: photo.uri, width: photo.width, height: photo.height };
           return onCapture(Date.now(), frame).finally(() => {
-            // Em iOS/Android `photo.uri` é arquivo temporário no cache —
-            // sem isso, cada frame (~10/s) acumula JPEGs órfãos.
             if (photo.uri.startsWith('file://')) {
               FileSystem.deleteAsync(photo.uri, { idempotent: true }).catch(() => {});
             }
           });
         })
         .catch((err) => {
-          // Falha isolada num frame não derruba o loop — a próxima amostra tenta de novo.
           console.warn('[useCameraCapture] falha ao capturar/processar frame', err);
         })
         .finally(() => {

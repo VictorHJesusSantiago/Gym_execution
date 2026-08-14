@@ -39,7 +39,6 @@ export function useSessionSubmit(navigation: Navigation) {
 
       const executedAt = new Date();
 
-      // Envia o score calculado localmente — falha de rede vai para fila offline.
       recordSession(token, exerciseId, score, executedAt, weightKg).catch(() => {
         enqueuePendingSession({
           exerciseId, score,
@@ -48,7 +47,6 @@ export function useSessionSubmit(navigation: Navigation) {
         }).catch(() => {});
       });
 
-      // Histórico para detectar recordes pessoais — falha não bloqueia o resultado.
       listAllMySessions(token)
         .then((sessions) => {
           const previousSessions = sessions.filter((s) => new Date(s.executed_at) < executedAt);
