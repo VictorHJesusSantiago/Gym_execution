@@ -16,7 +16,6 @@ Pydantic (ver o comentário em app/src/services/authService.ts).
 import json
 import sys
 
-# Garante que o módulo app seja encontrado quando rodado de backend/
 sys.path.insert(0, ".")
 
 from app.main import app  # noqa: E402

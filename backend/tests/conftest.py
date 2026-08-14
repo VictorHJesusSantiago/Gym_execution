@@ -1,10 +1,5 @@
 import os
 
-# ANTES de qualquer import de `app.*`: `Settings` é um singleton criado no
-# import de app.core.config, e o `Limiter` é construído no import de
-# app.core.rate_limit a partir dele. Definir isto depois não teria efeito — era
-# exatamente a armadilha que fazia a suíte inteira tentar falar com um Redis
-# inexistente e quebrar em cascata.
 os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 os.environ.setdefault("RATE_LIMIT_STORAGE_URI", "memory://")
 
@@ -71,9 +66,6 @@ class _FakeRedis:
     `auth_service`, confira se os métodos usados existem aqui.
     """
 
-    # Anotações com `set[...]` ficam entre aspas neste corpo de classe: o método
-    # `set` (nome exigido pela API do redis-py) sombreia o builtin durante a
-    # execução do corpo, e uma anotação não-adiada quebraria no import.
     def __init__(self) -> None:
         self._strings: dict[str, str] = {}
         self._sets: dict[str, set[str]] = {}

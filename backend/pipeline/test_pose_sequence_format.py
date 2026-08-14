@@ -22,8 +22,6 @@ def test_frame_serializes_with_camel_case_keys_expected_by_the_app():
 
     serialized = frame.to_json_dict()
 
-    # O app (TypeScript) espera `timestampMs` e `landmarks` (camelCase),
-    # não os nomes em snake_case usados internamente no Python.
     assert serialized.keys() == {"timestampMs", "landmarks"}
     assert serialized["timestampMs"] == 100
     assert len(serialized["landmarks"]) == 33
