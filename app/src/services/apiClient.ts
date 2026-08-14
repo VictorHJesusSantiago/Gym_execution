@@ -67,7 +67,6 @@ async function executeRequest<T>(path: string, options: RequestOptions, isRetry 
     if (response.status === 401 && token && !isRetry) {
       const newToken = await refreshTokenOnce();
       if (newToken) {
-        // Retry único com o novo access token — isRetry=true previne loop infinito
         return executeRequest<T>(path, { ...options, token: newToken }, true);
       }
       unauthorizedHandler?.();
