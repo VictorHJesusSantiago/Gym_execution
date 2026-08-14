@@ -33,8 +33,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type", "Idempotency-Key", REQUEST_ID_HEADER],
-    # Sem isto o navegador esconde o header do JS do app, e o id de correlação
-    # não chega a quem precisaria citá-lo num relato de erro.
     expose_headers=[REQUEST_ID_HEADER],
 )
 
@@ -51,8 +49,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
         exc_info=exc,
         extra={"path": request.url.path, "method": request.method},
     )
-    # O id vai no corpo além do header: é o que o usuário consegue copiar de uma
-    # tela de erro e citar no suporte, ligando o relato à linha exata do log.
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Erro interno do servidor", "requestId": get_request_id()},

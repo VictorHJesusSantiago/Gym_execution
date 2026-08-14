@@ -5,9 +5,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from .config import settings
 
-# pool_size/max_overflow explícitos: evita comportamento imprevisível em
-# produção com múltiplos uvicorn workers — cada worker tem seu próprio pool,
-# então N workers × pool_size conexões abertas em paralelo.
 engine = create_engine(
     settings.database_url,
     pool_pre_ping=True,
