@@ -12,8 +12,8 @@ import { moveNetToMediaPipeFrame } from './moveNetAdapter';
  * (`tfhub.dev/google/lite-model/movenet/singlepose/lightning/tflite/int8/4`)
  * e está em `app/assets/models/movenet_lightning_int8.tflite`.
  */
-const MODEL_INPUT_SIZE = 192; // entrada quadrada 192x192 RGB exigida pelo MoveNet Lightning
-const KEYPOINT_COUNT = 17; // saída no formato COCO — convertida via moveNetAdapter
+const MODEL_INPUT_SIZE = 192;
+const KEYPOINT_COUNT = 17;
 
 export class PlatformPoseDetector implements PoseDetector {
   private model: TensorflowModel | null = null;
@@ -34,11 +34,6 @@ export class PlatformPoseDetector implements PoseDetector {
     const inputTensor = await frameToInputTensor(frame);
     const outputs = await this.model.run([inputTensor]);
 
-    // A saída do MoveNet Lightning (INT8) é sempre float32 — mas validamos o
-    // shape antes de indexar: um modelo carregado incorretamente ou uma
-    // versão incompatível poderia retornar um tensor vazio/diferente, o que
-    // sem essa checagem lançaria um TypeError não tratado dentro do loop de
-    // captura (ver ExecutionScreen).
     const output = outputs[0];
     if (!(output instanceof Float32Array) || output.length < KEYPOINT_COUNT * 3) {
       return null;
@@ -66,9 +61,6 @@ async function frameToInputTensor(frame: CameraFrameInput): Promise<Uint8Array> 
     { base64: true, format: SaveFormat.JPEG, compress: 1 }
   );
 
-  // `manipulateAsync` grava o resultado em um arquivo temporário no cache —
-  // já temos os dados em `base64`, então apagamos o arquivo para não acumular
-  // um JPEG por frame capturado (~10/s) no armazenamento do dispositivo.
   void FileSystem.deleteAsync(manipulated.uri, { idempotent: true }).catch(() => {});
 
   if (!manipulated.base64) {
@@ -77,7 +69,6 @@ async function frameToInputTensor(frame: CameraFrameInput): Promise<Uint8Array> 
 
   const { data } = decodeJpeg(base64ToUint8Array(manipulated.base64), { useTArray: true });
 
-  // RGBA (jpeg-js) → RGB achatado em row-major (NHWC) — formato de entrada do MoveNet.
   const rgb = new Uint8Array(MODEL_INPUT_SIZE * MODEL_INPUT_SIZE * 3);
   for (let pixel = 0, channel = 0; pixel < MODEL_INPUT_SIZE * MODEL_INPUT_SIZE; pixel++) {
     rgb[channel++] = data[pixel * 4];

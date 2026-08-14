@@ -101,7 +101,6 @@ function downsample<T>(seq: T[], targetLength: number): T[] {
 function dtwBanded(userSeq: JointAngles[], refSeq: JointAngles[], bandWidth: number): number {
   const n = userSeq.length;
   const m = refSeq.length;
-  // W deve ser pelo menos |n-m| para garantir que exista um caminho válido.
   const W = Math.max(bandWidth, Math.abs(n - m));
   const INF = Infinity;
 
@@ -118,7 +117,6 @@ function dtwBanded(userSeq: JointAngles[], refSeq: JointAngles[], bandWidth: num
       const best = Math.min(prev[j - 1], prev[j], curr[j - 1]);
       curr[j] = d + best;
     }
-    // Troca os buffers sem alocação nova
     const tmp = prev;
     prev = curr;
     curr = tmp;
@@ -132,8 +130,6 @@ function dtwAverageDistance(userSeq: JointAngles[], referenceSeq: JointAngles[])
   const m = referenceSeq.length;
   if (n === 0 || m === 0) return Infinity;
 
-  // Limita os frames do usuário a 3× a referência antes do DTW — evita
-  // matrizes de custo gigantes em sessões longas (ex.: 6000 × 100 frames).
   const maxFrames = m * 3;
   const normalizedUser = n > maxFrames ? downsample(userSeq, maxFrames) : userSeq;
 

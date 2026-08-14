@@ -6,7 +6,7 @@ import { recordSession } from './sessionsService';
 export type PendingSession = {
   exerciseId: string;
   score: number;
-  executedAt: string; // ISO 8601 — ver TrainingSessionCreate.executed_at
+  executedAt: string;
   weightKg?: number | null;
 };
 

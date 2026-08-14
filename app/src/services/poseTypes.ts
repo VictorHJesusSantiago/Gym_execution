@@ -5,14 +5,14 @@
  */
 
 export type Landmark = {
-  x: number; // normalizado [0, 1]
-  y: number; // normalizado [0, 1]
-  visibility?: number; // confiança [0, 1]
+  x: number;
+  y: number;
+  visibility?: number;
 };
 
 export type PoseFrame = {
   timestampMs: number;
-  landmarks: Landmark[]; // índice segue o padrão MediaPipe Pose (33 pontos)
+  landmarks: Landmark[];
 };
 
 /** Principais articulações usadas no scoring, por índice MediaPipe. */
