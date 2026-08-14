@@ -15,7 +15,7 @@ describe('computeProfileStats', () => {
     const stats = computeProfileStats([70, 80, 80]);
 
     expect(stats.trainingCount).toBe(3);
-    expect(stats.averageScore).toBe(77); // 76.66... arredonda para 77
+    expect(stats.averageScore).toBe(77);
   });
 
   it('funciona com uma única sessão', () => {

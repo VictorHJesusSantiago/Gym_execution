@@ -54,9 +54,6 @@ describe('pendingSessionsQueue', () => {
   });
 
   it('drainPendingSessions descarta o que o servidor rejeita permanentemente (422)', async () => {
-    // Regressão: qualquer erro devolvia o item à fila, então um payload que o
-    // servidor nunca aceitaria (ex.: exercise_id inexistente) era reenviado a
-    // cada visita ao histórico, para sempre.
     (recordSession as jest.Mock).mockRejectedValue(new ApiError(422, 'exercise_id não encontrado'));
     await enqueuePendingSession(PENDING);
 
@@ -84,7 +81,7 @@ describe('pendingSessionsQueue', () => {
     expect(await countPendingSessions()).toBe(200);
     const raw = await AsyncStorage.getItem('@gym_execution/pending_sessions');
     const queue = JSON.parse(raw as string) as PendingSession[];
-    expect(queue[queue.length - 1].score).toBe(204); // a mais recente sobreviveu
-    expect(queue[0].score).toBe(5); // as 5 mais antigas foram descartadas
+    expect(queue[queue.length - 1].score).toBe(204);
+    expect(queue[0].score).toBe(5);
   });
 });

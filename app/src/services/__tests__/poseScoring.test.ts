@@ -124,7 +124,6 @@ describe('scoreExecution', () => {
 
   it('tolera diferenças de ritmo entre as sequências (alinhamento por DTW)', () => {
     const reference = [frameWithLeftElbowAngle(0, 90), frameWithLeftElbowAngle(100, 120), frameWithLeftElbowAngle(200, 150)];
-    // Mesma trajetória de ângulos, mas amostrada em ritmo mais lento (frames repetidos)
     const slowerExecution = [
       frameWithLeftElbowAngle(0, 90),
       frameWithLeftElbowAngle(50, 90),
@@ -191,7 +190,6 @@ describe('countRepetitions', () => {
   });
 
   it('não conta o ciclo final incompleto', () => {
-    // 2 ciclos completos + descida final sem retornar ao topo
     const angles = [90, 0, 90, 0, 90, 0];
     const frames = angles.map((angle, i) => frameWithKneeAngles(i * 100, angle, angle));
 
@@ -207,7 +205,6 @@ describe('detectFatigue', () => {
   });
 
   it('sinaliza degradação quando a forma da última repetição difere muito da primeira', () => {
-    // 4 repetições idênticas no joelho (sobe/desce); o cotovelo só muda na última
     const kneeAngles = [0, 90, 0, 90, 0, 90, 0, 90];
     const elbowAngles = [0, 0, 0, 0, 0, 0, 60, 60];
     const frames = kneeAngles.map((knee, i) => frameWithKneeAndElbowAngles(i * 100, knee, elbowAngles[i]));
@@ -220,7 +217,6 @@ describe('detectFatigue', () => {
   });
 
   it('não sinaliza degradação quando a forma se mantém consistente entre repetições', () => {
-    // 4 repetições idênticas no joelho, sem variação no cotovelo
     const kneeAngles = [0, 90, 0, 90, 0, 90, 0, 90];
     const frames = kneeAngles.map((angle, i) => frameWithKneeAngles(i * 100, angle, angle));
 
@@ -248,7 +244,7 @@ describe('getRealtimeFeedback', () => {
 
   it('sinaliza a articulação que mais diverge da referência mais parecida', () => {
     const reference = [frameWithKneeAngles(0, 90, 90)];
-    const frame = frameWithKneeAngles(100, 90, 30); // joelho direito 60° fora da referência
+    const frame = frameWithKneeAngles(100, 90, 30);
 
     const feedback = getRealtimeFeedback(frame, reference);
 

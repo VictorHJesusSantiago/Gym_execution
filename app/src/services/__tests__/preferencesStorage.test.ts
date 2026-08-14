@@ -1,6 +1,3 @@
-// Mock oficial do AsyncStorage para testes (documentado pelo próprio pacote
-// @react-native-async-storage/async-storage) — guarda os dados em memória,
-// sem precisar de um ambiente nativo.
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
@@ -36,8 +33,6 @@ describe('preferencesStorage', () => {
   });
 
   it('migra o antigo `soundFeedback` para `vibrationFeedback`', async () => {
-    // Quem já tinha desligado o feedback não pode vê-lo voltar sozinho ao
-    // padrão só porque a chave foi renomeada.
     await AsyncStorage.setItem(
       '@gym_execution/preferences',
       JSON.stringify({ ...DEFAULT_PREFERENCES, soundFeedback: false, vibrationFeedback: undefined })
