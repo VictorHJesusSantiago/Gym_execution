@@ -71,8 +71,6 @@ def decode_access_token(token: str) -> AccessTokenClaims | None:
             options={"require": ["exp", "sub", "jti"]},
         )
     except jwt.InvalidTokenError:
-        # Token malformado/expirado/assinatura inválida — não logar o token
-        # em si (PII/credencial), só o evento, para detectar abuso.
         logger.warning("Falha ao decodificar token de acesso")
         return None
 

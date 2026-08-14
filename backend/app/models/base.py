@@ -31,7 +31,6 @@ def generate_uuid() -> str:
     timestamp_ms = int(time.time() * 1000)
     random_bits = int.from_bytes(os.urandom(10), "big")
 
-    # 48 bits de tempo | versão (7) | 12 bits aleatórios | variante (0b10) | 62 bits aleatórios
     value = timestamp_ms << 80
     value |= 0x7 << 76
     value |= ((random_bits >> 68) & 0xFFF) << 64

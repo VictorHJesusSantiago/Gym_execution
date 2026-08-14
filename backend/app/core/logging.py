@@ -67,10 +67,6 @@ async def log_requests_middleware(request: Request, call_next):
 
     duration_ms = (time.perf_counter() - start) * 1000
 
-    # `request.scope["route"]` é o TEMPLATE da rota (/exercises/{exercise_id}),
-    # não o caminho concreto: métricas por caminho concreto explodiriam a
-    # cardinalidade (uma série temporal por id de exercício) e ainda colocariam
-    # identificadores de usuário nos rótulos.
     route = request.scope.get("route")
     route_template = getattr(route, "path", None) or "unmatched"
 
@@ -91,12 +87,6 @@ async def log_requests_middleware(request: Request, call_next):
     return response
 
 
-# --- Métricas (método RED: Rate, Errors, Duration) --------------------------
-#
-# Implementação própria, em memória, em vez de `prometheus-client`: a API é um
-# processo só por réplica, o formato de exposição do Prometheus é texto simples
-# e estável, e o projeto trata cada dependência nova como superfície de
-# supply-chain (ver requirements.txt). São ~40 linhas contra mais um pacote.
 
 _LATENCY_BUCKETS_MS = (5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000)
 
