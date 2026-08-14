@@ -56,9 +56,6 @@ export async function getReferenceFrames(
     await AsyncStorage.setItem(cacheKey(exerciseId), JSON.stringify(frames)).catch(() => {});
     return { frames, isSynthetic: false };
   } catch (error) {
-    // Offline no primeiro uso de um exercício (RNF05 cobre a inferência, não o
-    // download). Cair na sintética é melhor do que travar a tela — desde que o
-    // usuário seja avisado de que a nota não vale.
     console.warn('[referenceLibrary] falha ao baixar a sequência de referência', error);
     return syntheticSequence();
   }
@@ -70,10 +67,6 @@ async function downloadSequence(exerciseId: string, uri: string): Promise<PoseFr
 
   const payload = (await response.json()) as PublishedSequence;
 
-  // O storage de mídia é público e fica fora do controle da API: validamos o
-  // que chega em vez de confiar. Um arquivo truncado ou de outro formato
-  // produziria NaN silencioso no cálculo dos ângulos, e o usuário veria uma
-  // nota inventada em vez de um erro.
   if (payload.landmarkFormat !== SUPPORTED_LANDMARK_FORMAT) {
     throw new Error(`formato de landmark não suportado: ${payload.landmarkFormat}`);
   }

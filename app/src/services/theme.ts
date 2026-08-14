@@ -36,8 +36,6 @@ const LIGHT = {
   danger: '#dc2626',
 };
 
-// `#0f172a` é o token "Dark mode bg" já definido na tabela de design do
-// README.md raiz — o tema segue a especificação que já existia no papel.
 const DARK = {
   background: '#0f172a',
   surface: '#1e293b',
