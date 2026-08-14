@@ -6,7 +6,6 @@ jest.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({ token: 'token-de-teste', status: 'signedIn', signOut: jest.fn() }),
 }));
 
-// `useFocusEffect` roda o callback na montagem; sem isto a tela nunca carrega.
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (callback: () => void) => require('react').useEffect(callback, [callback]),
 }));
@@ -86,8 +85,6 @@ describe('HistoryScreen', () => {
   });
 
   it('uma falha ao drenar não impede o histórico de carregar', async () => {
-    // O `.catch(() => {})` no drain existe para isto: ficar offline não pode
-    // esconder o histórico que já está no servidor.
     (drainPendingSessions as jest.Mock).mockRejectedValue(new Error('offline'));
     (listMySessions as jest.Mock).mockResolvedValue([session()]);
 

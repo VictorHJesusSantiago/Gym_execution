@@ -31,8 +31,6 @@ describe('ExerciseListScreen', () => {
   });
 
   it('mostra o catálogo embutido mesmo sem rede', async () => {
-    // RNF05: o app abre offline. Uma lista vazia enquanto a rede não responde
-    // seria pior do que mostrar o catálogo que já vem no bundle.
     const text = renderedText(await renderWithProviders(renderList().element));
 
     expect(text).toContain('Agachamento');

@@ -69,8 +69,6 @@ describe('HomeScreen', () => {
   });
 
   it('aplica o tema escuro quando a preferência está ligada', async () => {
-    // Regressão do interruptor que não fazia nada: aqui a preferência sai do
-    // storage, passa pelo provider e chega ao estilo renderizado.
     await AsyncStorage.setItem('@gym_execution/preferences', JSON.stringify({ darkMode: true }));
     const { element } = renderHome();
 
@@ -81,8 +79,6 @@ describe('HomeScreen', () => {
   });
 
   it('todo controle tocável tem rótulo acessível', async () => {
-    // WCAG 2.1 "Nome, função, valor": um Pressable sem rótulo é anunciado como
-    // um botão sem nome por TalkBack/VoiceOver.
     const { element } = renderHome();
     const renderer = await renderWithProviders(element);
 
