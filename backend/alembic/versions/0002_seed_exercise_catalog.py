@@ -25,9 +25,6 @@ down_revision: Union[str, None] = "0001_initial_schema"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-# Tabela "leve" (só as colunas necessárias para o seed) — evita importar
-# os modelos ORM da aplicação dentro de uma migration, prática recomendada
-# pelo Alembic para manter migrations estáveis mesmo se os modelos mudarem.
 exercises_table = sa.table(
     "exercises",
     sa.column("id", sa.String),

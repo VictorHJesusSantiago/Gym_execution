@@ -23,9 +23,6 @@ def upgrade() -> None:
             table,
             sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         )
-        # Inicializa linhas existentes com o valor de created_at para
-        # não deixar NULL em registros históricos — o onupdate no ORM
-        # cuidará das atualizações subsequentes.
         op.execute(f"UPDATE {table} SET updated_at = created_at WHERE updated_at IS NULL")
 
 
