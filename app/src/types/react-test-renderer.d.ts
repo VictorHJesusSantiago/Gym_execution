@@ -13,8 +13,6 @@ declare module 'react-test-renderer' {
 
   /** Nó da árvore renderizada, como exposto por `root`/`find`/`findAll`. */
   export interface ReactTestInstance {
-    // `any` deliberado: as props variam por componente e tipá-las exigiria os
-    // tipos completos do React Native, que é justamente o que se evita aqui.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     props: Record<string, any>;
     type: unknown;
