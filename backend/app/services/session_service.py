@@ -22,16 +22,12 @@ def record_session(
     redis: Redis | None = None,
     idempotency_key: str | None = None,
 ) -> TrainingSession:
-    # A8: valida FK de exercise_id antes do commit — devolve 422 semântico
-    # em vez de deixar o banco lançar IntegrityError que vira 500 genérico.
     if db.get(Exercise, payload.exercise_id) is None:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"exercise_id '{payload.exercise_id}' não encontrado",
         )
 
-    # A chave é escopada por usuário: sem isso, uma chave adivinhada por outro
-    # cliente devolveria a sessão de terceiro — vazamento de dado de treino.
     cache_key = (
         f"{_IDEMPOTENCY_PREFIX}{user_id}:{idempotency_key}"
         if redis is not None and idempotency_key
@@ -42,8 +38,6 @@ def record_session(
         existing_id = redis.get(cache_key)
         if existing_id is not None:
             existing = db.get(TrainingSession, existing_id)
-            # Se a sessão sumiu (conta excluída, limpeza), a chave não vale mais
-            # nada e seguimos criando uma nova em vez de devolver 404.
             if existing is not None:
                 return existing
 
@@ -59,8 +53,6 @@ def record_session(
     db.refresh(session)
 
     if cache_key is not None:
-        # Depois do commit: registrar antes deixaria a chave apontando para uma
-        # sessão que a transação pode ter descartado.
         redis.set(cache_key, str(session.id), ex=_IDEMPOTENCY_TTL_SECONDS)
 
     return session
@@ -69,10 +61,6 @@ def record_session(
 def list_user_sessions(
     db: Session, user_id: str, limit: int = 20, offset: int = 0
 ) -> list[TrainingSession]:
-    # `id` desempata: duas séries com o mesmo `executed_at` (comum ao drenar a
-    # fila offline, que reenvia vários resultados de uma vez) tinham ordem
-    # relativa indefinida entre uma página e a seguinte — o histórico podia
-    # mostrar a mesma sessão duas vezes e esconder outra.
     stmt = (
         select(TrainingSession)
         .where(TrainingSession.user_id == user_id)

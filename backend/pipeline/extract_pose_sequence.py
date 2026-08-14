@@ -19,8 +19,6 @@ from pathlib import Path
 
 from pose_sequence_format import Landmark, PoseFrame, frames_to_json_dict
 
-# Importação tardia e opcional: este módulo deve poder ser lido/testado
-# (ex.: `frames_to_json_dict`) mesmo sem mediapipe/opencv instalados.
 try:
     import cv2
     import mediapipe as mp
@@ -29,7 +27,7 @@ except ImportError:  # pragma: no cover - guidance for local setup
     mp = None
 
 
-SAMPLE_INTERVAL_MS = 100  # mesma taxa de amostragem usada no app (ExecutionScreen)
+SAMPLE_INTERVAL_MS = 100
 
 
 def extract_frames_from_video(video_path: Path) -> list[PoseFrame]:

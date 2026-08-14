@@ -46,8 +46,5 @@ def delete_user_account(db: Session, user: User, redis: Redis) -> None:
     db.delete(user)
     db.commit()
 
-    # Depois do commit: se a transação falhar, as sessões continuam válidas e
-    # o usuário segue conseguindo usar o app. Revogar antes deixaria alguém
-    # deslogado por uma exclusão que não aconteceu.
     auth_service.revoke_all_sessions(user_id, redis)
     logger.info("user_account_deleted", extra={"user_id": user_id})
