@@ -1,1312 +1,1089 @@
 <div align="center">
 
-# 🏋️‍♂️ Gym Execution
+**🌐 Choose Language / Selecione o Idioma / Elija el Idioma**
 
-### AI-powered, on-device workout form analysis — your phone is the only "judge" you need.
-
-[![English](https://img.shields.io/badge/🌐_Language-English-2563EB?style=for-the-badge)](README.md)
-[![Português](https://img.shields.io/badge/🌐_Idioma-Português-10B981?style=for-the-badge)](README.pt-BR.md)
-[![Español](https://img.shields.io/badge/🌐_Idioma-Español-F59E0B?style=for-the-badge)](README.es.md)
-
-<br/>
-
-![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=FFD43B)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![TensorFlow Lite](https://img.shields.io/badge/TensorFlow_Lite-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
-![MediaPipe](https://img.shields.io/badge/MediaPipe-0097A7?style=for-the-badge&logo=google&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/CI%2FCD-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+[![🇺🇸 English](https://img.shields.io/badge/🇺🇸%20English-Current-005CA5?style=for-the-badge)](README.md)&nbsp;&nbsp;&nbsp;[![🇧🇷 Português](https://img.shields.io/badge/🇧🇷%20Português-README__PT.md-009C3B?style=for-the-badge)](README_PT.md)&nbsp;&nbsp;&nbsp;[![🇪🇸 Español](https://img.shields.io/badge/🇪🇸%20Español-README__ES.md-C60B1E?style=for-the-badge)](README_ES.md)
 
 </div>
 
 ---
 
-A hybrid (mobile + web) gym app that **records the user performing an
-exercise with the phone camera** and returns a **correctness score**
-(general + exercise-specific), comparing the captured movement against
-reference patterns — **all processed on-device**. Raw video never leaves
-the phone; only the final score is sent to the backend.
+<div align="center">
+
+```
+ ██████╗██╗   ██╗███╗   ███╗    ███████╗██╗  ██╗███████╗ ██████╗██╗   ██╗████████╗██╗ ██████╗ ███╗   ██╗
+██╔════╝╚██╗ ██╔╝████╗ ████║    ██╔════╝╚██╗██╔╝██╔════╝██╔════╝██║   ██║╚══██╔══╝██║██╔═══██╗████╗  ██║
+██║  ███╗╚████╔╝ ██╔████╔██║    █████╗   ╚███╔╝ █████╗  ██║     ██║   ██║   ██║   ██║██║   ██║██╔██╗ ██║
+██║   ██║ ╚██╔╝  ██║╚██╔╝██║    ██╔══╝   ██╔██╗ ██╔══╝  ██║     ██║   ██║   ██║   ██║██║   ██║██║╚██╗██║
+╚██████╔╝  ██║   ██║ ╚═╝ ██║    ███████╗██╔╝ ██╗███████╗╚██████╗╚██████╔╝   ██║   ██║╚██████╔╝██║ ╚████║
+ ╚═════╝   ╚═╝   ╚═╝     ╚═╝    ╚══════╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝    ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+                     On-device pose estimation for exercise form scoring
+```
+
+---
+
+[![Expo](https://img.shields.io/badge/Expo-SDK%2051-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.74-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQLAlchemy%202.0-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![TFLite](https://img.shields.io/badge/TFLite-MoveNet-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/lite)
+[![Redis](https://img.shields.io/badge/Redis-Rate%20Limit-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+
+<br/>
+
+> **A mobile app that watches you exercise through the camera and scores your form**
+> using on-device pose estimation, never uploading raw video to any server.
+
+<br/>
+
+![Screens](https://img.shields.io/badge/Screens-11-3DDC84?style=flat-square)
+![Services](https://img.shields.io/badge/Frontend%20Services-26-10B981?style=flat-square)
+![Routers](https://img.shields.io/badge/API%20Routers-4-FF6B35?style=flat-square)
+![Backend Tests](https://img.shields.io/badge/Backend%20Test%20Files-15-8B5CF6?style=flat-square)
+
+</div>
+
+---
 
 ## 📑 Table of Contents
 
 <details>
-<summary><strong>📖 Click to expand full index</strong></summary>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
 
-- [1️⃣ Requirements](#1️⃣-requirements)
-  - [✅ Functional Requirements (RF)](#-functional-requirements-rf)
-  - [⚙️ Non-Functional Requirements (RNF)](#️-non-functional-requirements-rnf)
-  - [📐 Business Rules (RN)](#-business-rules-rn)
-  - [🌐 Domain Requirements](#-domain-requirements)
-  - [🗄️ Data Requirements](#️-data-requirements)
-  - [🔌 Interface Requirements](#-interface-requirements)
-- [2️⃣ Use Cases](#2️⃣-use-cases)
-- [3️⃣ Requirements Traceability Matrix](#3️⃣-requirements-traceability-matrix)
-- [4️⃣ Software Requirements Specification (SRS)](#4️⃣-software-requirements-specification-srs)
-- [5️⃣ UML & Structural Diagrams](#5️⃣-uml--structural-diagrams)
-- [6️⃣ Data Model & Data Dictionary](#6️⃣-data-model--data-dictionary)
-- [7️⃣ Data Flow Diagram (DFD)](#7️⃣-data-flow-diagram-dfd)
-- [8️⃣ Architecture Diagram & Flowchart](#8️⃣-architecture-diagram--flowchart)
-- [9️⃣ Persona & User Journey Map](#9️⃣-persona--user-journey-map)
-- [🔟 Wireframes & Mockups](#-wireframes--mockups)
-- [🧰 Tech Stack](#-tech-stack)
-- [📂 Repository Structure](#-repository-structure)
-- [🚀 Getting Started](#-getting-started)
-- [🔌 API Endpoints](#-api-endpoints)
-- [🧪 Testing & CI/CD](#-testing--cicd)
-- [🚢 Deploy](#-deploy)
-- [🔒 Security & Supply Chain](#-security--supply-chain)
+<table>
+<tr>
+<td valign="top" width="50%">
 
-</details>
+**🏗️ System**
+- [Overview](#-overview)
+- [System Architecture](#-system-architecture)
+- [Technology Stack](#-technology-stack)
+- [Design Patterns](#-design-patterns-applied)
+- [Project Structure](#-project-structure)
 
----
+**📦 Modules**
+- [Pose Detection Pipeline](#-system-modules)
+- [Execution Screen](#-system-modules)
+- [Session Services](#-system-modules)
+- [Auth & API Client](#-system-modules)
+- [Backend Routers](#-system-modules)
+- [Reference Pipeline](#-system-modules)
 
-## 1️⃣ Requirements
+</td>
+<td valign="top" width="50%">
 
-### ✅ Functional Requirements (RF)
+**💼 Business**
+- [Business Rules](#-business-rules)
+- [Functional Requirements](#-functional-requirements)
+- [Non-Functional Requirements](#-non-functional-requirements)
 
-<details>
-<summary><strong>Click to expand — 10 functional requirements</strong></summary>
+**📐 Design**
+- [Data Model](#-data-model)
+- [System Flows](#-system-flows)
 
-| # | Requirement |
-|---|---|
-| RF01 | User registration and login (email + password → JWT) |
-| RF02 | Browse the **exercise catalog** (name, muscle group, description) |
-| RF03 | Capture an exercise execution via **camera** and detect body pose **on-device** |
-| RF04 | Compute a **% score** comparing the execution to the exercise's reference sequence |
-| RF05 | Show the result immediately at the end of the set |
-| RF06 | Persist the result to the user's **paginated history** |
-| RF07 | View/edit **profile** (name, email) and aggregated stats (sessions completed, average score) |
-| RF08 | Configure **local preferences**: camera quality, corrective vibration, dark mode, accessibility (contrast, large text, colour-blind palette) |
-| RF09 | Admin: publish a **reference pose sequence** for an exercise |
-| RF10 | Logout / session management via secure token storage |
-| RF11 | **Erase the account and all training history** (LGPD/GDPR right to erasure) |
+**🔐 Security & Ops**
+- [Security](#-security)
+- [Installation & Execution](#-installation--execution)
+- [Automated Tests](#-automated-tests)
+- [Metrics & Monitoring](#-metrics--monitoring)
+- [Known Limitations](#-known-limitations)
 
-</details>
-
-### ⚙️ Non-Functional Requirements (RNF)
-
-<details>
-<summary><strong>Click to expand — 9 non-functional requirements</strong></summary>
-
-| # | Category | Requirement |
-|---|---|---|
-| RNF01 | **Performance** | Smooth on devices with **2GB RAM (~2015+)**: quantized (INT8) on-device models, ~10 fps sampling (`SAMPLE_INTERVAL_MS`), reduced capture resolution |
-| RNF02 | **Privacy** | No raw video/image leaves the device; only numeric scores are transmitted |
-| RNF03 | **Security** | JWT in secure storage (`expo-secure-store`), bcrypt password hashing, rate limiting on **every** public `/auth` endpoint, refresh tokens stored as SHA-256 digests with rotation + reuse detection, revocable access tokens (`jti` denylist), admin endpoints behind `X-Admin-Api-Key` |
-| RNF10 | **Observability** | Structured JSON logs correlated by `X-Request-ID`, RED metrics on `/metrics`, split liveness/readiness probes |
-| RNF04 | **Portability** | Single codebase (React Native + Expo) targeting **Android, iOS and Web** |
-| RNF05 | **Availability/Offline-first CV** | Pose detection works without network connectivity (model bundled/cached on-device) |
-| RNF06 | **Maintainability** | End-to-end typing (TypeScript + Pydantic), unit-tested core algorithms (`pytest`, `Jest`) |
-| RNF07 | **Scalability** | Stateless FastAPI + PostgreSQL/Redis, containerized, ready for managed hosting |
-| RNF08 | **Supply-chain security** | Pinned dependency versions, official registries only, lockfile-based installs (`npm ci`, `pip --require-hashes`) |
-| RNF09 | **CI/CD** | Automated test suites + Docker image build + web export on every push to `main` |
-
-</details>
-
-### 📐 Business Rules (RN)
-
-<details>
-<summary><strong>Click to expand — 8 business rules</strong></summary>
-
-| # | Rule |
-|---|---|
-| RN01 | 🔑 A user must **register and log in** (JWT) to access any feature beyond authentication |
-| RN02 | 🏃 Each **execution** (a "set") is performed for **exactly one exercise**, picked from a shared **catalog** (seeded centrally, not per-user) |
-| RN03 | 📊 Every execution produces a **single score (0–100)**, computed by comparing the captured pose sequence against that exercise's **reference pose sequence** (joint angles + Dynamic Time Warping) |
-| RN04 | 🔐 **Privacy by design**: raw camera frames/video are **never** uploaded — only the computed score and metadata (exercise, timestamp) are persisted in the user's history |
-| RN05 | 📜 A user can only see **their own** training history (`GET /sessions` is scoped to the authenticated user) |
-| RN06 | 🎬 Reference pose sequences are produced **offline**, by an admin pipeline that processes a professional's reference video and publishes the result to `exercises.reference_model_uri` via an admin-protected endpoint (`X-Admin-Api-Key`) |
-| RN07 | 🚦 Auth endpoints (`/auth/register`, `/auth/login`) are **rate-limited** to mitigate brute-force/credential-stuffing |
-| RN08 | ⚙️ User preferences (camera quality, sound feedback, dark mode) are **device-local only** — never synced to the backend |
-
-</details>
-
-### 🌐 Domain Requirements
-
-<details>
-<summary><strong>Click to expand — domain-specific (computer-vision / fitness) constraints</strong></summary>
-
-| # | Requirement |
-|---|---|
-| DOM01 | Pose detection **must** use a 33-landmark body topology (BlazePose/MoveNet-compatible) so reference and captured sequences are comparable |
-| DOM02 | Scoring **must** combine **joint-angle differences** and **Dynamic Time Warping (DTW)** to tolerate timing variations between the reference and the user's execution |
-| DOM03 | The exercise catalog is **global/shared** — exercises are not user-created, ensuring all users are scored against the same reference |
-| DOM04 | Reference pose sequences are generated through an **offline pipeline** (`extract_pose_sequence.py`) from a professional's recorded execution, never in real time |
-| DOM05 | Capture sampling rate is fixed at **~10 fps** (`SAMPLE_INTERVAL_MS`) — a domain-derived trade-off between scoring accuracy and performance on low-end devices |
-| DOM06 | A computed score of **0–100** must always be interpretable as a percentage of similarity to the reference movement, regardless of exercise type |
-
-</details>
-
-### 🗄️ Data Requirements
-
-<details>
-<summary><strong>Click to expand — data persistence and retention rules</strong></summary>
-
-| # | Requirement |
-|---|---|
-| DAT01 | `users`: unique `email`, hashed password (never stored in plain text) |
-| DAT02 | `exercises`: globally seeded catalog with optional `reference_model_uri` (nullable until an admin publishes one) |
-| DAT03 | `training_sessions`: one row per execution — `user_id`, `exercise_id`, `score (0-100)`, `executed_at` |
-| DAT04 | **No raw media** (video/images/pose frames) is ever persisted server-side — only the final numeric score and metadata |
-| DAT05 | `GET /sessions` results **must** be paginated and filtered to `user_id = current_user` |
-| DAT06 | Local-only data (camera quality, sound feedback, dark mode) lives in device storage (`AsyncStorage`/`expo-secure-store`) and is **never sent** to the API |
-
-</details>
-
-### 🔌 Interface Requirements
-
-<details>
-<summary><strong>Click to expand — external and user interfaces</strong></summary>
-
-| # | Requirement |
-|---|---|
-| INT01 | All client↔server communication uses **HTTPS REST/JSON** |
-| INT02 | Authenticated requests carry a **JWT Bearer token** in the `Authorization` header |
-| INT03 | Admin-only endpoints require an additional `X-Admin-Api-Key` header |
-| INT04 | The app provides a **camera capture interface** (`expo-camera`) with on-device pose overlay feedback |
-| INT05 | The UI must be **responsive** across native (Android/iOS) and web targets from a single React Native + Expo codebase |
-| INT06 | Errors returned by the API follow a consistent JSON shape (`{ "detail": "..." }`) so the client can render user-friendly messages |
-
-</details>
+</td>
+</tr>
+</table>
 
 ---
 
-## 2️⃣ Use Cases
-
-### Actors
-
-| Actor | Description |
-|---|---|
-| 🏃 **User** | Registered athlete who records executions, views scores and history |
-| 🛡️ **Admin** | Operator who publishes reference pose sequences via `X-Admin-Api-Key` |
-| 🤖 **CI/CD System** | GitHub Actions — runs tests, builds images, exports the web app (supporting actor) |
-
-### Use Case Summary
-
-| ID | Use Case | Primary Actor | Related RF |
-|---|---|---|---|
-| UC01 | Register | User | RF01 |
-| UC02 | Login | User | RF01 |
-| UC03 | Browse exercise catalog | User | RF02 |
-| UC04 | View exercise details | User | RF02 |
-| UC05 | Capture execution & get score | User | RF03, RF04, RF05 |
-| UC06 | View training history | User | RF06 |
-| UC07 | View / edit profile | User | RF07 |
-| UC08 | Configure local preferences | User | RF08 |
-| UC09 | Publish reference pose sequence | Admin | RF09 |
-| UC10 | Logout | User | RF10 |
-
-### Detailed Use Case Specifications
-
-<details>
-<summary><strong>📄 UC05 — Capture Execution & Get Score</strong></summary>
-
-| Field | Description |
-|---|---|
-| **Actor** | User |
-| **Preconditions** | User is authenticated; an exercise with a published `reference_model_uri` is selected |
-| **Main Flow** | 1. App downloads/caches the exercise's reference pose sequence.<br>2. User taps "Start"; the app loads the on-device CV model.<br>3. App samples camera frames (~10 fps) and runs pose detection per frame.<br>4. User taps "Finish set".<br>5. App computes the score (joint angles + DTW) against the reference sequence.<br>6. App displays the % score immediately.<br>7. App sends `POST /sessions` with `{ exerciseId, score, executedAt }`. |
-| **Alternative Flows** | A1. No network when saving → result is shown locally and queued for retry.<br>A2. Reference model not cached → app blocks "Start" until download completes. |
-| **Postconditions** | A `training_sessions` row is created; result is visible in the user's history |
-| **Related Requirements** | RF03–RF06, RNF01, RNF02, RNF05, DOM01–DOM06, DAT03, DAT04 |
-
 </details>
 
+## 🌟 Overview
+
 <details>
-<summary><strong>📄 UC09 — Publish Reference Pose Sequence (Admin)</strong></summary>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
 
-| Field | Description |
-|---|---|
-| **Actor** | Admin |
-| **Preconditions** | Admin holds a valid `X-Admin-Api-Key`; a processed reference pose sequence exists (output of `extract_pose_sequence.py`) |
-| **Main Flow** | 1. Admin runs the offline pipeline against a professional's reference video.<br>2. Pipeline uploads the resulting pose sequence to media storage.<br>3. Admin calls `PUT /exercises/{id}/reference-model` with the resulting URI and `X-Admin-Api-Key`.<br>4. API validates the admin key and updates `exercises.reference_model_uri`. |
-| **Alternative Flows** | A1. Invalid/missing `X-Admin-Api-Key` → `403 Forbidden`. |
-| **Postconditions** | Exercise becomes "scoreable" — `UC05` can run for it |
-| **Related Requirements** | RF09, RN06, DOM04, INT03 |
+**Gym Execution** is a two-part system: an **Expo / React Native** mobile app that scores exercise form in real time using the phone camera, and a **FastAPI** backend that stores users, exercises and completed training sessions.
 
-</details>
+The app runs pose estimation **on-device** through `react-native-fast-tflite` (a MoveNet TFLite model on native platforms) or MediaPipe Tasks Vision on web, extracts a normalized pose sequence per repetition, and compares it against a **reference pose sequence** for the selected exercise to produce a 0-100 form score. Only the resulting score and light metadata (weight, timestamp) are sent to the backend; raw video frames never leave the device.
+
+The backend is a small, well-tested REST API: JWT auth with refresh tokens, an exercise catalog, session recording with idempotency support, rate limiting via Redis, and structured JSON logging with Prometheus-style metrics.
+
+### 🎯 System Objectives
+
+| Objective | Description |
+|-----------|-------------|
+| 📷 **On-device pose capture** | Score form without ever transmitting raw video |
+| 🏋️ **Exercise catalog** | Serve a curated list of exercises with reference pose sequences |
+| 🎯 **Form scoring** | Compare a captured sequence against a reference and produce a 0-100 score |
+| 🔐 **Authentication** | Register, login, refresh and logout with JWT access + refresh tokens |
+| 📊 **Progress tracking** | Persist sessions with score, weight and timestamp; expose aggregate stats |
+| 🎯 **Personal goals** | Let the user define and track personal training goals locally |
+| 📡 **Offline resilience** | Queue sessions locally and flush them once connectivity returns |
+| 🧪 **Test-driven modules** | Cover services, hooks and screens with Jest; cover the API with Pytest |
 
 ---
 
-## 3️⃣ Requirements Traceability Matrix
-
-<details>
-<summary><strong>Click to expand — maps requirements → use cases → implementation → verification</strong></summary>
-
-| Requirement | Description | Use Case(s) | Implementation | Verification |
-|---|---|---|---|---|
-| RF01 | Register/Login | UC01, UC02 | `backend/app/routers/auth.py` | `backend/tests/test_auth.py` |
-| RF02 | Browse catalog | UC03, UC04 | `backend/app/routers/exercises.py` | `backend/tests/test_exercises.py` |
-| RF03 | Capture + on-device pose detection | UC05 | `app/src/services/poseDetector*.ts` | `app/src/services/__tests__/moveNetAdapter.test.ts` (adapter only — native path unverified) |
-| RF04 | Compute % score | UC05 | `app/src/services/poseScoring.ts` | `app/src/services/__tests__/poseScoring.test.ts` — ⚠️ **partial**: the algorithm is tested, but it still scores against a synthetic reference, see [ADR-0001](docs/adr/0001-reference-pose-sequences-are-synthetic.md) |
-| RF05 | Show result immediately | UC05 | `app/src/screens/ExecutionScreen.tsx` | Manual / E2E |
-| RF06 | Paginated history | UC06 | `backend/app/routers/sessions.py` | `backend/tests/test_sessions.py` |
-| RF07 | View/edit profile | UC07 | `backend/app/routers/users.py` | `backend/tests/test_users.py` |
-| RF08 | Local preferences | UC08 | `app/src/services/preferencesStorage.ts`, `app/src/services/theme.ts` | `preferencesStorage.test.ts`, `theme.test.ts` — camera quality feeds the capture loop; dark mode/contrast/large text drive the app-wide theme. **Note**: the old "sound feedback" toggle is now `vibrationFeedback` and drives the corrective vibration — the app has no audio channel, so the previous label described something that did not exist |
-| RF09 | Publish reference model | UC09 | `backend/app/routers/exercises.py` (admin) | `backend/tests/test_exercises.py` |
-| RF10 | Logout | UC10 | `app/src/services/authService.ts`, `backend/app/services/auth_service.py` | `backend/tests/test_auth_refresh.py` |
-| RNF01 | Performance on low-end devices | UC05 | INT8 TFLite model, `SAMPLE_INTERVAL_MS` | Manual perf test on 2GB device |
-| RNF02 | Privacy (no raw media) | UC05 | `scoreExecution.ts` discards frames after processing | Code review + `RN04` check |
-| RNF03 | Security (JWT, hashing, rate limit) | UC01, UC02, UC09 | `backend/app/core/security.py` | `backend/tests/test_auth.py` |
-| RNF04 | Cross-platform | All | Expo (Android/iOS/Web) | CI build matrix |
-| RNF05 | Offline-first CV | UC05 | Bundled/cached TFLite model | Manual offline test |
-| RNF06 | Maintainability (typing/tests) | All | TypeScript + Pydantic | `pytest`, `Jest` and `tsc --noEmit` in CI |
-| RNF07 | Scalability | All | Stateless FastAPI + Postgres/Redis | Load test (future) |
-| RNF08 | Supply-chain security | All | Lockfiles, pinned versions | `npm ci`, `pip-audit` + `npm audit` in CI |
-| RNF09 | CI/CD | All | `.github/workflows/ci.yml` | CI run on push/PR |
-| DOM01–DOM06 | Domain rules (pose/scoring) | UC05 | `app/services/`, `backend/pipeline/` | Unit tests + manual validation |
-| DAT01–DAT06 | Data persistence rules | UC01, UC05, UC06, UC08 | `backend/app/models/`, `app/services/storage.ts` | `backend/tests/`, code review |
-| INT01–INT06 | Interfaces | All | REST API + Expo UI | OpenAPI schema, `Jest`/`pytest` |
-
 </details>
 
----
-
-## 4️⃣ Software Requirements Specification (SRS)
+## 🏗️ System Architecture
 
 <details>
-<summary><strong>Click to expand — condensed SRS (IEEE 830-style)</strong></summary>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
 
-### 4.1 Introduction
-
-- **Purpose**: Define functional and non-functional requirements for *Gym Execution*, a hybrid app that scores exercise form using on-device computer vision.
-- **Scope**: Covers the mobile/web client (React Native + Expo), the backend API (FastAPI), and the offline reference-pipeline. Out of scope: nutrition tracking, social features, wearable integration.
-- **Definitions**: *Execution* = one recorded set of an exercise. *Reference sequence* = the pose-landmark sequence extracted from a professional's recording. *Score* = 0–100 similarity metric.
-- **References**: see [Requirements](#1️⃣-requirements), [Use Cases](#2️⃣-use-cases), [Data Model](#6️⃣-data-model--data-dictionary).
-
-### 4.2 Overall Description
-
-- **Product perspective**: standalone app + API; no dependency on third-party fitness platforms.
-- **Product functions**: see [Functional Requirements (RF)](#-functional-requirements-rf).
-- **User classes**: *User* (athlete) and *Admin* (catalog/reference curator) — see [Use Cases](#2️⃣-use-cases).
-- **Operating environment**: Android, iOS, Web (Expo); API on Linux containers (Docker).
-- **Design constraints**: must run pose detection on **2GB RAM devices**; raw media must never leave the device (privacy-by-design, see RN04/DOM-level constraints).
-- **Assumptions & dependencies**: reference pose sequences are prepared offline by Admin before an exercise is usable end-to-end (UC09 precedes UC05 for any given exercise).
-
-### 4.3 Specific Requirements
-
-- Functional: [RF01–RF10](#-functional-requirements-rf)
-- Non-functional: [RNF01–RNF09](#️-non-functional-requirements-rnf)
-- Business rules: [RN01–RN08](#-business-rules-rn)
-- Domain: [DOM01–DOM06](#-domain-requirements)
-- Data: [DAT01–DAT06](#-data-requirements)
-- Interface: [INT01–INT06](#-interface-requirements)
-- External interface contracts: [API Endpoints](#-api-endpoints)
-
-### 4.4 Appendices
-
-- [UML & Structural Diagrams](#5️⃣-uml--structural-diagrams)
-- [Data Model & Data Dictionary](#6️⃣-data-model--data-dictionary)
-- [Requirements Traceability Matrix](#3️⃣-requirements-traceability-matrix)
-
-</details>
-
----
-
-## 5️⃣ UML & Structural Diagrams
-
-### 1. 🎯 Use Case Diagram
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#2563EB','primaryTextColor':'#fff','primaryBorderColor':'#1E40AF','lineColor':'#94A3B8'}}}%%
-graph LR
-    classDef actor fill:#2563EB,color:#fff,stroke:#1E3A8A,stroke-width:2px;
-    classDef usecase fill:#10B981,color:#fff,stroke:#065F46,stroke-width:1px;
-
-    User["🏃 User"]:::actor
-    Admin["🛡️ Admin"]:::actor
-
-    subgraph System["Gym Execution System"]
-        UC1(["Register"]):::usecase
-        UC2(["Login"]):::usecase
-        UC3(["Browse Catalog"]):::usecase
-        UC4(["View Exercise Details"]):::usecase
-        UC5(["Capture Execution & Get Score"]):::usecase
-        UC6(["View Training History"]):::usecase
-        UC7(["View/Edit Profile"]):::usecase
-        UC8(["Configure Preferences"]):::usecase
-        UC9(["Publish Reference Pose Sequence"]):::usecase
-        UC10(["Logout"]):::usecase
-    end
-
-    User --> UC1
-    User --> UC2
-    User --> UC3
-    User --> UC4
-    User --> UC5
-    User --> UC6
-    User --> UC7
-    User --> UC8
-    User --> UC10
-    Admin --> UC9
-    UC5 -.includes.-> UC4
-```
-
-</details>
-
-### 2. 🧬 Class Diagram
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-classDiagram
-    class User {
-        +string id
-        +string name
-        +string email
-        -string passwordHash
-        +login(email, password) Token
-        +register(name, email, password) User
-    }
-    class Exercise {
-        +string id
-        +string name
-        +string muscleGroup
-        +string description
-        +string referenceModelUri
-        +publishReferenceModel(uri) void
-    }
-    class TrainingSession {
-        +string id
-        +string userId
-        +string exerciseId
-        +int score
-        +datetime executedAt
-    }
-    class PoseDetector {
-        +load() void
-        +detect(frame) PoseFrame
-    }
-    class ScoringEngine {
-        +scoreExecution(frames, reference) int
-    }
-    class AuthService {
-        +register(data) User
-        +login(credentials) Token
-    }
-    class SessionService {
-        +createSession(data) TrainingSession
-        +listSessions(userId) TrainingSession[]
-    }
-
-    User "1" --> "0..*" TrainingSession : performs
-    Exercise "1" --> "0..*" TrainingSession : "is target of"
-    SessionService ..> TrainingSession : creates
-    SessionService ..> ScoringEngine : uses
-    ScoringEngine ..> PoseDetector : "consumes frames from"
-    AuthService ..> User : manages
-```
-
-</details>
-
-### 3. 🧩 Object Diagram
-
-<details>
-<summary><strong>Click to expand — example instance snapshot</strong></summary>
-
-```mermaid
-classDiagram
-    class ana "ana : User" {
-        id = "u_001"
-        name = "Ana Silva"
-        email = "ana@example.com"
-    }
-    class squat "squat : Exercise" {
-        id = "ex_010"
-        name = "Squat"
-        muscleGroup = "Legs"
-        referenceModelUri = "s3://refs/squat_v2.json"
-    }
-    class session42 "session42 : TrainingSession" {
-        id = "ts_042"
-        userId = "u_001"
-        exerciseId = "ex_010"
-        score = 87
-        executedAt = "2026-06-10T18:30:00Z"
-    }
-    ana --> session42
-    squat --> session42
-```
-
-</details>
-
-### 4. 🔀 Sequence Diagram
-
-<details>
-<summary><strong>Click to expand — execution flow</strong></summary>
-
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#2563EB','primaryTextColor':'#fff','primaryBorderColor':'#1E40AF','actorBkg':'#10B981','actorTextColor':'#fff','signalColor':'#475569','signalTextColor':'#0f172a'}}}%%
-sequenceDiagram
-    actor U as 🏃 User
-    participant App as 📱 App
-    participant CV as 🧠 On-device CV
-    participant API as ⚡ FastAPI
-
-    U->>App: Select exercise
-    App->>API: GET /exercises/{id}
-    API-->>App: Exercise + reference_model_uri
-    App->>App: Download/cache reference sequence
-    U->>App: Tap "Start"
-    App->>CV: load() — load quantized model
-    loop ~10 fps while recording
-        App->>CV: detect(frame)
-        CV-->>App: PoseFrame (33 landmarks)
-    end
-    U->>App: Tap "Finish set"
-    App->>App: scoreExecution(frames, reference)<br/>joint angles + DTW
-    App-->>U: Show % score
-    App->>API: POST /sessions { exerciseId, score, executedAt }
-    API-->>App: 201 Created
-```
-
-</details>
-
-### 5. 🗣️ Communication (Collaboration) Diagram
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#2563EB','primaryTextColor':'#fff','primaryBorderColor':'#1E40AF','lineColor':'#94A3B8'}}}%%
-graph TD
-    classDef obj fill:#2563EB,color:#fff,stroke:#1E3A8A,stroke-width:2px;
-    U["🏃 :User"]:::obj
-    A["📱 :ExecutionScreen"]:::obj
-    P["🧠 :PoseDetector"]:::obj
-    S["📐 :ScoringEngine"]:::obj
-    API["⚡ :SessionService"]:::obj
-
-    U -- "1: tap Start" --> A
-    A -- "2: load()" --> P
-    A -- "3: detect(frame) [loop ~10fps]" --> P
-    A -- "4: tap Finish" --> A
-    A -- "5: scoreExecution(frames, ref)" --> S
-    S -- "6: return score" --> A
-    A -- "7: createSession(score)" --> API
-```
-
-</details>
-
-### 6. 🔁 Activity Diagram
-
-<details>
-<summary><strong>Click to expand — capture & scoring flow</strong></summary>
-
-```mermaid
-flowchart TD
-    Start([Start]) --> SelectEx[Select exercise]
-    SelectEx --> CheckRef{Reference model cached?}
-    CheckRef -- No --> Download[Download reference sequence]
-    Download --> LoadModel[Load on-device CV model]
-    CheckRef -- Yes --> LoadModel
-    LoadModel --> Record["Record frames @ ~10fps"]
-    Record --> Tap{User taps Finish?}
-    Tap -- No --> Record
-    Tap -- Yes --> Score["Compute score: angles + DTW"]
-    Score --> Show[Show % score]
-    Show --> Online{Network available?}
-    Online -- Yes --> Save["POST /sessions"]
-    Online -- No --> Queue[Queue for retry]
-    Save --> End([End])
-    Queue --> End
-```
-
-</details>
-
-### 7. 🚦 State Machine Diagram
-
-<details>
-<summary><strong>Click to expand — execution session lifecycle</strong></summary>
-
-```mermaid
-stateDiagram-v2
-    [*] --> Idle
-    Idle --> LoadingReference : select exercise
-    LoadingReference --> ModelReady : reference cached
-    ModelReady --> Recording : tap Start
-    Recording --> Recording : capture frame
-    Recording --> Scoring : tap Finish
-    Scoring --> ResultShown : score computed
-    ResultShown --> Saving : auto
-    Saving --> Saved : 201 Created
-    Saving --> PendingSync : offline
-    PendingSync --> Saved : connectivity restored
-    Saved --> Idle : back to catalog
-```
-
-</details>
-
-### 8. 🧱 Component Diagram
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#2563EB','primaryTextColor':'#fff','primaryBorderColor':'#1E40AF','lineColor':'#94A3B8','secondaryColor':'#10B981','tertiaryColor':'#F59E0B'}}}%%
-graph TD
-    classDef app fill:#2563EB,color:#fff,stroke:#1E3A8A,stroke-width:2px;
-    classDef api fill:#10B981,color:#fff,stroke:#065F46,stroke-width:2px;
-    classDef data fill:#F59E0B,color:#fff,stroke:#92400E,stroke-width:2px;
-    classDef storage fill:#8B5CF6,color:#fff,stroke:#4C1D95,stroke-width:2px;
-    classDef ci fill:#475569,color:#fff,stroke:#1E293B,stroke-width:2px;
-
-    A["📱 App<br/>React Native + Expo<br/>Camera + on-device CV<br/>(MediaPipe / MoveNet TFLite)"]:::app
-    B["⚡ Backend API<br/>FastAPI<br/>Auth · Exercises · Sessions"]:::api
-    C[("🐘 PostgreSQL<br/>users, exercises,<br/>training_sessions")]:::data
-    D[("🔴 Redis<br/>cache")]:::data
-    E["☁️ Media Storage<br/>S3 / MinIO + CDN<br/>reference pose sequences"]:::storage
-    F["🎬 Offline Pipeline<br/>extract_pose_sequence.py<br/>publish_reference.py"]:::storage
-    G["🤖 CI/CD<br/>GitHub Actions<br/>tests · Docker image · web export"]:::ci
-
-    A -- "HTTPS REST/JSON\n(score only)" --> B
-    B --> C
-    B --> D
-    B -- "reference_model_uri" --> E
-    A -- "download & cache\nreference model" --> E
-    F -- "publish (admin API)" --> B
-    F --> E
-    G -. "build & push" .-> B
-    G -. "export web" .-> A
-```
-
-</details>
-
-### 9. 🚀 Deployment Diagram
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-graph TB
-    classDef artifact fill:#2563EB,color:#fff,stroke:#1E3A8A,stroke-width:1px;
-
-    subgraph Mobile["📱 Mobile Device (Android/iOS)"]
-        AppArtifact["Gym Execution App\n(Expo build, TFLite model bundled)"]:::artifact
-    end
-    subgraph Browser["🌐 Web Browser"]
-        WebArtifact["Gym Execution Web\n(static export + MediaPipe WASM)"]:::artifact
-    end
-    subgraph Server["☁️ Application Server (Docker)"]
-        APIArtifact["FastAPI container"]:::artifact
-        DBArtifact[("PostgreSQL")]:::artifact
-        CacheArtifact[("Redis")]:::artifact
-    end
-    subgraph CDN["🌍 CDN / Object Storage"]
-        MediaArtifact["Reference pose sequences"]:::artifact
-    end
-
-    AppArtifact -- HTTPS --> APIArtifact
-    WebArtifact -- HTTPS --> APIArtifact
-    APIArtifact --> DBArtifact
-    APIArtifact --> CacheArtifact
-    AppArtifact -- download --> MediaArtifact
-    WebArtifact -- download --> MediaArtifact
-    APIArtifact -- reference_model_uri --> MediaArtifact
-```
-
-</details>
-
-### 10. 📦 Package Diagram
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-graph TD
-    classDef pkg fill:#10B981,color:#fff,stroke:#065F46,stroke-width:1px;
-    subgraph AppPkg["app/"]
-        Screens["screens/"]:::pkg
-        Services["services/"]:::pkg
-        Hooks["hooks/"]:::pkg
-        Components["components/"]:::pkg
-    end
-    subgraph BackendPkg["backend/"]
-        Routers["routers/"]:::pkg
-        Models["models/"]:::pkg
-        CoreP["core/"]:::pkg
-        Pipeline["pipeline/"]:::pkg
-    end
-    Screens --> Services
-    Screens --> Components
-    Services --> Hooks
-    Routers --> Models
-    Routers --> CoreP
-    Pipeline --> Models
-    Services -. "REST/JSON" .-> Routers
-```
-
-</details>
-
-### 11. 🧩 Composite Structure Diagram
-
-<details>
-<summary><strong>Click to expand — internal structure of the On-device CV component</strong></summary>
-
-```mermaid
-graph TB
-    subgraph CV["🧠 On-device CV (composite)"]
-        direction TB
-        FC["FrameCapture\n(port: rawFrame)"]
-        PD["PoseDetector\n(port: poseFrame)"]
-        AC["AngleCalculator\n(port: jointAngles)"]
-        DTW["DTWScorer\n(port: score)"]
-        FC --> PD --> AC --> DTW
-    end
-    Camera["📷 Camera Hardware"] --> FC
-    DTW --> Result["% Score"]
-```
-
-</details>
-
-### 12. 🗺️ Interaction Overview Diagram
-
-<details>
-<summary><strong>Click to expand — high-level flow across use cases</strong></summary>
-
-```mermaid
-flowchart LR
-    A[["UC01/UC02: Auth"]] --> B[["UC03/UC04: Browse Catalog"]]
-    B --> C[["UC05: Capture & Score (see Sequence Diagram)"]]
-    C --> D{Save success?}
-    D -- yes --> E[["UC06: View History"]]
-    D -- no --> F[["Retry queue (see Activity Diagram)"]]
-    F --> E
-    B --> G[["UC09: Admin publishes reference (precondition)"]]
-    G --> C
-```
-
-</details>
-
-### 13. ⏱️ Timing Diagram
-
-<details>
-<summary><strong>Click to expand — approximate timing of a single capture session</strong></summary>
-
-```mermaid
-gantt
-    dateFormat  X
-    axisFormat %Ss
-    title Execution Capture — Timing (approx., single set)
-    section App State
-    Idle                 :done, idle, 0, 1s
-    Loading Reference    :active, load, 1, 1s
-    Recording (~10 fps)  : rec, 2, 15s
-    Scoring (angles+DTW) : score, 17, 1s
-    Result Shown         : result, 18, 3s
-    Saving               : saving, 21, 1s
-```
-
-</details>
-
----
-
-## 6️⃣ Data Model & Data Dictionary
-
-### 🗺️ Conceptual Data Model
-
-<details>
-<summary><strong>Click to expand — entities & relationships only</strong></summary>
-
-```mermaid
-erDiagram
-    USER ||--o{ TRAINING_SESSION : performs
-    EXERCISE ||--o{ TRAINING_SESSION : "is target of"
-```
-
-</details>
-
-### 🧮 Logical Data Model
-
-<details>
-<summary><strong>Click to expand — entities, attributes & types (platform-independent)</strong></summary>
-
-```mermaid
-erDiagram
-    USER {
-        string id
-        string name
-        string email
-        string password_hash
-    }
-    EXERCISE {
-        string id
-        string name
-        string muscle_group
-        string description
-        string reference_model_uri
-    }
-    TRAINING_SESSION {
-        string id
-        string user_id
-        string exercise_id
-        integer score
-        datetime executed_at
-    }
-    USER ||--o{ TRAINING_SESSION : performs
-    EXERCISE ||--o{ TRAINING_SESSION : "is target of"
-```
-
-</details>
-
-### 🐘 Physical Data Model / DER (PostgreSQL)
-
-<details>
-<summary><strong>Click to expand — PostgreSQL types, keys & constraints</strong></summary>
-
-```mermaid
-erDiagram
-    users {
-        uuid id PK
-        varchar_255 name
-        varchar_255 email UK
-        varchar_255 password_hash
-        timestamptz created_at
-    }
-    exercises {
-        uuid id PK
-        varchar_255 name
-        varchar_100 muscle_group
-        text description
-        text reference_model_uri "nullable"
-    }
-    training_sessions {
-        uuid id PK
-        uuid user_id FK
-        uuid exercise_id FK
-        smallint score "0-100 CHECK constraint"
-        timestamptz executed_at
-    }
-    users ||--o{ training_sessions : "user_id"
-    exercises ||--o{ training_sessions : "exercise_id"
-```
-
-</details>
-
-### 📖 Data Dictionary
-
-<details>
-<summary><strong>Click to expand — full column-level dictionary</strong></summary>
-
-| Table | Column | Type | Constraints | Description |
-|---|---|---|---|---|
-| `users` | `id` | `uuid` | PK, default `gen_random_uuid()` | Unique user identifier |
-| `users` | `name` | `varchar(255)` | NOT NULL | Display name |
-| `users` | `email` | `varchar(255)` | UNIQUE, NOT NULL | Login identifier |
-| `users` | `password_hash` | `varchar(255)` | NOT NULL | Bcrypt/argon2 hash — never plain text |
-| `users` | `created_at` | `timestamptz` | NOT NULL, default `now()` | Account creation timestamp |
-| `exercises` | `id` | `uuid` | PK, default `gen_random_uuid()` | Unique exercise identifier |
-| `exercises` | `name` | `varchar(255)` | NOT NULL | Exercise name (e.g., "Squat") |
-| `exercises` | `muscle_group` | `varchar(100)` | NOT NULL | e.g., "Legs", "Back", "Chest" |
-| `exercises` | `description` | `text` | NULLABLE | Free-text instructions |
-| `exercises` | `reference_model_uri` | `text` | NULLABLE | URI of the published reference pose sequence (set via admin endpoint) |
-| `training_sessions` | `id` | `uuid` | PK, default `gen_random_uuid()` | Unique execution identifier |
-| `training_sessions` | `user_id` | `uuid` | FK → `users.id`, NOT NULL | Owner of the execution |
-| `training_sessions` | `exercise_id` | `uuid` | FK → `exercises.id`, NOT NULL | Exercise performed |
-| `training_sessions` | `score` | `integer` | NOT NULL, `CHECK (score >= 0 AND score <= 100)` (migration `0007`) | Similarity score (angles + DTW) |
-| `training_sessions` | `executed_at` | `timestamptz` | NOT NULL | When the set was performed |
-
-</details>
-
----
-
-## 7️⃣ Data Flow Diagram (DFD)
-
-### DFD — Level 0 (Context)
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-flowchart LR
-    User["🏃 User"] -- "credentials, exercise selection,\npose frames (local only)" --> Sys((Gym Execution System))
-    Admin["🛡️ Admin"] -- "reference pose sequence\n+ X-Admin-Api-Key" --> Sys
-    Sys -- "JWT, catalog, score, history" --> User
-    Sys -- "ack" --> Admin
-```
-
-</details>
-
-### DFD — Level 1 (Decomposed Processes)
-
-<details>
-<summary><strong>Click to expand</strong></summary>
-
-```mermaid
-flowchart TD
-    User["🏃 User"]
-    Admin["🛡️ Admin"]
-    P1((1.0 Auth))
-    P2((2.0 Manage Exercise Catalog))
-    P3((3.0 On-device Pose Scoring))
-    P4((4.0 Manage Session History))
-    D1[("D1 users")]
-    D2[("D2 exercises")]
-    D3[("D3 training_sessions")]
-    D4[("D4 media storage\nreference sequences")]
-
-    User -- credentials --> P1
-    P1 -- JWT --> User
-    P1 <--> D1
-
-    User -- "browse request" --> P2
-    P2 -- "catalog + reference_model_uri" --> User
-    P2 <--> D2
-    Admin -- "publish reference\n(admin key)" --> P2
-    P2 --> D4
-
-    User -- "camera frames\n(on-device only)" --> P3
-    D4 -- "reference sequence" --> P3
-    P3 -- "score (0-100)" --> User
-    P3 -- "score + metadata" --> P4
-
-    P4 <--> D3
-    User -- "history request" --> P4
-    P4 -- "paginated history" --> User
-```
-
-</details>
-
-### 🧬 Data Lineage Diagram
-
-<details>
-<summary><strong>Click to expand — what happens to data from camera to database</strong></summary>
-
-```mermaid
-flowchart LR
-    classDef device fill:#10B981,color:#fff,stroke:#065F46,stroke-width:2px;
-    classDef server fill:#2563EB,color:#fff,stroke:#1E3A8A,stroke-width:2px;
-    classDef discard fill:#EF4444,color:#fff,stroke:#991B1B,stroke-width:2px,stroke-dasharray:5 5;
-
-    Camera["📷 Camera frames\n(raw images)"]:::device --> PoseDet["Pose landmarks\n(33 points/frame)"]:::device
-    PoseDet --> Angles["Joint angles"]:::device
-    Angles --> DTWCalc["DTW vs.\nreference sequence"]:::device
-    DTWCalc --> Score["Score (0-100)"]:::device
-    Camera -. "discarded after processing\n(never persisted/sent)" .-> Discard["🗑️ Discarded"]:::discard
-    PoseDet -. discarded .-> Discard
-    Score -- "POST /sessions" --> DB[("training_sessions\n(score + metadata only)")]:::server
-```
-
-> 🔐 This diagram is the visual proof of **RN04 / RNF02 / DOM-level privacy
-> requirements**: raw camera frames and pose landmarks are processed
-> entirely on-device and discarded — only the final numeric score and
-> timestamp cross the network boundary.
-
-</details>
-
----
-
-## 8️⃣ Architecture Diagram & Flowchart
-
-### 🏛️ Architecture Overview (Layered View)
-
-<details>
-<summary><strong>Click to expand</strong></summary>
+### Module Diagram
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["🖥️ Presentation Layer"]
-        Screens["Screens (Expo Router)\nLogin · Catalog · Execution · History · Profile"]
-    end
-    subgraph Application["⚙️ Application/Service Layer"]
-        AuthSvc["AuthService"]
-        ExerciseSvc["ExerciseService"]
-        ScoringSvc["ScoringEngine + PoseDetector"]
-        SessionSvc["SessionService"]
-    end
-    subgraph API["⚡ API Layer (FastAPI)"]
-        Routers["routers/\nauth · exercises · sessions · users"]
-    end
-    subgraph DataLayer["🗄️ Data Layer"]
-        Postgres[("PostgreSQL")]
-        Redis[("Redis")]
-        Media[("S3/MinIO + CDN")]
+    subgraph MOBILE["📱  MOBILE APP (Expo / React Native)"]
+        direction LR
+        SCREENS["🖥️ Screens\n─────────────\nExecutionScreen\nCalibrationScreen\nResultScreen\nHistoryScreen"]
+        HOOKS["🪝 Hooks\n─────────────\nusePoseSession\nuseCameraCapture\nuseSessionSubmit"]
+        POSE["🧠 Pose Engine\n─────────────\nposeDetector (native)\nposeDetector.web (MediaPipe)\nmoveNetAdapter · poseScoring"]
     end
 
-    Screens --> AuthSvc
-    Screens --> ExerciseSvc
-    Screens --> ScoringSvc
-    Screens --> SessionSvc
-    AuthSvc -- HTTPS --> Routers
-    ExerciseSvc -- HTTPS --> Routers
-    SessionSvc -- HTTPS --> Routers
-    ScoringSvc -- "download reference" --> Media
-    Routers --> Postgres
-    Routers --> Redis
-    Routers --> Media
+    subgraph SVC["⚙️  FRONTEND SERVICES"]
+        direction TB
+        AUTH["🔐 authService\nauthStorage (SecureStore)"]
+        SESS["📊 sessionsService\npendingSessionsQueue"]
+        CAT["📚 exerciseCatalogService"]
+        API["🌐 apiClient\nfetch wrapper + JWT header"]
+    end
+
+    subgraph BACK["🖥️  FASTAPI BACKEND"]
+        direction LR
+        ROUTERS["🚏 Routers\n─────────────\nauth · users\nexercises · sessions"]
+        SERVICES["🧩 Services\n─────────────\nauth_service\nsession_service\nexercise_service"]
+        CORE["🧱 Core\n─────────────\nsecurity · rate_limit\nlogging · redis"]
+    end
+
+    subgraph DATA["💾  PERSISTENCE"]
+        PG[("🐘 PostgreSQL\nusers · exercises\ntraining_sessions")]
+        RD[("🔴 Redis\nrate limiting")]
+    end
+
+    SCREENS --> HOOKS --> POSE
+    HOOKS --> API
+    API --> AUTH & SESS & CAT
+    AUTH --> ROUTERS
+    SESS --> ROUTERS
+    CAT --> ROUTERS
+    ROUTERS --> SERVICES --> CORE
+    SERVICES --> PG
+    CORE --> RD
+
+    style MOBILE fill:#1e3a5f,color:#fff,stroke:#4a90d9
+    style SVC fill:#1a3a1a,color:#fff,stroke:#4caf50
+    style BACK fill:#3a1a1a,color:#fff,stroke:#e57373
+    style DATA fill:#3a2a1a,color:#fff,stroke:#ffb74d
 ```
 
-> See also the **Component Diagram** and **Deployment Diagram** in
-> [UML & Structural Diagrams](#5️⃣-uml--structural-diagrams) (items 8 and 9).
+### Architecture Layers
+
+```mermaid
+flowchart LR
+    subgraph L1["📱 Presentation"]
+        A1["Screens + Navigation"]
+    end
+    subgraph L2["🪝 Application"]
+        B1["Hooks\nusePoseSession, useSessionSubmit"]
+    end
+    subgraph L3["⚙️ Domain"]
+        C1["Services\nscoring, calibration, catalog"]
+    end
+    subgraph L4["💾 Infrastructure"]
+        D1["apiClient → FastAPI → PostgreSQL/Redis"]
+    end
+
+    L1 --> L2 --> L3 --> L4
+
+    style L1 fill:#1565C0,color:#fff
+    style L2 fill:#2E7D32,color:#fff
+    style L3 fill:#6A1B9A,color:#fff
+    style L4 fill:#BF360C,color:#fff
+```
+
+---
 
 </details>
 
-### 🔀 General Navigation Flowchart
+## 🛠️ Technology Stack
 
 <details>
-<summary><strong>Click to expand — app-wide screen flow</strong></summary>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="4"><strong>📱 Mobile</strong></td>
+<td>Expo</td>
+<td>~51.0.0</td>
+<td>Managed React Native toolchain, dev client</td>
+</tr>
+<tr>
+<td>React Native</td>
+<td>0.74.0</td>
+<td>Cross-platform app runtime</td>
+</tr>
+<tr>
+<td>React</td>
+<td>18.2.0</td>
+<td>UI component model</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td>~5.3.3</td>
+<td>Static typing across the app</td>
+</tr>
+<tr>
+<td rowspan="4"><strong>🧠 Pose Estimation</strong></td>
+<td>react-native-fast-tflite</td>
+<td>2.0.0</td>
+<td>On-device TFLite inference (native platforms)</td>
+</tr>
+<tr>
+<td>@mediapipe/tasks-vision</td>
+<td>0.10.35</td>
+<td>Pose landmarker on web (<code>poseDetector.web.ts</code>)</td>
+</tr>
+<tr>
+<td>expo-camera</td>
+<td>~15.0.16</td>
+<td>Camera frame capture</td>
+</tr>
+<tr>
+<td>jpeg-js</td>
+<td>0.4.4</td>
+<td>Frame decoding for pose input tensors</td>
+</tr>
+<tr>
+<td rowspan="4"><strong>📦 App Support</strong></td>
+<td>@react-navigation/native + native-stack</td>
+<td>^6.x</td>
+<td>Screen navigation stack</td>
+</tr>
+<tr>
+<td>@react-native-async-storage/async-storage</td>
+<td>1.23.1</td>
+<td>Local persistence (preferences, pending queue)</td>
+</tr>
+<tr>
+<td>expo-secure-store</td>
+<td>~13.0.0</td>
+<td>Encrypted storage for auth tokens</td>
+</tr>
+<tr>
+<td>expo-file-system / expo-image-manipulator</td>
+<td>17.0.1 / ~12.0.5</td>
+<td>Frame/file handling for capture and export</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>🧪 Frontend Testing</strong></td>
+<td>Jest + jest-expo</td>
+<td>^29.7.0 / ~51.0.0</td>
+<td>Unit tests for services, hooks, screens</td>
+</tr>
+<tr>
+<td>react-test-renderer</td>
+<td>18.2.0</td>
+<td>Screen rendering in tests</td>
+</tr>
+<tr>
+<td rowspan="6"><strong>🖥️ Backend</strong></td>
+<td>FastAPI</td>
+<td>0.111.0</td>
+<td>REST API framework</td>
+</tr>
+<tr>
+<td>Uvicorn</td>
+<td>0.30.1</td>
+<td>ASGI server</td>
+</tr>
+<tr>
+<td>Pydantic / pydantic-settings</td>
+<td>2.9.2 / 2.3.4</td>
+<td>Schemas + typed settings</td>
+</tr>
+<tr>
+<td>SQLAlchemy</td>
+<td>2.0.31</td>
+<td>ORM over PostgreSQL</td>
+</tr>
+<tr>
+<td>Alembic</td>
+<td>1.13.2</td>
+<td>Schema migrations</td>
+</tr>
+<tr>
+<td>PyJWT / bcrypt</td>
+<td>2.9.0 / 4.2.0</td>
+<td>Token issuance and password hashing (replacing python-jose/passlib for CVE reasons)</td>
+</tr>
+<tr>
+<td rowspan="3"><strong>💾 Data & Ops</strong></td>
+<td>psycopg2-binary</td>
+<td>2.9.12</td>
+<td>PostgreSQL driver</td>
+</tr>
+<tr>
+<td>Redis + slowapi</td>
+<td>5.0.7 / 0.1.9</td>
+<td>Rate limiting backend</td>
+</tr>
+<tr>
+<td>python-json-logger</td>
+<td>2.0.7</td>
+<td>Structured JSON logging</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>🧪 Backend Testing</strong></td>
+<td>pytest</td>
+<td>8.2.2</td>
+<td>Test runner (15 test modules)</td>
+</tr>
+<tr>
+<td>httpx</td>
+<td>0.27.0</td>
+<td>Async test client for FastAPI</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+</details>
+
+## 🎨 Design Patterns Applied
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+| Pattern | Where | Rationale |
+|---------|-------|-----------|
+| 🧭 **Facade** | `apiClient.ts` | Single fetch wrapper hides base URL, JWT header injection and error shaping |
+| 🎯 **Adapter** | `moveNetAdapter.ts`, `poseDetector.web.ts` | Normalizes native TFLite output and MediaPipe output into one `poseTypes.ts` shape |
+| 🪝 **Custom Hook** | `usePoseSession`, `useCameraCapture`, `useSessionSubmit` | Encapsulates stateful pose/camera/session logic away from screen components |
+| 📦 **Repository-like Service** | `sessionsService.ts`, `exerciseCatalogService.ts` | Screens never call `fetch` directly; services own the network contract |
+| 🔁 **Queue / Retry** | `pendingSessionsQueue.ts` | Buffers unsent sessions and flushes them once the client is back online |
+| 🧱 **Layered Backend** | `routers/` → `services/` → `models/` | Routers stay thin, business logic lives in services, persistence in SQLAlchemy models |
+| 🚦 **Dependency Injection** | `core/deps.py`, FastAPI `Depends` | DB sessions, current-user resolution, admin key checks are injected, not imported |
+| 🔐 **Idempotency Key** | `sessions` router, `test_idempotency.py` | Duplicate submits of the same session are detected via `Idempotency-Key` header |
+
+---
+
+</details>
+
+## 📁 Project Structure
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+```
+Gym_execution/
+│
+├── 📂 app/                              # Expo / React Native mobile client
+│   ├── 📄 package.json                  # Dependencies, Jest config, scripts
+│   ├── 📂 assets/models/                # Bundled TFLite pose model(s)
+│   └── 📂 src/
+│       ├── 📂 screens/                  # 11 screens (Execution, Calibration, History, ...)
+│       │   └── 📂 __tests__/            # Screen-level Jest tests
+│       ├── 📂 hooks/                    # usePoseSession, useCameraCapture, useSessionSubmit, ...
+│       ├── 📂 services/                 # 26 services: pose scoring, auth, storage, export, ...
+│       │   └── 📂 __tests__/            # Service-level Jest tests
+│       ├── 📂 navigation/               # AppNavigator.tsx — stack navigator
+│       ├── 📂 types/                    # api.generated.ts (from openapi.json)
+│       └── 📂 __tests__/                # architecture.test.ts — layering guard
+│
+├── 📂 backend/                          # FastAPI service
+│   ├── 📄 requirements.txt              # Pinned production + test dependencies
+│   ├── 📂 app/
+│   │   ├── 📄 main.py                   # App wiring, middleware, health/metrics endpoints
+│   │   ├── 📂 core/                     # config, database, security, rate_limit, logging, redis
+│   │   ├── 📂 models/                   # user.py, exercise.py, training_session.py, base.py
+│   │   ├── 📂 routers/                  # auth.py, users.py, exercises.py, sessions.py
+│   │   ├── 📂 schemas/                  # Pydantic request/response schemas
+│   │   └── 📂 services/                 # auth_service, session_service, exercise_service, user_service
+│   ├── 📂 alembic/versions/             # Database migrations
+│   ├── 📂 pipeline/                     # Offline tooling to build reference pose sequences
+│   │   ├── extract_pose_sequence.py     # Extracts a pose sequence from a source video
+│   │   ├── pose_sequence_format.py      # Shared sequence schema
+│   │   ├── publish_reference.py         # Publishes a reference sequence for an exercise
+│   │   └── README.md                    # Pipeline-specific usage notes
+│   ├── 📂 scripts/                      # Operational / seed scripts
+│   └── 📂 tests/                        # 15 pytest modules (auth, sessions, rate limit, ...)
+│
+├── 📄 docker-compose.yml                # Local Postgres + Redis + backend orchestration
+├── 📄 README.md                         # 🇺🇸 English (primary)
+├── 📄 README_PT.md                      # 🇧🇷 Português
+└── 📄 README_ES.md                      # 🇪🇸 Español
+```
+
+---
+
+</details>
+
+## 📦 System Modules
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+### 🧠 Pose Detection Pipeline
+
+Frame capture (`useCameraCapture.ts`) feeds `poseDetector.ts` (native, TFLite via `react-native-fast-tflite`) or `poseDetector.web.ts` (MediaPipe Tasks Vision on web). Landmarks are normalized by `moveNetAdapter.ts` into the shared `poseTypes.ts` shape, then scored by `poseScoring.ts` against a reference sequence loaded through `referenceLibrary.ts`.
+
+| Responsibility | File |
+|-----------------|------|
+| Frame capture / camera lifecycle | `useCameraCapture.ts` |
+| Native TFLite inference | `poseDetector.ts`, `moveNetAdapter.ts` |
+| Web inference (MediaPipe) | `poseDetector.web.ts` |
+| Shared pose types | `poseTypes.ts` |
+| Sequence vs. reference scoring | `poseScoring.ts` |
+| Reference sequence loading | `referenceLibrary.ts`, `useReferenceSequence.ts` |
+| Body calibration before a set | `bodyCalibration.ts`, `CalibrationScreen.tsx` |
+
+---
+
+### 🖥️ Execution & Result Screens
+
+`ExecutionScreen.tsx` orchestrates a live set: it drives `usePoseSession.ts` (the central hook combining capture + scoring + rep counting), then hands off to `ResultScreen.tsx` for the final score and `useSessionSubmit.ts` to persist it.
+
+| Screen | Role |
+|--------|------|
+| `CalibrationScreen.tsx` | Guides the user to position the camera correctly before a set |
+| `ExecutionScreen.tsx` | Live camera + pose overlay + rep counting during the exercise |
+| `ResultScreen.tsx` | Shows the final score, weight input and submit action |
+| `ExerciseListScreen.tsx` | Lists the exercise catalog fetched from the backend |
+| `HistoryScreen.tsx` | Shows past sessions and aggregate stats |
+| `HomeScreen.tsx` | Landing / dashboard screen |
+| `GoalsScreen.tsx` | Personal goal tracking (`personalGoals.ts`) |
+| `ProfileScreen.tsx` / `SettingsScreen.tsx` | Account and preference management |
+| `LoginScreen.tsx` / `RegisterScreen.tsx` | Auth screens backed by `authService.ts` |
+
+---
+
+### 📊 Session & Storage Services
+
+| File | Responsibility |
+|------|-----------------|
+| `sessionsService.ts` | Submits and fetches training sessions from the backend |
+| `pendingSessionsQueue.ts` | Persists unsent sessions locally and retries on reconnect |
+| `exportSessions.ts` | Exports session history (e.g. CSV/share text) |
+| `profileStats.ts`, `sessionInsights.ts`, `trainingReport.ts` | Derive aggregate stats and reports from session history |
+| `achievements.ts` | Computes unlocked achievements from session history |
+| `preferencesStorage.ts`, `exercisePreferencesStorage.ts` | AsyncStorage-backed user preferences |
+
+---
+
+### 🔐 Auth & API Client
+
+| File | Responsibility |
+|------|-----------------|
+| `apiClient.ts` | Central fetch wrapper: base URL, JSON handling, JWT `Authorization` header |
+| `authService.ts` | Register, login, refresh, logout calls against `/auth/*` |
+| `authStorage.ts` | Persists access/refresh tokens in `expo-secure-store` |
+| `useAuth.tsx` | React context/hook exposing auth state to the screen tree |
+
+---
+
+### 🚏 Backend Routers
+
+| Router | Endpoints |
+|--------|-----------|
+| `auth.py` | `POST /register`, `POST /login`, `POST /refresh`, `POST /logout` |
+| `users.py` | `GET /me`, `PATCH /me`, `DELETE /me` |
+| `exercises.py` | `GET /`, `GET /{exercise_id}`, `PUT /{exercise_id}` |
+| `sessions.py` | `POST /`, `GET /`, `GET /stats` |
+
+Each router delegates to a matching `*_service.py` module; routers themselves contain no direct SQLAlchemy queries.
+
+---
+
+### 🧱 Backend Core
+
+| File | Responsibility |
+|------|-----------------|
+| `core/config.py` | Typed settings via `pydantic-settings` (env-driven) |
+| `core/database.py` | SQLAlchemy engine + `SessionLocal` factory |
+| `core/security.py` | Password hashing (bcrypt), JWT encode/decode (PyJWT) |
+| `core/deps.py` | FastAPI dependencies: DB session, current user, `require_admin_api_key` |
+| `core/rate_limit.py` | `slowapi` limiter configuration |
+| `core/redis.py` | Redis client used as the rate-limit backend |
+| `core/logging.py` | Structured JSON logging, request-ID middleware, Prometheus metrics rendering |
+
+---
+
+### 🧪 Reference Pipeline (Offline Tooling)
+
+A separate, non-served Python toolchain under `backend/pipeline/` that produces the reference pose sequences the app scores against.
+
+| File | Responsibility |
+|------|-----------------|
+| `extract_pose_sequence.py` | Extracts a normalized pose sequence from a source reference video |
+| `pose_sequence_format.py` | Defines the shared sequence schema used by extraction and scoring |
+| `publish_reference.py` | Publishes/attaches an extracted sequence to an `Exercise.reference_model_uri` |
+| `test_pose_sequence_format.py` | Unit tests for the sequence format |
+| `requirements-pipeline.txt` | Isolated dependency set for this offline tooling |
+
+---
+
+</details>
+
+## 💼 Business Rules
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+### 🎯 Scoring Rules
+
+| # | Rule | Enforcement |
+|---|------|-------------|
+| BR-01 | A training session score must be between 0 and 100 | `ck_training_sessions_score_range` CHECK constraint on `training_sessions` |
+| BR-02 | Raw video is never uploaded; only the derived score and metadata are sent | `TrainingSession` has no video/frame column, only `score`, `weight_kg`, `executed_at` |
+| BR-03 | An exercise may or may not have a reference pose sequence attached | `Exercise.reference_model_uri` is nullable |
+
+### 🔐 Auth & Account Rules
+
+| # | Rule | Enforcement |
+|---|------|-------------|
+| BR-04 | Emails must be unique across users | Unique index on `users.email` |
+| BR-05 | Passwords are never stored in plaintext | `bcrypt` hash stored in `password_hash` |
+| BR-06 | Access tokens are short-lived and paired with a refresh token | `POST /auth/refresh` issues a new access token from a valid refresh token |
+| BR-07 | A user can permanently delete their own account | `DELETE /users/me`, covered by `test_account_deletion.py` |
+
+### 📡 Reliability Rules
+
+| # | Rule | Enforcement |
+|---|------|-------------|
+| BR-08 | Duplicate session submissions must not create duplicate records | `Idempotency-Key` header handling, covered by `test_idempotency.py` |
+| BR-09 | Unauthenticated or over-limit clients are rejected before hitting business logic | `slowapi` rate limiter + JWT dependency evaluated first |
+| BR-10 | `/metrics` is only reachable with the admin API key | `Depends(require_admin_api_key)` on the endpoint |
+
+---
+
+</details>
+
+## ✅ Functional Requirements
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+| ID | Requirement | Priority | Status |
+|----|-------------|----------|--------|
+| **RF-01** | The system shall allow a user to register with name, email and password | 🔴 High | ✅ Implemented |
+| **RF-02** | The system shall allow a user to log in and receive access + refresh tokens | 🔴 High | ✅ Implemented |
+| **RF-03** | The system shall allow refreshing an access token from a valid refresh token | 🔴 High | ✅ Implemented |
+| **RF-04** | The system shall allow logout, invalidating the session | 🟡 Medium | ✅ Implemented |
+| **RF-05** | The system shall list available exercises with muscle group and description | 🔴 High | ✅ Implemented |
+| **RF-06** | The system shall fetch a single exercise by ID | 🟡 Medium | ✅ Implemented |
+| **RF-07** | The system shall capture camera frames and run on-device pose estimation | 🔴 High | ✅ Implemented |
+| **RF-08** | The system shall guide the user through a calibration step before execution | 🟡 Medium | ✅ Implemented |
+| **RF-09** | The system shall compute a 0-100 form score by comparing to a reference sequence | 🔴 High | ✅ Implemented |
+| **RF-10** | The system shall let the user submit a completed session with score and optional weight | 🔴 High | ✅ Implemented |
+| **RF-11** | The system shall queue sessions locally when offline and submit them later | 🟡 Medium | ✅ Implemented |
+| **RF-12** | The system shall show a history of past sessions | 🔴 High | ✅ Implemented |
+| **RF-13** | The system shall expose aggregate session statistics via `GET /sessions/stats` | 🟡 Medium | ✅ Implemented |
+| **RF-14** | The system shall let the user define and track personal goals | 🟡 Medium | ✅ Implemented |
+| **RF-15** | The system shall let the user view and edit their profile | 🟡 Medium | ✅ Implemented |
+| **RF-16** | The system shall let the user delete their account | 🟢 Low | ✅ Implemented |
+| **RF-17** | The system shall let the user export their session history | 🟢 Low | ✅ Implemented |
+| **RF-18** | The system shall compute achievements from session history | 🟢 Low | ✅ Implemented |
+| **RF-19** | The system shall expose liveness and readiness health probes | 🟡 Medium | ✅ Implemented |
+| **RF-20** | The system shall expose Prometheus-style metrics behind an admin key | 🟢 Low | ✅ Implemented |
+| **RF-21** | The system shall reject duplicate session submissions using an idempotency key | 🟡 Medium | ✅ Implemented |
+| **RF-22** | The system shall generate TypeScript API types from the backend OpenAPI schema | 🟢 Low | ✅ Implemented |
+
+---
+
+</details>
+
+## ⚡ Non-Functional Requirements
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+| ID | Category | Requirement | Target |
+|----|----------|-------------|--------|
+| **RNF-01** | ⚡ Performance | Pose inference stays on-device | No network round-trip during the exercise |
+| **RNF-02** | 🔐 Security | Passwords hashed with bcrypt, never logged | `password_hash` column only |
+| **RNF-03** | 🔐 Security | JWTs signed and verified with PyJWT, not python-jose | Removed for CVE-2024-33664/33663 |
+| **RNF-04** | 🔐 Security | Sensitive endpoints rate-limited | `slowapi` + Redis backend |
+| **RNF-05** | 🔐 Privacy | Raw video never transmitted or stored server-side | Only derived score persisted |
+| **RNF-06** | 🧪 Testability | Backend logic covered by an isolated test suite | 15 pytest modules under `backend/tests/` |
+| **RNF-07** | 🧪 Testability | Frontend services/hooks/screens covered by Jest | `collectCoverageFrom` targets services, hooks, screens |
+| **RNF-08** | 🧱 Maintainability | Backend layered: routers → services → models | Enforced conceptually and by `test_architecture.py` |
+| **RNF-09** | 🧱 Maintainability | Frontend layering enforced by a dedicated test | `app/src/__tests__/architecture.test.ts` |
+| **RNF-10** | 📈 Observability | Requests logged as structured JSON with a request ID | `core/logging.py`, `REQUEST_ID_HEADER` |
+| **RNF-11** | 📈 Observability | Liveness and readiness are separate probes | Avoids restart storms on transient DB slowness |
+| **RNF-12** | 📡 Resilience | Client tolerates temporary loss of connectivity | `pendingSessionsQueue.ts` |
+| **RNF-13** | 🔧 Reproducibility | Backend dependencies pinned with documented rationale | `requirements.txt` header comments |
+| **RNF-14** | 🌍 Portability | App runs on iOS, Android and web from one codebase | Expo + `poseDetector.web.ts` platform split |
+| **RNF-15** | 🗄️ Data Integrity | Session score constrained at the database level | `ck_training_sessions_score_range` |
+
+---
+
+</details>
+
+## 🗄️ Data Model
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+### Entity-Relationship Diagram
+
+```mermaid
+erDiagram
+    USER ||--o{ TRAINING_SESSION : "records"
+    EXERCISE ||--o{ TRAINING_SESSION : "is scored for"
+
+    USER {
+        string id "UUID, primary key"
+        string name
+        string email "unique, indexed"
+        string password_hash "bcrypt"
+        float weight_kg "nullable"
+        float height_cm "nullable"
+        string goal "nullable"
+        string experience_level "nullable"
+    }
+
+    EXERCISE {
+        string id "primary key"
+        string name
+        string muscle_group
+        string description "nullable"
+        string reference_model_uri "nullable, points to reference pose sequence"
+    }
+
+    TRAINING_SESSION {
+        string id "UUID, primary key"
+        string user_id "FK -> USER.id"
+        string exercise_id "FK -> EXERCISE.id"
+        int score "0-100, CHECK constraint"
+        datetime executed_at "timezone-aware"
+        float weight_kg "nullable, user-reported load"
+    }
+```
+
+### Training Session Constraints
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| `score` | `Integer` | `CHECK (score >= 0 AND score <= 100)` |
+| `user_id` | `String` | `FOREIGN KEY -> users.id`, indexed |
+| `exercise_id` | `String` | `FOREIGN KEY -> exercises.id`, indexed |
+| `executed_at` | `DateTime(timezone=True)` | Not nullable |
+| `weight_kg` | `Float` | Nullable, user-reported |
+
+### Client-Side Pose Sequence Shape
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `landmarks[]` | array of `{x, y, z, score}` | Per-frame normalized keypoints, defined in `poseTypes.ts` |
+| `timestampMs` | number | Frame timestamp relative to set start |
+| `referenceSequenceId` | string | Matches `Exercise.reference_model_uri` |
+
+---
+
+</details>
+
+## 🔄 System Flows
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+### Exercise Execution Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as 👤 User
+    participant CAL as 🧭 CalibrationScreen
+    participant EX as 🖥️ ExecutionScreen
+    participant PS as 🪝 usePoseSession
+    participant PD as 🧠 poseDetector
+    participant SC as 📐 poseScoring
+    participant SUB as 📤 useSessionSubmit
+    participant API as 🌐 apiClient
+
+    U->>CAL: Position phone / body
+    CAL->>PS: Calibration OK
+    PS->>EX: Start session
+    loop Every captured frame
+        EX->>PD: Frame from camera
+        PD-->>PS: Pose landmarks
+        PS->>SC: Compare vs reference sequence
+    end
+    PS-->>EX: Final score computed
+    EX->>SUB: submitSession(score, weight)
+    SUB->>API: POST /sessions
+    alt Online
+        API-->>SUB: 201 Created
+    else Offline
+        SUB->>SUB: pendingSessionsQueue.enqueue()
+    end
+    SUB-->>U: Show ResultScreen
+```
+
+### Authentication Flow
 
 ```mermaid
 flowchart TD
-    Launch([App Launch]) --> HasToken{Valid JWT stored?}
-    HasToken -- Yes --> Home[Home / Exercise Catalog]
-    HasToken -- No --> Auth{Register or Login?}
-    Auth -- Register --> RegForm[Registration Form] --> Home
-    Auth -- Login --> LoginForm[Login Form] --> Home
-    Home --> SelectExercise[Select Exercise]
-    SelectExercise --> Execution["Execution Screen\n(capture + score)"]
-    Execution --> Result[Result Screen]
-    Result --> Decision{What next?}
-    Decision -- "Train again" --> Home
-    Decision -- "View history" --> History[History Screen]
-    Decision -- "View profile" --> Profile["Profile / Preferences"]
-    History --> Home
-    Profile --> Logout{Logout?}
-    Logout -- Yes --> Launch
-    Logout -- No --> Home
+    START([App launch]) --> TOKEN{Stored refresh\ntoken valid?}
+    TOKEN -- No --> LOGIN[LoginScreen]
+    LOGIN --> SUBMIT[authService.login]
+    SUBMIT --> POST[POST /auth/login]
+    POST --> STORE[authStorage.save tokens\nSecureStore]
+    STORE --> HOME[HomeScreen]
+    TOKEN -- Yes --> REFRESH[POST /auth/refresh]
+    REFRESH -- 200 --> HOME
+    REFRESH -- 401 --> LOGIN
+
+    style START fill:#1565C0,color:#fff
+    style HOME fill:#2E7D32,color:#fff
+    style LOGIN fill:#BF360C,color:#fff
 ```
 
-</details>
-
----
-
-## 9️⃣ Persona & User Journey Map
-
-### 👤 Personas
-
-<details>
-<summary><strong>Click to expand — primary personas</strong></summary>
-
-| | 🏃 Ana Silva — Primary User | 🛡️ Carlos Mendes — Admin/Coach |
-|---|---|---|
-| **Age** | 28 | 41 |
-| **Occupation** | Marketing analyst, trains at home | Personal trainer / gym coach |
-| **Tech comfort** | Medium — uses apps daily, dislikes complex setup | Medium-high — comfortable with admin tools |
-| **Goals** | Train correctly without a coach present; track progress over time | Curate a reliable exercise catalog with accurate reference movements |
-| **Frustrations** | Doesn't know if her form is correct; afraid of injury | Cannot supervise every client's form remotely |
-| **Device** | 3-year-old Android phone (~3GB RAM) | Mid-range Android phone + laptop |
-| **Quote** | *"I just want to know if I'm squatting correctly — right now, not after a video call with my trainer."* | *"If I record one perfect rep, everyone training that exercise benefits."* |
-
-</details>
-
-### 🗺️ User Journey Map
-
-<details>
-<summary><strong>Click to expand — Ana's first-workout journey</strong></summary>
-
-| Stage | Discover & Onboard | Browse Catalog | Record Execution | Receive Score | Review History |
-|---|---|---|---|---|---|
-| **Actions** | Hears about the app, downloads it, registers (RF01) | Browses exercises by muscle group (RF02) | Selects "Squat", taps Start, performs the set (RF03) | Sees % score instantly (RF05) | Opens history, sees past sessions (RF06) |
-| **Touchpoints** | App store, Registration screen | Catalog screen | Execution screen + camera | Result screen | History screen |
-| **Thoughts** | "Is this free? Is my data safe?" | "Which exercises do I need?" | "Am I positioned correctly for the camera?" | "78%? What did I do wrong?" | "Am I improving week over week?" |
-| **Emotions** | 🙂 Curious | 🙂 Engaged | 😐 Slightly anxious | 😀 Motivated | 😀 Confident |
-| **Pain Points** | Privacy concerns about camera access | Too many exercises without filters | Needs good lighting/space for camera | Score without detailed feedback on *why* | History could lack enough sessions early on |
-| **Opportunities** | Highlight on-device/privacy-by-design messaging (RN04) | Add muscle-group filters | In-app camera framing guide | Future: per-joint feedback breakdown | Add streaks/trends to encourage retention |
+### Offline Queue State Machine
 
 ```mermaid
-journey
-    title Ana's Journey — First Workout with Gym Execution
-    section Discover & Onboard
-      Hears about app from a friend: 3: Ana
-      Downloads & registers: 4: Ana
-    section First Execution
-      Browses exercise catalog: 4: Ana
-      Selects "Squat": 5: Ana
-      Records a set: 4: Ana
-      Sees score (78%): 5: Ana
-    section Habit Building
-      Reviews history after a week: 4: Ana
-      Notices score improving: 5: Ana
+stateDiagram-v2
+    [*] --> Ready
+    Ready --> Submitting: submitSession()
+    Submitting --> Confirmed: 201 from POST /sessions
+    Submitting --> Queued: network error
+    Queued --> Submitting: connectivity restored, retry
+    Confirmed --> [*]
 ```
 
-</details>
+### Session Idempotency Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as 📱 Client
+    participant R as 🚏 sessions router
+    participant S as 🧩 session_service
+    participant DB as 🐘 PostgreSQL
+
+    C->>R: POST /sessions (Idempotency-Key: k1)
+    R->>S: create_session(payload, key=k1)
+    S->>DB: SELECT existing by key
+    alt Key already processed
+        DB-->>S: existing record
+        S-->>R: return existing (no duplicate insert)
+    else New key
+        S->>DB: INSERT training_session
+        DB-->>S: new record
+    end
+    R-->>C: 201 TrainingSessionPublic
+```
 
 ---
 
-## 🔟 Wireframes & Mockups
-
-### 📐 Wireframes (low-fidelity)
-
-<details>
-<summary><strong>Click to expand — Login</strong></summary>
-
-```
-┌─────────────────────────────┐
-│        🏋️ Gym Execution      │
-│                               │
-│  Email                       │
-│  ┌─────────────────────────┐ │
-│  │ you@example.com         │ │
-│  └─────────────────────────┘ │
-│  Password                    │
-│  ┌─────────────────────────┐ │
-│  │ ••••••••••              │ │
-│  └─────────────────────────┘ │
-│                               │
-│  ┌─────────────────────────┐ │
-│  │         Log In           │ │
-│  └─────────────────────────┘ │
-│                               │
-│     Don't have an account?   │
-│            Register          │
-└─────────────────────────────┘
-```
-
 </details>
 
-<details>
-<summary><strong>Click to expand — Exercise Catalog</strong></summary>
-
-```
-┌─────────────────────────────┐
-│ ☰  Exercises            👤   │
-├─────────────────────────────┤
-│ 🔍 Search...                  │
-├─────────────────────────────┤
-│ Legs                          │
-│  ▸ Squat            ⭐ ready  │
-│  ▸ Lunge             ⏳ soon  │
-│ Back                          │
-│  ▸ Deadlift          ⭐ ready │
-│ Chest                         │
-│  ▸ Push-up           ⭐ ready │
-├─────────────────────────────┤
-│ 🏠 Home   📜 History   👤 Profile │
-└─────────────────────────────┘
-```
-
-</details>
+## 🔐 Security
 
 <details>
-<summary><strong>Click to expand — Execution (Camera + Capture)</strong></summary>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
 
-```
-┌─────────────────────────────┐
-│  ←  Squat               ⚙️    │
-├─────────────────────────────┤
-│                               │
-│      [ Camera Preview ]       │
-│      pose skeleton overlay 🟢 │
-│                               │
-│   Rep 3 · capturing ~10 fps   │
-├─────────────────────────────┤
-│        ┌─────────────┐        │
-│        │  ⏺ Finish    │        │
-│        └─────────────┘        │
-└─────────────────────────────┘
-```
+### Implemented Controls
 
-</details>
+| Control | Implementation | Effect |
+|---------|---------------|--------|
+| 🔐 **Password hashing** | `bcrypt` in `core/security.py` | Plaintext passwords never persisted |
+| 🪪 **JWT auth** | `PyJWT` encode/decode, access + refresh pair | Short-lived access tokens limit exposure window |
+| 🔑 **Secure token storage** | `expo-secure-store` via `authStorage.ts` | Tokens kept out of plain AsyncStorage on-device |
+| 🚦 **Rate limiting** | `slowapi` + Redis (`core/rate_limit.py`, `core/redis.py`) | Throttles brute-force and abusive clients |
+| 🔒 **Admin-gated metrics** | `require_admin_api_key` on `/metrics` | Route inventory and traffic volume not publicly exposed |
+| 🧾 **Structured audit logging** | `core/logging.py`, request-ID middleware | Every request traceable end-to-end |
+| 🌐 **CORS allow-list** | `CORSMiddleware` with `settings.cors_allowed_origins` | Only configured origins can call the API from a browser |
+| 🚫 **CVE-driven dependency swaps** | `python-jose` → `PyJWT`, `passlib` → native `bcrypt` | Documented in `requirements.txt` header |
+| 🗂️ **No raw media on server** | `TrainingSession` model has no video/frame field | Server never holds sensitive camera footage |
 
-<details>
-<summary><strong>Click to expand — Result</strong></summary>
+### Known Security Limitations
 
-```
-┌─────────────────────────────┐
-│  Result — Squat               │
-├─────────────────────────────┤
-│                               │
-│            78%                │
-│   ████████████░░░░░░          │
-│  "Great form! Watch your      │
-│   knee alignment."            │
-│                               │
-│ ┌────────────┐ ┌────────────┐ │
-│ │ Train Again│ │View History│ │
-│ └────────────┘ └────────────┘ │
-└─────────────────────────────┘
-```
+> [!WARNING]
+> The following are inherent to the current design and should be understood before broader production use.
 
-</details>
-
-<details>
-<summary><strong>Click to expand — History</strong></summary>
-
-```
-┌─────────────────────────────┐
-│  History                      │
-├─────────────────────────────┤
-│ Squat        2026-06-10  78%  │
-│ Deadlift     2026-06-09  85%  │
-│ Push-up      2026-06-08  91%  │
-│ Squat        2026-06-07  72%  │
-├─────────────────────────────┤
-│        ◀  Page 1 of 4  ▶       │
-└─────────────────────────────┘
-```
-
-</details>
-
-### 🎨 Mockup Design Spec (high-fidelity guidance)
-
-<details>
-<summary><strong>Click to expand — design tokens & per-screen notes</strong></summary>
-
-| Token | Value | Usage |
-|---|---|---|
-| 🔵 Primary | `#2563EB` | Primary buttons, links, active nav icon |
-| 🟢 Secondary | `#10B981` | Success states, "ready" badges, pose-overlay skeleton |
-| 🟠 Accent | `#F59E0B` | Warnings, progress highlights |
-| ⚫ Dark mode bg | `#0F172A` | Background in dark theme (RF08 preference) |
-| ⚪ Light mode bg | `#F8FAFC` | Background in light theme |
-| 🔤 Font | System default (San Francisco / Roboto) | All text, for native look & feel |
-
-| Screen | Mockup Notes |
-|---|---|
-| **Login/Register** | Centered card, primary-color CTA button, link to switch between Login/Register |
-| **Catalog** | Grouped list by `muscle_group`, "ready" badge (🟢) when `reference_model_uri` is set, "soon" badge (🟠) otherwise |
-| **Execution** | Full-screen camera preview, semi-transparent skeleton overlay in secondary color, large circular "Finish" button |
-| **Result** | Large percentage in primary color, horizontal progress bar (secondary→accent gradient based on score), two CTA buttons |
-| **History** | Reverse-chronological list, score shown as colored pill (green ≥80, amber 50–79, red <50) |
-| **Profile/Preferences** | Toggle switches for camera quality, sound feedback, dark mode (all device-local per DAT06) |
-
-</details>
+| Limitation | Risk | Mitigation path |
+|------------|------|-----------------|
+| 🔓 **No documented password complexity policy visible in schemas** | Weak passwords accepted | Add a minimum-strength validator in `schemas/auth.py` |
+| 🧑‍💻 **On-device inference model is bundled in the app package** | Model weights are extractable from the APK/IPA | Acceptable for a public exercise model; revisit if a proprietary model is added |
+| 📡 **Refresh token storage relies on client-side SecureStore only** | A compromised device can reuse a stored refresh token | Add refresh-token rotation and server-side revocation list |
+| 🧾 **`/health` legacy alias is unauthenticated by design** | Minor information disclosure (service up/down) | Acceptable; contains no sensitive data |
+| 🔁 **Idempotency key is client-supplied** | A malicious client could omit or forge it | Server-side, this only affects the client's own duplicate protection, not other users' data |
+| 🌐 **CORS origins are configuration-driven** | A misconfigured deployment could over-allow origins | Review `settings.cors_allowed_origins` per environment before deploy |
 
 ---
 
-## 🧰 Tech Stack
+</details>
 
-| Layer | Technology | Why |
-|---|---|---|
-| 📱 Hybrid app | **React Native + Expo (SDK 51)**, TypeScript | Single codebase for Android/iOS/Web, great camera support |
-| 🧠 On-device CV (web) | **`@mediapipe/tasks-vision`** (WASM) | Google's official Pose Landmarker, runs in the browser |
-| 🧠 On-device CV (mobile) | **MoveNet Lightning INT8** via **`react-native-fast-tflite`** | ~3MB quantized model, fast on low-end devices |
-| 🖼️ Image preprocessing (mobile) | **`expo-camera`**, **`expo-image-manipulator`**, **`jpeg-js`** | Capture, crop/resize, decode to RGB tensor |
-| ⚡ Backend / API | **Python 3.12 + FastAPI** | Fast, typed (Pydantic), industry standard |
-| 🗄️ Database | **PostgreSQL 16** | Relational, robust, standard for user/training data |
-| 🚀 Cache | **Redis 7** | Low-latency repeated lookups |
-| 📦 Media storage | **S3-compatible (AWS S3 / MinIO) + CDN** | Reference videos & cached pose sequences |
-| 🐳 Containerization | **Docker** (multi-stage, non-root) | Reproducible deploys |
-| 🤖 CI/CD | **GitHub Actions** | Tests, Docker image publish (ghcr.io), web export |
-| 📲 Mobile build/distribution | **EAS (Expo Application Services)** | Native builds (`expo-dev-client` required for TFLite) |
-| 🧪 Testing | **Pytest** (backend) / **Jest** (frontend) | Industry standard |
-| 🛠️ DB migrations | **Alembic** | Versioned schema changes |
-| 🛡️ Rate limiting | **slowapi** | Protects auth endpoints |
+## 🚀 Installation & Execution
 
-> ⚠️ **Supply-chain caution**: install only from official registries
-> (PyPI/npm), verify exact package names (avoid typosquatting), review
-> generated lockfiles, and prefer pinned versions in production. See
-> [Security & Supply Chain](#-security--supply-chain).
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
 
-## 📂 Repository Structure
-
-| Directory | What | Docs |
-|---|---|---|
-| [`app/`](app/) | React Native + Expo app (mobile + web): screens, camera capture, pose scoring | [app/README.md](app/README.md) |
-| [`backend/`](backend/) | FastAPI API: auth, exercise catalog, session history | [backend/README.md](backend/README.md) |
-| [`backend/pipeline/`](backend/pipeline/) | Offline pipeline: reference video → pose sequence → publish | [backend/pipeline/README.md](backend/pipeline/README.md) |
-| [`.github/workflows/`](.github/workflows/) | CI/CD pipelines (tests, image build, web export) | — |
-
-## 🚀 Getting Started
+### Prerequisites
 
 ```bash
-# 1) Backend (API)
+# Node.js 18+ and npm for the mobile app
+node -v
+
+# Python 3.11+ for the backend
+python --version
+
+# Docker (for local Postgres + Redis via docker-compose.yml)
+docker --version
+```
+
+### Build
+
+```bash
+# --- Backend ---
 cd backend
-cp .env.example .env            # fill in local values
-python -m venv .venv && . .venv/Scripts/activate
+python -m venv .venv && source .venv/bin/activate   # or .venv\Scripts\activate on Windows
 pip install -r requirements.txt
-alembic upgrade head
+alembic upgrade head                                 # apply database migrations
+
+# --- Mobile app ---
+cd ../app
+npm install
+npm run generate:types      # generate src/types/api.generated.ts from ../openapi.json
+npm run typecheck           # tsc --noEmit
+```
+
+### Execution
+
+```bash
+# Start Postgres + Redis (and optionally the backend) locally
+docker-compose up -d
+
+# Run the backend directly (if not using the compose service)
+cd backend
 uvicorn app.main:app --reload
 
-# 2) App (in another terminal)
+# Run the mobile app
 cd app
-cp .env.example .env            # point EXPO_PUBLIC_API_BASE_URL to the API above
-npm ci
-npx expo start
+npm start          # expo start
+npm run android    # or: npm run ios / npm run web
 ```
 
-Optional local infrastructure (Postgres + Redis) via Docker:
+### Scripts & Targets
 
-```bash
-docker compose up -d
+| Command | Location | Purpose |
+|---------|----------|---------|
+| `npm start` | `app/` | Start the Expo dev server |
+| `npm run android` / `ios` / `web` | `app/` | Launch on a specific platform |
+| `npm run typecheck` | `app/` | Run `tsc --noEmit` |
+| `npm run generate:types` | `app/` | Regenerate typed API client from `openapi.json` |
+| `npm test` / `npm run test:coverage` | `app/` | Run Jest suite / with coverage |
+| `uvicorn app.main:app --reload` | `backend/` | Run the API with hot reload |
+| `alembic upgrade head` | `backend/` | Apply pending migrations |
+| `pytest` | `backend/` | Run the backend test suite |
+
+### Build Configuration
+
+| Setting | Value | Declared in |
+|---------|-------|-------------|
+| App name | `gym-execution-app` | `app/package.json` |
+| Expo SDK | `~51.0.0` | `app/package.json` |
+| Jest test timeout | `20000` ms | `app/package.json` (`jest.testTimeout`), documented as intentional |
+| FastAPI app title | `settings.app_name` | `backend/app/core/config.py` |
+| CORS methods | `GET, POST, PUT, PATCH, DELETE` | `backend/app/main.py` |
+| Exposed header | `REQUEST_ID_HEADER` | `backend/app/main.py` |
+
+---
+
+</details>
+
+## 🧪 Automated Tests
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+### Test Architecture
+
+```mermaid
+flowchart TB
+    subgraph FE["📱 Frontend — Jest"]
+        F1["services/__tests__/*\n17 files"]
+        F2["screens/__tests__/*\n6 files"]
+        F3["hooks/__tests__/usePoseSession.test.ts"]
+        F4["__tests__/architecture.test.ts\nLayering guard"]
+    end
+    subgraph BE["🖥️ Backend — Pytest"]
+        B1["test_auth.py\ntest_auth_refresh.py"]
+        B2["test_sessions.py\ntest_idempotency.py"]
+        B3["test_exercises.py\ntest_exercise_catalog_seed.py"]
+        B4["test_architecture.py\nLayering guard"]
+        B5["test_rate_limit.py\ntest_observability.py"]
+        B6["test_integration_postgres.py\nReal-DB integration"]
+    end
+
+    style FE fill:#1e3a5f,color:#fff
+    style BE fill:#1a3a1a,color:#fff
 ```
 
-## 🔌 API Endpoints
+| Suite | Location | Focus |
+|-------|----------|-------|
+| Frontend services | `app/src/services/__tests__/` | 17 files: scoring, storage, calibration, achievements, exports, ... |
+| Frontend screens | `app/src/screens/__tests__/` | 6 files: List, History, Home, Login, Result, Settings |
+| Frontend hooks | `app/src/hooks/__tests__/usePoseSession.test.ts` | Pose session orchestration |
+| Frontend architecture | `app/src/__tests__/architecture.test.ts` | Enforces layering rules |
+| Backend auth | `test_auth.py`, `test_auth_refresh.py` | Register/login/refresh/logout |
+| Backend sessions | `test_sessions.py`, `test_idempotency.py` | Session CRUD and duplicate protection |
+| Backend exercises | `test_exercises.py`, `test_exercise_catalog_seed.py`, `test_app_catalog_contract.py` | Catalog correctness and app/backend contract |
+| Backend architecture | `test_architecture.py` | Enforces router → service → model layering |
+| Backend reliability | `test_rate_limit.py`, `test_observability.py`, `test_uuid_generation.py` | Rate limiting, logging, ID generation |
+| Backend integration | `test_integration_postgres.py` | Runs against a real PostgreSQL instance |
+| Backend account | `test_account_deletion.py`, `test_users.py` | Profile and account lifecycle |
 
-| Method | Path | Description | Auth |
-|---|---|---|---|
-| `POST` | `/auth/register` | Register a new user | — (rate-limited) |
-| `POST` | `/auth/login` | Login, returns access + refresh token | — (rate-limited) |
-| `POST` | `/auth/refresh` | Rotate the refresh token, get a new pair | — (rate-limited) |
-| `POST` | `/auth/logout` | Revoke a refresh token | — (rate-limited) |
-| `GET` | `/exercises` | List the exercise catalog (paginated) | — public |
-| `GET` | `/exercises/{id}` | Get exercise details | — public |
-| `PUT` | `/exercises/{id}/reference-model` | Publish a reference pose sequence URI | 🛡️ Admin |
-| `GET` | `/sessions` | List the user's training sessions (paginated) | 🔑 |
-| `GET` | `/sessions/stats` | Aggregated stats for the current user | 🔑 |
-| `POST` | `/sessions` | Record a training session result | 🔑 |
-| `GET` | `/users/me` | Get current user profile | 🔑 |
-| `PATCH` | `/users/me` | Partially update the current user profile | 🔑 |
-| `DELETE` | `/users/me` | **Erase the account and all training history** (LGPD/GDPR) | 🔑 |
-| `GET` | `/health/live` | Liveness probe (process only) | — |
-| `GET` | `/health/ready` | Readiness probe (checks the database) | — |
-| `GET` | `/metrics` | RED metrics, Prometheus text format | 🛡️ Admin |
-
-> `POST /sessions` accepts an optional `Idempotency-Key` header — replaying the
-> same key returns the session already created instead of duplicating it. The
-> app always sends one, derived from the set's content, so draining the offline
-> queue is safe to retry.
->
-> Every response carries an `X-Request-ID` (echoed back if the client supplies
-> one), and it appears in every log line for that request.
-
-> The catalog endpoints are **public by design** — the app fetches the catalog
-> before the user has a session. This table is generated by hand; it drifted
-> before (`/exercises` was documented as authenticated, `/users/me` as `PUT`
-> when it is `PATCH`, and `/auth/refresh`, `/auth/logout` and `/sessions/stats`
-> were missing entirely). The authoritative contract is the OpenAPI schema:
-> `python backend/scripts/export_openapi.py`.
-
-## 🧪 Testing & CI/CD
+### Running the Tests
 
 ```bash
+# Frontend
+cd app
+npm test
+npm run test:coverage
+
 # Backend
-cd backend && pytest
-
-# App
-cd app && npm test
+cd backend
+pytest
+pytest tests/test_integration_postgres.py   # requires a running Postgres instance
 ```
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs both suites on
-every push/PR to `main`, builds & publishes the API Docker image to
-`ghcr.io`, exports the web app, and (on schedule/manual trigger) runs an
-integration suite against a real PostgreSQL service.
+### Manual Acceptance Checklist
 
-## 🚢 Deploy
+| # | Scenario | Expected result |
+|---|----------|-----------------|
+| 1 | Register a new account | User created, redirected to Home |
+| 2 | Log in with correct credentials | Access + refresh tokens stored, Home shown |
+| 3 | Select an exercise, calibrate, execute | Score 0-100 shown on ResultScreen |
+| 4 | Submit a session while offline | Session queued locally, no crash |
+| 5 | Regain connectivity | Queued session flushes automatically |
+| 6 | View History | Past sessions listed with scores and dates |
+| 7 | Attempt duplicate session submit with same idempotency key | No duplicate record created |
+| 8 | Exceed rate limit on an endpoint | 429 response returned |
+| 9 | Delete account | Account and dependent data removed, further auth fails |
 
-- **Backend**: containerized via [`backend/Dockerfile`](backend/Dockerfile)
-  (multi-stage, non-root, runs `alembic upgrade head` on start). Designed
-  for a managed Postgres/Redis host (Railway, Render, Fly.io) — provider
-  not yet chosen (`deploy-backend` job is a placeholder).
-- **App (mobile)**: native builds via **EAS** (`app/eas.json`), requires
-  `expo-dev-client` due to native CV modules.
-- **App (web)**: static export via `npx expo export --platform web`,
-  ready for any static host (Cloudflare Pages, Netlify, Vercel, S3+CDN).
+---
 
-Full details in the [app](app/README.md) and [backend](backend/README.md)
-READMEs.
+</details>
 
-## 🔒 Security & Supply Chain
+## 📊 Metrics & Monitoring
 
-- ⚠️ As seen with malicious npm/PyPI packages: before installing any
-  dependency, verify the **exact name** matches the official package (no
-  typosquatting), review the generated lockfile, and prefer
-  lockfile-respecting installers (`npm ci`,
-  `pip install -r requirements.txt --require-hashes`).
-- 🔐 `.env` files are **never** committed — see `.env.example` in
-  `app/` and `backend/`, and [`.gitignore`](.gitignore).
-- 🔑 Production `JWT_SECRET_KEY`/`ADMIN_API_KEY` must be generated fresh
-  (`python -c "import secrets; print(secrets.token_urlsafe(64))"`) and
-  stored as deployment/CI secrets — never reused from development.
-- 📦 ML models (`.tflite`/`.task`) are downloaded only from official
-  sources (TensorFlow Hub, Google AI Edge / MediaPipe), with checksums
-  verified when available.
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+### Codebase Metrics
+
+| Metric | Value |
+|--------|-------|
+| Frontend screens | 11 |
+| Frontend services | 26 |
+| Frontend hooks | 7 |
+| Frontend test files | 24 (17 services + 6 screens + 1 hook) |
+| Backend routers | 4 |
+| Backend services | 4 |
+| Backend models | 3 (`User`, `Exercise`, `TrainingSession`) |
+| Backend test modules | 15 |
+| Backend core modules | 6 |
+| Offline pipeline scripts | 3 |
+
+### Runtime Signals
+
+| Signal | Source | Where to observe |
+|--------|--------|------------------|
+| Request rate/errors/duration | `core/logging.py` metrics render | `GET /metrics` (admin key required) |
+| Liveness | Process responsiveness only | `GET /health/live` |
+| Readiness | `SELECT 1` against PostgreSQL | `GET /health/ready` |
+| Structured request logs | JSON logger with request ID | stdout / log aggregator |
+| Rate-limit rejections | `slowapi` + Redis | 429 responses, Redis keys |
+
+### Useful Diagnostic Commands
+
+```bash
+# Tail backend logs (structured JSON, one line per request)
+uvicorn app.main:app --reload | tee backend.log
+
+# Check readiness against the running instance
+curl -s http://localhost:8000/health/ready
+
+# Pull metrics (requires admin key header)
+curl -s -H "X-Admin-Api-Key: <key>" http://localhost:8000/metrics
+
+# Inspect Redis rate-limit keys
+docker exec -it <redis_container> redis-cli KEYS "LIMITER*"
+```
+
+### Standardized Response Codes
+
+| Code | Meaning | Where |
+|------|---------|-------|
+| `200` | OK | Health/readiness, GET endpoints |
+| `201` | Created | Register, session create |
+| `204` | No Content | Logout, account delete |
+| `401` | Unauthorized | Invalid/expired JWT |
+| `429` | Too Many Requests | `slowapi` rate limit exceeded |
+| `500` | Internal Server Error | Caught by global exception handler, returns `requestId` |
+| `503` | Service Unavailable | `/health/ready` when the database is unreachable |
+
+---
+
+</details>
+
+## ⚠️ Known Limitations
+
+<details>
+<summary>▶️ <strong>Click to expand / collapse this section</strong></summary>
+
+> [!IMPORTANT]
+> This project balances an educational pose-scoring exercise with production-grade backend practices (idempotency, rate limiting, structured logging). Some frontend/backend edges are still evolving.
+
+| Category | Issue | Status |
+|----------|-------|--------|
+| 🧠 **Pose model accuracy** | MoveNet/MediaPipe scoring is heuristic, not clinically validated | ➕ Intentional — form scoring is guidance, not medical assessment |
+| 📡 **Offline queue durability** | Queue lives in AsyncStorage, not encrypted | ⚠️ Open — consider moving to SecureStore if session payloads become sensitive |
+| 🔑 **No refresh-token rotation** | A leaked refresh token remains valid until natural expiry | ⚠️ Open — add rotation + revocation list |
+| 🧪 **Integration test requires live Postgres** | `test_integration_postgres.py` cannot run in isolation | ➕ Intentional — validates real DB behavior, skip locally without Postgres |
+| 🌍 **Some log/comment strings are in Portuguese** | Mixed-language codebase comments | ➕ Intentional — primary dev team is Portuguese-speaking |
+| 📱 **Web pose detector path is a separate implementation** | Native and web pose code can drift | ⚠️ Open — add contract tests comparing `poseDetector` and `poseDetector.web` outputs |
+| 🔧 **Pipeline tooling is manual** | `pipeline/publish_reference.py` is run by hand, not automated | ⚠️ Open — wrap in a CI job for new reference exercises |
+| 📊 **No dashboard for `/metrics`** | Prometheus text format exposed but no bundled Grafana config | ⚠️ Open — ship a starter dashboard definition |
+
+> [!TIP]
+> The single highest-value improvement is adding **refresh-token rotation with server-side revocation**, since it directly hardens the account-security model without requiring any frontend redesign.
+
+</details>
+
+---
+
+<div align="center">
+
+---
+
+### 🏋️ Gym Execution
+
+*Score the movement, not the video*
+
+![Expo](https://img.shields.io/badge/Built%20with-Expo-000020?style=flat-square&logo=expo&logoColor=white)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![TFLite](https://img.shields.io/badge/Inference-On--device-FF6F00?style=flat-square&logo=tensorflow&logoColor=white)
+![Privacy](https://img.shields.io/badge/Video-Never%20Uploaded-8B5CF6?style=flat-square)
+
+<br/>
+
+```
+"Good form is invisible until it's measured —
+ the camera only needs to see the movement once."
+```
+
+</div>
