@@ -1,11 +1,3 @@
-# Sobe Postgres + Redis locais para desenvolvimento e para os testes de
-# integração descritos em backend/README.md ("Testes"). As portas e
-# credenciais aqui combinam com os defaults de backend/.env.example —
-# ajuste ambos juntos se mudar algo.
-#
-# Imagens oficiais do Docker Hub, fixadas por versão (cuidado de
-# supply-chain igual ao resto do projeto — considere fixar por digest
-# para builds 100% reprodutíveis: postgres:16.4@sha256:...).
 
 services:
   db:
