@@ -1,21 +1,14 @@
 name: CI
 
-# Roda a suíte de testes do backend (pytest, ver backend/tests/) e do app
-# (jest, ver app/src/**/__tests__/) a cada push/PR — fecha o ciclo aberto
-# pelos testes recém-criados (eles existiam mas não rodavam automaticamente).
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 6 * * 1" # toda segunda às 06:00 UTC — ver job backend-integration-tests
+    - cron: "0 6 * * 1"
   workflow_dispatch: {}
 
-# Cuidado com supply-chain: usamos só actions oficiais do GitHub
-# (actions/*), fixadas por versão principal. Para hardening adicional,
-# considere fixar por commit SHA completo (ver
-# https://docs.github.com/actions/security-guides/security-hardening-for-github-actions).
 permissions:
   contents: read
 
@@ -38,23 +31,15 @@ jobs:
       - name: Instalar dependências
         run: pip install -r requirements.txt
 
-      # Ferramentas só de CI, fixadas — não entram em requirements.txt para não
-      # irem parar na imagem de produção.
       - name: Instalar ferramentas de qualidade
         run: pip install ruff==0.6.9 pytest-cov==5.0.0 pip-audit==2.7.3
 
       - name: Lint (ruff)
         run: ruff check .
 
-      # `--cov-fail-under` é o gate: sem ele a cobertura é só um número num
-      # relatório que ninguém abre. Está em 94%; o piso fica em 90 para dar
-      # folga a um refactor legítimo. Regra: subir, nunca descer.
       - name: Rodar testes com gate de cobertura
         run: pytest --cov=app --cov-report=term-missing --cov-fail-under=90
 
-      # RNF08 ("supply-chain security") era só uma promessa no README: nada no
-      # pipeline checava CVEs. pip-audit consulta a Advisory Database do PyPI
-      # contra o que está instalado.
       - name: Auditar dependências (CVEs conhecidas)
         run: pip-audit -r requirements.txt --strict
 
@@ -76,21 +61,12 @@ jobs:
       - name: Instalar dependências (respeita o lockfile)
         run: npm ci
 
-      # `tsconfig.json` já tem strict: true, mas nada no CI compilava o projeto —
-      # o Jest roda por babel, que APAGA os tipos sem checá-los. Erros de tipo
-      # (assinatura trocada, campo renomeado num contrato da API) passavam com a
-      # suíte verde. Usa o typescript já pinado em devDependencies.
       - name: Checagem de tipos (tsc --noEmit)
         run: npm run typecheck
 
-      # O gate de cobertura vive em package.json (`jest.coverageThreshold`) —
-      # o Jest falha sozinho ao ficar abaixo dele.
       - name: Rodar testes com gate de cobertura
         run: npm run test:coverage -- --ci
 
-      # Contrapartida de pip-audit no backend; `npm audit` é embutido no npm,
-      # sem dependência nova. Só falha em severidade alta/crítica para não
-      # travar o pipeline por avisos de transitivas de dev.
       - name: Auditar dependências (CVEs conhecidas)
         run: npm audit --audit-level=high
 
@@ -129,9 +105,6 @@ jobs:
           RUN_INTEGRATION_TESTS: "1"
           INTEGRATION_DATABASE_URL: postgresql+psycopg2://gym:gym@localhost:5432/gym_execution_test
 
-  # Jobs de deploy abaixo (README.md raiz, seção "Deploy") só rodam em push para
-  # `main` (nunca em PR — evita publicar artefatos de branches não
-  # revisadas) e dependem dos testes correspondentes terem passado.
 
   build-and-push-backend-image:
     name: Build & publicar imagem da API
@@ -140,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # publica no GitHub Container Registry (ghcr.io)
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
